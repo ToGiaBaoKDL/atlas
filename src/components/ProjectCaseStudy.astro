@@ -1,0 +1,109 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { localizedPath, type Locale } from "../data/site";
+import ProjectTopology from "./ProjectTopology.astro";
+
+interface Props {
+  locale: Locale;
+  project: CollectionEntry<"projects">;
+}
+
+const { locale, project } = Astro.props;
+const { Content, headings } = await render(project);
+const counterpart = (await getCollection("projects")).find(
+  ({ data }) => data.translationKey === project.data.translationKey && data.lang !== locale,
+);
+const alternatePath = counterpart
+  ? localizedPath(counterpart.data.lang, `work/${counterpart.data.slug}`)
+  : localizedPath(locale === "en" ? "vi" : "en", "work");
+const copy =
+  locale === "en"
+    ? {
+        back: "All work",
+        role: "Role",
+        period: "Period",
+        status: "Status",
+        stack: "Stack",
+        contents: "On this page",
+        repository: "View repository",
+      }
+    : {
+        back: "Tất cả dự án",
+        role: "Vai trò",
+        period: "Thời gian",
+        status: "Trạng thái",
+        stack: "Công nghệ",
+        contents: "Trong trang này",
+        repository: "Xem repository",
+      };
+---
+
+<BaseLayout
+  locale={locale}
+  title={project.data.title}
+  description={project.data.description}
+  section="work"
+  alternatePath={alternatePath}
+>
+  <article>
+    <header class="project-hero container">
+      <a class="text-link" href={localizedPath(locale, "work")}>← {copy.back}</a>
+      <div class="project-hero-grid">
+        <div>
+          <p class="section-kicker">{project.data.topics.slice(0, 2).join(" · ")}</p>
+          <h1>{project.data.title}</h1>
+          <p class="project-outcome">{project.data.outcome}</p>
+          <div class="project-links">
+            {
+              project.data.links.repository && (
+                <a class="button" href={project.data.links.repository} rel="external">
+                  {copy.repository} ↗
+                </a>
+              )
+            }
+          </div>
+        </div>
+        <dl class="signal-list">
+          <div><dt>{copy.role}</dt><dd>{project.data.role}</dd></div>
+          <div><dt>{copy.period}</dt><dd>{project.data.period}</dd></div>
+          <div><dt>{copy.status}</dt><dd>{project.data.statusLabel}</dd></div>
+          <div><dt>{copy.stack}</dt><dd>{project.data.stack.slice(0, 4).join(" · ")}</dd></div>
+        </dl>
+      </div>
+    </header>
+
+    {
+      project.data.translationKey === "mini-lakehouse" && (
+        <section
+          class="container"
+          aria-label={locale === "en" ? "Architecture overview" : "Tổng quan kiến trúc"}
+        >
+          <ProjectTopology locale={locale} />
+        </section>
+      )
+    }
+
+    <div class="container case-study section">
+      <div class="prose">
+        <Content />
+      </div>
+      {
+        headings.filter(({ depth }) => depth === 2).length > 1 && (
+          <aside class="case-study-aside">
+            <h2>{copy.contents}</h2>
+            <ul>
+              {headings
+                .filter(({ depth }) => depth === 2)
+                .map((heading) => (
+                  <li>
+                    <a href={`#${heading.slug}`}>{heading.text}</a>
+                  </li>
+                ))}
+            </ul>
+          </aside>
+        )
+      }
+    </div>
+  </article>
+</BaseLayout>

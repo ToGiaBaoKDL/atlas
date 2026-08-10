@@ -1,0 +1,95 @@
+---
+import type { Locale } from "../data/site";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const copy =
+  locale === "en"
+    ? {
+        title: "A layered view of a data platform",
+        desc: "Sources flow through orchestration and processing into an Iceberg lakehouse, analytics models and data products.",
+        caption: "System boundaries over technology logos.",
+        mobile: [
+          "Sources",
+          "Orchestrate & process",
+          "Iceberg lakehouse",
+          "Analytics & data products",
+        ],
+      }
+    : {
+        title: "Các lớp của một nền tảng dữ liệu",
+        desc: "Nguồn dữ liệu đi qua lớp điều phối và xử lý vào lakehouse Iceberg, mô hình phân tích và sản phẩm dữ liệu.",
+        caption: "Ranh giới hệ thống quan trọng hơn logo công nghệ.",
+        mobile: [
+          "Nguồn dữ liệu",
+          "Điều phối & xử lý",
+          "Lakehouse Iceberg",
+          "Analytics & sản phẩm dữ liệu",
+        ],
+      };
+---
+
+<figure class="signature-figure">
+  <div class="signature-canvas">
+    <svg
+      class="architecture-svg"
+      viewBox="0 0 560 470"
+      role="img"
+      aria-labelledby="architecture-title architecture-desc"
+    >
+      <title id="architecture-title">{copy.title}</title>
+      <desc id="architecture-desc">{copy.desc}</desc>
+
+      <text class="label" x="28" y="31">SOURCES</text>
+      <rect class="node" x="28" y="47" width="145" height="58" rx="8"></rect>
+      <text x="47" y="81">APIs · Events · Docs</text>
+
+      <path class="edge" d="M173 76H222"></path>
+      <path class="edge" d="M210 69l12 7-12 7"></path>
+
+      <text class="label" x="236" y="31">CONTROL</text>
+      <rect class="node-accent" x="222" y="47" width="145" height="58" rx="8"></rect>
+      <text x="244" y="81">Airflow · Contracts</text>
+
+      <path class="edge" d="M367 76H416"></path>
+      <path class="edge" d="M404 69l12 7-12 7"></path>
+
+      <text class="label" x="429" y="31">COMPUTE</text>
+      <rect class="node" x="416" y="47" width="116" height="58" rx="8"></rect>
+      <text x="442" y="81">EMR · OCR</text>
+
+      <path class="edge edge-muted" d="M474 105v54"></path>
+      <path class="edge edge-muted" d="M467 147l7 12 7-12"></path>
+      <path class="edge" d="M294 105v54"></path>
+      <path class="edge" d="M287 147l7 12 7-12"></path>
+
+      <text class="label" x="28" y="181">LAKEHOUSE</text>
+      <rect class="node-dark" x="28" y="197" width="504" height="104" rx="10"></rect>
+      <text class="text-light" x="54" y="234">S3 · Apache Iceberg · Glue Catalog</text>
+      <text class="label text-light" x="54" y="269">LANDING</text>
+      <text class="label text-light" x="237" y="269">CURATED</text>
+      <text class="label text-light" x="416" y="269">ANALYTICS</text>
+      <path class="edge" d="M130 263H225M305 263H402"></path>
+
+      <path class="edge" d="M280 301v54"></path>
+      <path class="edge" d="M273 343l7 12 7-12"></path>
+
+      <text class="label" x="28" y="374">SERVE</text>
+      <rect class="node" x="28" y="390" width="150" height="58" rx="8"></rect>
+      <text x="57" y="424">Athena · dbt</text>
+      <rect class="node-accent" x="205" y="390" width="150" height="58" rx="8"></rect>
+      <text x="230" y="424">Data products</text>
+      <rect class="node" x="382" y="390" width="150" height="58" rx="8"></rect>
+      <text x="411" y="424">Observability</text>
+      <path class="edge edge-muted" d="M178 419h27M355 419h27"></path>
+    </svg>
+
+    <ol class="mobile-architecture" aria-label={copy.title}>
+      {copy.mobile.map((item) => <li>{item}</li>)}
+    </ol>
+  </div>
+  <figcaption class="signature-caption">{copy.caption}</figcaption>
+</figure>

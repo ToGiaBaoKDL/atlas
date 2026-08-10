@@ -1,0 +1,74 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { alternateLocale, localizedPath, type Locale } from "../data/site";
+
+interface Props {
+  locale: Locale;
+  collection: "writing" | "notes";
+}
+
+const { locale, collection } = Astro.props;
+const otherLocale = alternateLocale(locale);
+const copy = {
+  en: {
+    writing: {
+      kicker: "Long-form",
+      title: "Writing",
+      description: "Technical essays built around one clear engineering argument.",
+      empty: "The first essay is being prepared.",
+      detail:
+        "It examines why an Iceberg catalog control plane—not Terraform—should own table definitions and evolution.",
+    },
+    notes: {
+      kicker: "Public notebook",
+      title: "Notes",
+      description: "Concise, evolving notes from systems I build and operate.",
+      empty: "The first set of engineering notes is being edited.",
+      detail:
+        "Topics include Iceberg ownership, idempotent publication, immutable releases, OIDC and typed AI workflows.",
+    },
+  },
+  vi: {
+    writing: {
+      kicker: "Bài viết chuyên sâu",
+      title: "Bài viết",
+      description: "Bài viết kỹ thuật được xây dựng quanh một luận điểm kỹ thuật rõ ràng.",
+      empty: "Bài viết đầu tiên đang được hoàn thiện.",
+      detail:
+        "Bài viết phân tích vì sao catalog control plane—không phải Terraform—nên sở hữu định nghĩa và quá trình thay đổi của Iceberg table.",
+    },
+    notes: {
+      kicker: "Sổ tay công khai",
+      title: "Ghi chú",
+      description: "Ghi chú ngắn, tiếp tục phát triển từ các hệ thống tôi xây dựng và vận hành.",
+      empty: "Nhóm ghi chú kỹ thuật đầu tiên đang được biên tập.",
+      detail:
+        "Các chủ đề gồm quyền sở hữu Iceberg, idempotent publication, immutable release, OIDC và typed AI workflow.",
+    },
+  },
+}[locale][collection];
+---
+
+<BaseLayout
+  locale={locale}
+  title={copy.title}
+  description={copy.description}
+  section={collection}
+  alternatePath={localizedPath(otherLocale, collection)}
+  noindex
+>
+  <div class="container">
+    <header class="page-hero">
+      <p class="section-kicker">{copy.kicker}</p>
+      <h1>{copy.title}</h1>
+      <p>{copy.description}</p>
+    </header>
+    <section class="empty-state">
+      <div>
+        <h2>{copy.empty}</h2>
+        <p>{copy.detail}</p>
+      </div>
+    </section>
+  </div>
+  <div class="section"></div>
+</BaseLayout>

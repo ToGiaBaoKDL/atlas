@@ -1,0 +1,35 @@
+{
+  "name": "togabao-portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
+    "check": "prettier --check . && eslint . && ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "format": "prettier --write ."
+  },
+  "dependencies": {
+    "@astrojs/rss": "4.0.19",
+    "@astrojs/sitemap": "3.7.3",
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "astro": "7.2.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@tailwindcss/vite": "4.3.3",
+    "eslint": "10.8.1",
+    "eslint-plugin-astro": "3.1.0",
+    "prettier": "3.9.6",
+    "prettier-plugin-astro": "0.14.1",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.66.0"
+  }
+}

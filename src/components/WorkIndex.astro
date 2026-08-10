@@ -1,0 +1,66 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { alternateLocale, localizedPath, type Locale } from "../data/site";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const projects = (await getCollection("projects", ({ data }) => data.lang === locale)).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const otherLocale = alternateLocale(locale);
+const copy =
+  locale === "en"
+    ? {
+        kicker: "Selected systems",
+        title: "Work",
+        description:
+          "Personal systems and technical case studies, presented through constraints, decisions and trade-offs.",
+        meta: "Role · period · stack",
+      }
+    : {
+        kicker: "Hệ thống chọn lọc",
+        title: "Dự án",
+        description:
+          "Các hệ thống cá nhân và case study kỹ thuật, được trình bày qua ràng buộc, quyết định và trade-off.",
+        meta: "Vai trò · thời gian · công nghệ",
+      };
+---
+
+<BaseLayout
+  locale={locale}
+  title={copy.title}
+  description={copy.description}
+  section="work"
+  alternatePath={localizedPath(otherLocale, "work")}
+>
+  <div class="container">
+    <header class="page-hero">
+      <p class="section-kicker">{copy.kicker}</p>
+      <h1>{copy.title}</h1>
+      <p>{copy.description}</p>
+    </header>
+
+    <section class="work-list" aria-label={copy.title}>
+      {
+        projects.map((project, index) => (
+          <a class="work-list-item" href={localizedPath(locale, `work/${project.data.slug}`)}>
+            <span class="work-list-number">{String(index + 1).padStart(2, "0")}</span>
+            <div>
+              <h2>{project.data.title}</h2>
+              <p>{project.data.outcome}</p>
+            </div>
+            <span class="work-list-stack" aria-label={copy.meta}>
+              {project.data.stack.join(" · ")}
+            </span>
+            <span aria-hidden="true">→</span>
+          </a>
+        ))
+      }
+    </section>
+  </div>
+  <div class="section"></div>
+</BaseLayout>

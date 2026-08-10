@@ -1,0 +1,45 @@
+---
+import type { Locale } from "../data/site";
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const stages =
+  locale === "en"
+    ? [
+        { label: "Control", title: "Contracts", detail: "YAML · PyIceberg" },
+        { label: "Process", title: "EMR & OCR", detail: "Spark · GPU runtime" },
+        { label: "Store", title: "Iceberg", detail: "S3 · Glue Catalog" },
+        { label: "Model", title: "dbt", detail: "Athena · domain marts" },
+        { label: "Serve", title: "Inspector", detail: "Read-only data app" },
+        { label: "Operate", title: "Airflow", detail: "Private OCI runtime" },
+      ]
+    : [
+        { label: "Kiểm soát", title: "Contracts", detail: "YAML · PyIceberg" },
+        { label: "Xử lý", title: "EMR & OCR", detail: "Spark · GPU runtime" },
+        { label: "Lưu trữ", title: "Iceberg", detail: "S3 · Glue Catalog" },
+        { label: "Mô hình", title: "dbt", detail: "Athena · domain marts" },
+        { label: "Phục vụ", title: "Inspector", detail: "Ứng dụng chỉ đọc" },
+        { label: "Vận hành", title: "Airflow", detail: "Private OCI runtime" },
+      ];
+---
+
+<div
+  class="project-topology"
+  role="img"
+  aria-label={locale === "en"
+    ? "Mini Lakehouse platform stages"
+    : "Các lớp của nền tảng Mini Lakehouse"}
+>
+  {
+    stages.map((stage) => (
+      <div class="topology-stage">
+        <small>{stage.label}</small>
+        <strong>{stage.title}</strong>
+        <span>{stage.detail}</span>
+      </div>
+    ))
+  }
+</div>
