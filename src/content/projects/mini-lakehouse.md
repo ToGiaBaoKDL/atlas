@@ -2,8 +2,6 @@
 title: Mini Lakehouse
 description: A fully deployed personal lakehouse spanning cloud infrastructure, catalog contracts, orchestration, analytics and GPU document processing.
 outcome: A fully deployed personal lakehouse with independently owned infrastructure, data and delivery boundaries.
-lang: en
-translationKey: mini-lakehouse
 slug: mini-lakehouse
 role: Sole designer and engineer
 period: Jul 2026 — Present

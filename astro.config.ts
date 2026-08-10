@@ -12,14 +12,6 @@ export default defineConfig({
     syntaxHighlight: false,
   },
   integrations: site ? [sitemap()] : [],
-  i18n: {
-    defaultLocale: "en",
-    locales: ["en", "vi"],
-    routing: {
-      prefixDefaultLocale: false,
-      redirectToDefaultLocale: false,
-    },
-  },
   security: {
     csp: {
       directives: [

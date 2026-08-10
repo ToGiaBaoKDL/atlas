@@ -2,8 +2,6 @@
 title: VN Market Pulse
 description: A bounded Vietnamese web-research pipeline built around typed model outputs, explicit deadlines and source-backed generation.
 outcome: A research workflow that gives models semantic responsibility while deterministic code enforces runtime and validation limits.
-lang: en
-translationKey: vn-market-pulse
 slug: vn-market-pulse
 role: Sole designer and engineer
 period: Jul 2026

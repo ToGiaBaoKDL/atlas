@@ -1,32 +1,25 @@
 ---
-import { alternateLocale, localizedPath, site, ui, type Locale } from "../data/site";
+import { site, ui } from "../data/site";
 
 interface Props {
-  locale: Locale;
   section?: "work" | "writing" | "notes" | "about";
-  alternatePath?: string;
 }
 
-const { locale, section, alternatePath } = Astro.props;
-const copy = ui[locale];
-const otherLocale = alternateLocale(locale);
-const switchHref = alternatePath ?? localizedPath(otherLocale);
+const { section } = Astro.props;
 const navItems = [
-  { key: "work", href: localizedPath(locale, "work"), label: copy.nav.work },
-  { key: "writing", href: localizedPath(locale, "writing"), label: copy.nav.writing },
-  { key: "notes", href: localizedPath(locale, "notes"), label: copy.nav.notes },
-  { key: "about", href: localizedPath(locale, "about"), label: copy.nav.about },
+  { key: "work", href: "/work/", label: ui.nav.work },
+  { key: "writing", href: "/writing/", label: ui.nav.writing },
+  { key: "notes", href: "/notes/", label: ui.nav.notes },
+  { key: "about", href: "/about/", label: ui.nav.about },
 ] as const;
 ---
 
 <header class="site-header">
   <div class="container header-inner">
-    <a class="wordmark" href={localizedPath(locale)} aria-label={`${site.name} — Home`}
-      >{site.name}</a
-    >
+    <a class="wordmark" href="/" aria-label={`${site.name} — Home`}>{site.name}</a>
 
     <div class="desktop-controls">
-      <nav class="desktop-nav" aria-label={copy.navigationLabel}>
+      <nav class="desktop-nav" aria-label={ui.navigationLabel}>
         {
           navItems.map((item) => (
             <a href={item.href} aria-current={section === item.key ? "page" : undefined}>
@@ -35,40 +28,34 @@ const navItems = [
           ))
         }
       </nav>
-      <div class="utility-nav">
-        <a class="language-link" href={switchHref} hreflang={otherLocale} lang={otherLocale}>
-          {otherLocale.toUpperCase()}
-          <span class="sr-only">— {ui[otherLocale].localeName}</span>
-        </a>
-        <button class="icon-button" type="button" data-theme-toggle aria-label={copy.themeToggle}>
-          <svg
-            class="theme-icon-sun"
-            aria-hidden="true"
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <circle cx="12" cy="12" r="3.5"></circle><path
-              d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"
-            ></path>
-          </svg>
-          <svg
-            class="theme-icon-moon"
-            aria-hidden="true"
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <path d="M20.5 15.4A8.6 8.6 0 0 1 8.6 3.5 8.7 8.7 0 1 0 20.5 15.4Z"></path>
-          </svg>
-        </button>
-      </div>
+      <button class="icon-button" type="button" data-theme-toggle aria-label={ui.themeToggle}>
+        <svg
+          class="theme-icon-sun"
+          aria-hidden="true"
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <circle cx="12" cy="12" r="3.5"></circle><path
+            d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"
+          ></path>
+        </svg>
+        <svg
+          class="theme-icon-moon"
+          aria-hidden="true"
+          width="17"
+          height="17"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <path d="M20.5 15.4A8.6 8.6 0 0 1 8.6 3.5 8.7 8.7 0 1 0 20.5 15.4Z"></path>
+        </svg>
+      </button>
     </div>
 
     <div class="mobile-controls">
@@ -76,7 +63,7 @@ const navItems = [
         class="menu-button"
         type="button"
         data-menu-open
-        aria-label={copy.menuOpen}
+        aria-label={ui.menuOpen}
         aria-controls="mobile-menu"
       >
         <svg
@@ -94,11 +81,11 @@ const navItems = [
     </div>
   </div>
 
-  <dialog class="mobile-menu" id="mobile-menu" aria-label={copy.navigationLabel}>
+  <dialog class="mobile-menu" id="mobile-menu" aria-label={ui.navigationLabel}>
     <div class="mobile-menu-inner">
       <div class="mobile-menu-top">
         <span class="wordmark">{site.name}</span>
-        <button class="icon-button" type="button" data-menu-close aria-label={copy.menuClose}>
+        <button class="icon-button" type="button" data-menu-close aria-label={ui.menuClose}>
           <svg
             aria-hidden="true"
             width="19"
@@ -112,7 +99,7 @@ const navItems = [
           </svg>
         </button>
       </div>
-      <nav class="mobile-menu-nav" aria-label={copy.navigationLabel}>
+      <nav class="mobile-menu-nav" aria-label={ui.navigationLabel}>
         {
           navItems.map((item) => (
             <a href={item.href} aria-current={section === item.key ? "page" : undefined}>
@@ -122,10 +109,8 @@ const navItems = [
         }
       </nav>
       <div class="mobile-menu-utilities">
-        <a class="language-link" href={switchHref} hreflang={otherLocale} lang={otherLocale}>
-          {otherLocale.toUpperCase()} — {ui[otherLocale].localeName}
-        </a>
-        <button class="icon-button" type="button" data-theme-toggle aria-label={copy.themeToggle}>
+        <span>Appearance</span>
+        <button class="icon-button" type="button" data-theme-toggle aria-label={ui.themeToggle}>
           <svg
             class="theme-icon-sun"
             aria-hidden="true"

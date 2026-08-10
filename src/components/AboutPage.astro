@@ -1,91 +1,67 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { alternateLocale, localizedPath, site, type Locale } from "../data/site";
-
-interface Props {
-  locale: Locale;
-}
-
-const { locale } = Astro.props;
-const otherLocale = alternateLocale(locale);
-const copy =
-  locale === "en"
-    ? {
-        kicker: "About",
-        title: "Engineer, builder, lifelong learner.",
-        description:
-          "About Tô Gia Bảo, a Data Engineer focused on reliable data platforms, analytics systems and AI-assisted tools.",
-        paragraphs: [
-          "I'm Tô Gia Bảo, a Data Engineer at Timo Digital Bank by BVBank. I build cloud data pipelines, orchestration workflows, analytics systems and AI-assisted tools using Python, SQL, AWS, Airflow and dbt.",
-          "I care about explicit system boundaries, observable operations and designs that remain understandable as they grow. My current interests include lakehouse architecture, infrastructure as code and AI-native data tooling.",
-          "I hold a B.Sc. in Data Science from the University of Science, VNU-HCM.",
-        ],
-        role: "Current role",
-        roleValue: "Data Engineer · Timo Digital Bank by BVBank",
-        location: "Location",
-        locationValue: "Ho Chi Minh City, Vietnam",
-        focus: "Current focus",
-        focusValue: "Data platforms · Lakehouse · Cloud infrastructure · Applied AI",
-        contact: "Contact",
-        resume: "Download resume",
-      }
-    : {
-        kicker: "Giới thiệu",
-        title: "Kỹ sư, người xây dựng, người học suốt đời.",
-        description:
-          "Giới thiệu Tô Gia Bảo, Data Engineer tập trung vào nền tảng dữ liệu tin cậy, hệ thống phân tích và công cụ hỗ trợ bởi AI.",
-        paragraphs: [
-          "Tôi là Tô Gia Bảo, hiện làm Data Engineer tại Timo Digital Bank by BVBank. Tôi xây dựng pipeline dữ liệu trên cloud, workflow điều phối, hệ thống phân tích và các công cụ hỗ trợ bởi AI với Python, SQL, AWS, Airflow và dbt.",
-          "Tôi chú trọng ranh giới hệ thống rõ ràng, khả năng quan sát khi vận hành và những thiết kế vẫn dễ hiểu khi mở rộng. Các hướng tôi đang quan tâm gồm kiến trúc lakehouse, infrastructure as code và công cụ dữ liệu AI-native.",
-          "Tôi tốt nghiệp Cử nhân Khoa học Dữ liệu tại Trường Đại học Khoa học Tự nhiên, ĐHQG-HCM.",
-        ],
-        role: "Vai trò hiện tại",
-        roleValue: "Data Engineer · Timo Digital Bank by BVBank",
-        location: "Địa điểm",
-        locationValue: "TP. Hồ Chí Minh, Việt Nam",
-        focus: "Hướng quan tâm",
-        focusValue: "Nền tảng dữ liệu · Lakehouse · Hạ tầng Cloud · AI ứng dụng",
-        contact: "Liên hệ",
-        resume: "Tải resume",
-      };
+import { site } from "../data/site";
 ---
 
 <BaseLayout
-  locale={locale}
-  title={copy.kicker}
-  description={copy.description}
+  title="About"
+  description="About Tô Gia Bảo, a Data Engineer focused on reliable data platforms, analytics systems and AI-assisted tools."
   section="about"
-  alternatePath={localizedPath(otherLocale, "about")}
 >
   <div class="container">
     <header class="page-hero">
-      <p class="section-kicker">{copy.kicker}</p>
-      <h1>{copy.title}</h1>
+      <p class="section-kicker">About</p>
+      <h1>Engineer, builder, lifelong learner.</h1>
     </header>
 
     <div class="about-grid">
       <div class="about-copy">
-        {copy.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
-        <div class="button-row">
-          <a class="button" href={`mailto:${site.email}`}>{copy.contact}</a>
-          <a class="button button-secondary" href={site.resume}>{copy.resume} ↓</a>
-        </div>
+        <p>
+          I'm Tô Gia Bảo, a Data Engineer at Timo Digital Bank by BVBank. I build cloud data
+          pipelines, orchestration workflows, analytics systems and AI-assisted tools using Python,
+          SQL, AWS, Airflow and dbt.
+        </p>
+        <p>
+          I care about explicit system boundaries, observable operations and designs that remain
+          understandable as they grow. My current interests include lakehouse architecture,
+          infrastructure as code and AI-native data tooling.
+        </p>
+        <p>I hold a B.Sc. in Data Science from the University of Science, VNU-HCM.</p>
+
+        <a
+          class="resume-preview"
+          href={site.resume}
+          target="_blank"
+          rel="noopener"
+          aria-label="View Tô Gia Bảo's full resume in a new tab"
+        >
+          <img
+            src="/resume/togia-bao-resume-preview.png"
+            alt="Preview of Tô Gia Bảo's resume"
+            loading="lazy"
+            width="708"
+            height="1000"
+          />
+          <span>
+            <small>RESUME · PDF</small>
+            <strong>View full resume</strong>
+            <i aria-hidden="true">↗</i>
+          </span>
+        </a>
       </div>
-      <aside
-        class="about-details"
-        aria-label={locale === "en" ? "Profile details" : "Thông tin hồ sơ"}
-      >
+
+      <aside class="about-details" aria-label="Profile details">
         <section>
-          <h2>{copy.role}</h2>
-          <p>{copy.roleValue}</p>
+          <h2>Current role</h2>
+          <p>Data Engineer · Timo Digital Bank by BVBank</p>
         </section>
         <section>
-          <h2>{copy.location}</h2>
-          <p>{copy.locationValue}</p>
+          <h2>Location</h2>
+          <p>Ho Chi Minh City, Vietnam</p>
         </section>
         <section>
-          <h2>{copy.focus}</h2>
-          <p>{copy.focusValue}</p>
+          <h2>Current focus</h2>
+          <p>Data platforms · Lakehouse · Cloud infrastructure · Applied AI</p>
         </section>
         <section>
           <h2>Email</h2>

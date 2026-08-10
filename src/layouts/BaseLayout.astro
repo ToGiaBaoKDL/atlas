@@ -3,24 +3,19 @@ import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
-import { site, type Locale } from "../data/site";
+import { site } from "../data/site";
 import "../styles/global.css";
 
 interface Props {
-  locale: Locale;
   title: string;
   description: string;
   section?: "work" | "writing" | "notes" | "about";
-  alternatePath?: string;
   noindex?: boolean;
 }
 
-const { locale, title, description, section, alternatePath, noindex = false } = Astro.props;
+const { title, description, section, noindex = false } = Astro.props;
 const pageTitle = title === site.name ? title : `${title} — ${site.name}`;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefined;
-const alternate = Astro.site && alternatePath ? new URL(alternatePath, Astro.site) : undefined;
-const ogLocale = locale === "en" ? "en_US" : "vi_VN";
-const rssPath = locale === "en" ? "/rss.xml" : "/vi/rss.xml";
 const personSchema = {
   "@context": "https://schema.org",
   "@type": "Person",
@@ -33,7 +28,7 @@ const personSchema = {
 ---
 
 <!doctype html>
-<html lang={locale} data-theme="light">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -43,19 +38,11 @@ const personSchema = {
     <meta name="generator" content={Astro.generator} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     {canonical && <link rel="canonical" href={canonical} />}
-    {canonical && <link rel="alternate" hreflang={locale} href={canonical} />}
-    {
-      alternate && (
-        <link rel="alternate" hreflang={locale === "en" ? "vi" : "en"} href={alternate} />
-      )
-    }
-    {locale === "en" && canonical && <link rel="alternate" hreflang="x-default" href={canonical} />}
-    <link rel="alternate" type="application/rss+xml" title={`${site.name} RSS`} href={rssPath} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:locale" content={ogLocale} />
+    <meta property="og:locale" content="en_US" />
     {canonical && <meta property="og:url" content={canonical} />}
     <meta name="twitter:card" content="summary" />
     <title>{pageTitle}</title>
@@ -73,13 +60,11 @@ const personSchema = {
     <script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)} />
   </head>
   <body>
-    <a class="skip-link" href="#main-content"
-      >{locale === "en" ? "Skip to content" : "Đi đến nội dung"}</a
-    >
-    <SiteHeader locale={locale} section={section} alternatePath={alternatePath} />
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <SiteHeader section={section} />
     <main id="main-content">
       <slot />
     </main>
-    <SiteFooter locale={locale} />
+    <SiteFooter />
   </body>
 </html>

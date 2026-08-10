@@ -1,45 +1,41 @@
 ---
-import type { Locale } from "../data/site";
-
-interface Props {
-  locale: Locale;
-}
-
-const { locale } = Astro.props;
-const stages =
-  locale === "en"
-    ? [
-        { label: "Control", title: "Contracts", detail: "YAML · PyIceberg" },
-        { label: "Process", title: "EMR & OCR", detail: "Spark · GPU runtime" },
-        { label: "Store", title: "Iceberg", detail: "S3 · Glue Catalog" },
-        { label: "Model", title: "dbt", detail: "Athena · domain marts" },
-        { label: "Serve", title: "Inspector", detail: "Read-only data app" },
-        { label: "Operate", title: "Airflow", detail: "Private OCI runtime" },
-      ]
-    : [
-        { label: "Kiểm soát", title: "Contracts", detail: "YAML · PyIceberg" },
-        { label: "Xử lý", title: "EMR & OCR", detail: "Spark · GPU runtime" },
-        { label: "Lưu trữ", title: "Iceberg", detail: "S3 · Glue Catalog" },
-        { label: "Mô hình", title: "dbt", detail: "Athena · domain marts" },
-        { label: "Phục vụ", title: "Inspector", detail: "Ứng dụng chỉ đọc" },
-        { label: "Vận hành", title: "Airflow", detail: "Private OCI runtime" },
-      ];
+const stages = [
+  { number: "01", label: "Define", title: "Data contracts", detail: "Schemas and ownership" },
+  { number: "02", label: "Land", title: "Ingest safely", detail: "Idempotent publication" },
+  { number: "03", label: "Refine", title: "Transform", detail: "Curated domain data" },
+  { number: "04", label: "Verify", title: "Quality gates", detail: "Tests before release" },
+  { number: "05", label: "Deliver", title: "Serve", detail: "Analytics and apps" },
+];
 ---
 
-<div
-  class="project-topology"
-  role="img"
-  aria-label={locale === "en"
-    ? "Mini Lakehouse platform stages"
-    : "Các lớp của nền tảng Mini Lakehouse"}
->
-  {
-    stages.map((stage) => (
-      <div class="topology-stage">
-        <small>{stage.label}</small>
-        <strong>{stage.title}</strong>
-        <span>{stage.detail}</span>
-      </div>
-    ))
-  }
-</div>
+<figure class="project-workflow">
+  <div class="workflow-heading">
+    <div>
+      <span>DELIVERY WORKFLOW</span>
+      <strong>Contract to trusted data product</strong>
+    </div>
+    <span class="workflow-status"><i></i> DEPLOYED</span>
+  </div>
+
+  <ol class="workflow-track" aria-label="Mini Lakehouse delivery workflow">
+    {
+      stages.map((stage) => (
+        <li>
+          <span class="workflow-number">{stage.number}</span>
+          <small>{stage.label}</small>
+          <strong>{stage.title}</strong>
+          <p>{stage.detail}</p>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="workflow-operations">
+    <span>OPERATIONS</span>
+    <div>
+      <span>Orchestration</span>
+      <span>Observability</span>
+      <span>Immutable releases</span>
+    </div>
+  </div>
+</figure>
