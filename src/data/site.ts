@@ -10,7 +10,7 @@ export const ui = {
   navigationLabel: "Primary navigation",
   menuOpen: "Open menu",
   menuClose: "Close menu",
-  themeToggle: "Toggle color theme",
+  themeToggle: "Dark theme",
   nav: { work: "Work", writing: "Writing", notes: "Notes", about: "About" },
   footer: "Designed with love.",
 } as const;

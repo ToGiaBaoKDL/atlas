@@ -1,5 +1,7 @@
 ---
-import { render, type CollectionEntry } from "astro:content";
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import { getProjectStatusLabel } from "../data/projects";
+import { getTopicLabel } from "../data/topics";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ProjectTopology from "./ProjectTopology.astro";
 
@@ -9,6 +11,9 @@ interface Props {
 
 const { project } = Astro.props;
 const { Content, headings } = await render(project);
+const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
+const currentIndex = projects.findIndex(({ id }) => id === project.id);
+const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
 ---
 
 <BaseLayout title={project.data.title} description={project.data.description} section="work">
@@ -17,13 +22,32 @@ const { Content, headings } = await render(project);
       <a class="text-link" href="/work/">← All work</a>
       <div class="project-hero-grid">
         <div>
-          <p class="section-kicker">{project.data.topics.slice(0, 2).join(" · ")}</p>
+          <p class="section-kicker">
+            {project.data.topics.slice(0, 2).map(getTopicLabel).join(" · ")}
+          </p>
           <h1>{project.data.title}</h1>
           <p class="project-outcome">{project.data.outcome}</p>
           <div class="project-links">
             {
+              project.data.links.demo && (
+                <a
+                  class="button"
+                  href={project.data.links.demo}
+                  target="_blank"
+                  rel="noopener external"
+                >
+                  Visit live project ↗
+                </a>
+              )
+            }
+            {
               project.data.links.repository && (
-                <a class="button" href={project.data.links.repository} rel="external">
+                <a
+                  class:list={["button", { "button-secondary": project.data.links.demo }]}
+                  href={project.data.links.repository}
+                  target="_blank"
+                  rel="noopener external"
+                >
                   View repository ↗
                 </a>
               )
@@ -33,14 +57,14 @@ const { Content, headings } = await render(project);
         <dl class="signal-list">
           <div><dt>Role</dt><dd>{project.data.role}</dd></div>
           <div><dt>Period</dt><dd>{project.data.period}</dd></div>
-          <div><dt>Status</dt><dd>{project.data.statusLabel}</dd></div>
+          <div><dt>Status</dt><dd>{getProjectStatusLabel(project.data.status)}</dd></div>
           <div><dt>Stack</dt><dd>{project.data.stack.slice(0, 4).join(" · ")}</dd></div>
         </dl>
       </div>
     </header>
 
     {
-      project.data.slug === "mini-lakehouse" && (
+      project.id === "mini-lakehouse" && (
         <section class="container" aria-label="Architecture overview">
           <ProjectTopology />
         </section>
@@ -68,6 +92,19 @@ const { Content, headings } = await render(project);
         )
       }
     </div>
+
+    <footer class="project-continuation container" id="project-continuation">
+      <p class="section-kicker">{nextProject ? "Next project" : "Continue exploring"}</p>
+      <a href={nextProject ? `/work/${nextProject.id}/` : "/work/"}>
+        <span>
+          <strong>{nextProject?.data.title ?? "All work"}</strong>
+          <small>
+            {nextProject?.data.outcome ?? "Return to the complete project collection."}
+          </small>
+        </span>
+        <i aria-hidden="true">→</i>
+      </a>
+    </footer>
   </article>
 </BaseLayout>
 
@@ -274,6 +311,54 @@ const { Content, headings } = await render(project);
     color: var(--accent);
   }
 
+  .project-continuation {
+    border-top: 1px solid var(--border);
+    padding-block: clamp(2.5rem, 6vw, 4.5rem) clamp(5rem, 10vw, 9rem);
+  }
+
+  .project-continuation > a {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 2rem;
+    align-items: center;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .project-continuation span {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .project-continuation strong {
+    font-size: clamp(1.8rem, 5vw, 3.75rem);
+    font-weight: 630;
+    letter-spacing: -0.052em;
+    line-height: 1;
+    transition: color 160ms ease;
+  }
+
+  .project-continuation small {
+    max-width: 48rem;
+    color: var(--text-soft);
+    font-size: 0.92rem;
+  }
+
+  .project-continuation i {
+    color: var(--accent);
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    font-style: normal;
+    transition: transform 160ms ease;
+  }
+
+  .project-continuation > a:hover strong {
+    color: var(--accent);
+  }
+
+  .project-continuation > a:hover i {
+    transform: translateX(0.25rem);
+  }
+
   @media (max-width: 56rem) {
     .project-hero-grid,
     .case-study {
@@ -288,6 +373,10 @@ const { Content, headings } = await render(project);
   @media (max-width: 40rem) {
     .project-hero h1 {
       overflow-wrap: anywhere;
+    }
+
+    .project-continuation > a {
+      gap: 1rem;
     }
   }
 </style>

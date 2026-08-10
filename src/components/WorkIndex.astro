@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { getProjectStatusLabel } from "../data/projects";
 import PageHero from "./PageHero.astro";
 
 const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
@@ -21,13 +22,16 @@ const projects = (await getCollection("projects")).sort((a, b) => a.data.order -
     <section class="work-list" aria-label="Work">
       {
         projects.map((project, index) => (
-          <a class="work-list-item" href={`/work/${project.data.slug}/`}>
+          <a class="work-list-item" href={`/work/${project.id}/`}>
             <span class="work-list-number">{String(index + 1).padStart(2, "0")}</span>
             <div>
               <h2>{project.data.title}</h2>
+              <p class="work-list-meta">
+                {project.data.role} · {getProjectStatusLabel(project.data.status)}
+              </p>
               <p>{project.data.outcome}</p>
             </div>
-            <span class="work-list-stack" aria-label="Role, period and stack">
+            <span class="work-list-stack" aria-label="Technology stack">
               {project.data.stack.join(" · ")}
             </span>
             <span aria-hidden="true">→</span>
@@ -36,11 +40,11 @@ const projects = (await getCollection("projects")).sort((a, b) => a.data.order -
       }
     </section>
   </div>
-  <div class="section"></div>
 </BaseLayout>
 
 <style>
   .work-list {
+    margin-bottom: clamp(5rem, 10vw, 9rem);
     border-top: 1px solid var(--border);
   }
 
@@ -76,6 +80,16 @@ const projects = (await getCollection("projects")).sort((a, b) => a.data.order -
   .work-list-item p {
     margin: 0;
     color: var(--text-soft);
+  }
+
+  .work-list-item .work-list-meta {
+    margin-bottom: 0.55rem;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 560;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
   }
 
   .work-list-stack {

@@ -33,8 +33,7 @@ const personSchema = {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f7f6f2" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#111310" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f7f6f2" data-theme-color />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
@@ -52,7 +51,12 @@ const personSchema = {
         try {
           const saved = localStorage.getItem("theme");
           const systemDark = matchMedia("(prefers-color-scheme: dark)").matches;
-          document.documentElement.dataset.theme = saved || (systemDark ? "dark" : "light");
+          const theme =
+            saved === "light" || saved === "dark" ? saved : systemDark ? "dark" : "light";
+          document.documentElement.dataset.theme = theme;
+          document
+            .querySelector("[data-theme-color]")
+            ?.setAttribute("content", theme === "dark" ? "#111310" : "#f7f6f2");
         } catch {
           document.documentElement.dataset.theme = "light";
         }

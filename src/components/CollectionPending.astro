@@ -12,6 +12,7 @@ const copy = {
     kicker: "Long-form",
     title: "Writing",
     description: "Technical essays built around one clear engineering argument.",
+    status: "Publishing soon",
     empty: "The first essay is being prepared.",
     detail:
       "It examines why an Iceberg catalog control plane—not Terraform—should own table definitions and evolution.",
@@ -20,6 +21,7 @@ const copy = {
     kicker: "Public notebook",
     title: "Notes",
     description: "Concise, evolving notes from systems I build and operate.",
+    status: "Publishing soon",
     empty: "The first set of engineering notes is being edited.",
     detail:
       "Topics include Iceberg ownership, idempotent publication, immutable releases, OIDC and typed AI workflows.",
@@ -31,25 +33,40 @@ const copy = {
   <div class="container">
     <PageHero kicker={copy.kicker} title={copy.title} description={copy.description} />
     <section class="empty-state">
-      <div>
+      <p class="empty-state-status">{copy.status}</p>
+      <div class="empty-state-copy">
         <h2>{copy.empty}</h2>
         <p>{copy.detail}</p>
+        <div class="empty-state-actions">
+          <a class="button" href="/work/">Explore selected work</a>
+          <a class="text-link" href="/about/">About me →</a>
+        </div>
       </div>
     </section>
   </div>
-  <div class="section"></div>
 </BaseLayout>
 
 <style>
   .empty-state {
     display: grid;
-    min-height: 20rem;
-    place-items: center;
+    grid-template-columns: minmax(10rem, 0.42fr) minmax(0, 1fr);
+    gap: clamp(2rem, 7vw, 6rem);
+    margin-bottom: clamp(5rem, 10vw, 9rem);
     border-block: 1px solid var(--border);
-    text-align: center;
+    padding-block: clamp(2.5rem, 6vw, 5rem);
   }
 
-  .empty-state > div {
+  .empty-state-status {
+    margin: 0;
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 620;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .empty-state-copy {
     max-width: 34rem;
   }
 
@@ -59,7 +76,27 @@ const copy = {
     letter-spacing: -0.04em;
   }
 
-  .empty-state p {
+  .empty-state-copy > p {
     color: var(--text-soft);
+  }
+
+  .empty-state-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.75rem;
+  }
+
+  @media (max-width: 40rem) {
+    .empty-state {
+      grid-template-columns: 1fr;
+      gap: 1.25rem;
+    }
+
+    .empty-state-actions {
+      align-items: stretch;
+      flex-direction: column;
+    }
   }
 </style>

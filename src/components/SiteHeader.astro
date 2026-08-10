@@ -28,7 +28,13 @@ const navItems = [
           ))
         }
       </nav>
-      <button class="icon-button" type="button" data-theme-toggle aria-label={ui.themeToggle}>
+      <button
+        class="icon-button"
+        type="button"
+        data-theme-toggle
+        aria-label={ui.themeToggle}
+        aria-pressed="false"
+      >
         <svg
           class="theme-icon-sun"
           aria-hidden="true"
@@ -65,6 +71,7 @@ const navItems = [
         data-menu-open
         aria-label={ui.menuOpen}
         aria-controls="mobile-menu"
+        aria-expanded="false"
       >
         <svg
           aria-hidden="true"
@@ -110,7 +117,13 @@ const navItems = [
       </nav>
       <div class="mobile-menu-utilities">
         <span>Appearance</span>
-        <button class="icon-button" type="button" data-theme-toggle aria-label={ui.themeToggle}>
+        <button
+          class="icon-button"
+          type="button"
+          data-theme-toggle
+          aria-label={ui.themeToggle}
+          aria-pressed="false"
+        >
           <svg
             class="theme-icon-sun"
             aria-hidden="true"
@@ -148,18 +161,39 @@ const navItems = [
   const openButton = document.querySelector<HTMLButtonElement>("[data-menu-open]");
   const closeButton = menu?.querySelector<HTMLButtonElement>("[data-menu-close]");
 
-  openButton?.addEventListener("click", () => menu?.showModal());
+  openButton?.addEventListener("click", () => {
+    menu?.showModal();
+    openButton.setAttribute("aria-expanded", "true");
+  });
   closeButton?.addEventListener("click", () => menu?.close());
+  menu?.addEventListener("close", () => openButton?.setAttribute("aria-expanded", "false"));
   menu?.addEventListener("click", (event) => {
     if (event.target === menu) menu.close();
   });
   menu?.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => menu.close()));
 
-  document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]").forEach((button) => {
+  const themeButtons = document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]");
+
+  const syncThemeControls = () => {
+    const isDark = document.documentElement.dataset.theme === "dark";
+    themeButtons.forEach((button) => button.setAttribute("aria-pressed", String(isDark)));
+    document
+      .querySelector("[data-theme-color]")
+      ?.setAttribute("content", isDark ? "#111310" : "#f7f6f2");
+  };
+
+  syncThemeControls();
+
+  themeButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
       document.documentElement.dataset.theme = next;
-      localStorage.setItem("theme", next);
+      syncThemeControls();
+      try {
+        localStorage.setItem("theme", next);
+      } catch {
+        // The selected theme still applies when storage is unavailable.
+      }
     });
   });
 </script>
