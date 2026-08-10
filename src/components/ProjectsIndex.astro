@@ -8,30 +8,30 @@ const projects = (await getCollection("projects")).sort((a, b) => a.data.order -
 ---
 
 <BaseLayout
-  title="Work"
+  title="Projects"
   description="Personal systems and technical case studies, presented through constraints, decisions and trade-offs."
-  section="work"
+  section="projects"
 >
   <div class="container">
     <PageHero
       kicker="Selected systems"
-      title="Work"
+      title="Projects"
       description="Personal systems and technical case studies, presented through constraints, decisions and trade-offs."
     />
 
-    <section class="work-list" aria-label="Work">
+    <section class="projects-list" aria-label="Projects">
       {
         projects.map((project, index) => (
-          <a class="work-list-item" href={`/work/${project.id}/`}>
-            <span class="work-list-number">{String(index + 1).padStart(2, "0")}</span>
+          <a class="project-list-item" href={`/projects/${project.id}/`}>
+            <span class="project-list-number">{String(index + 1).padStart(2, "0")}</span>
             <div>
               <h2>{project.data.title}</h2>
-              <p class="work-list-meta">
+              <p class="project-list-meta">
                 {project.data.role} · {getProjectStatusLabel(project.data.status)}
               </p>
               <p>{project.data.outcome}</p>
             </div>
-            <span class="work-list-stack" aria-label="Technology stack">
+            <span class="project-list-stack" aria-label="Technology stack">
               {project.data.stack.join(" · ")}
             </span>
             <span aria-hidden="true">→</span>
@@ -43,12 +43,12 @@ const projects = (await getCollection("projects")).sort((a, b) => a.data.order -
 </BaseLayout>
 
 <style>
-  .work-list {
+  .projects-list {
     margin-bottom: clamp(5rem, 10vw, 9rem);
     border-top: 1px solid var(--border);
   }
 
-  .work-list-item {
+  .project-list-item {
     display: grid;
     grid-template-columns: 3.5rem minmax(0, 1fr) minmax(12rem, 0.65fr) auto;
     gap: 1.5rem;
@@ -58,17 +58,17 @@ const projects = (await getCollection("projects")).sort((a, b) => a.data.order -
     text-decoration: none;
   }
 
-  .work-list-item:hover h2 {
+  .project-list-item:hover h2 {
     color: var(--accent);
   }
 
-  .work-list-number {
+  .project-list-number {
     color: var(--text-faint);
     font-family: var(--font-mono);
     font-size: 0.72rem;
   }
 
-  .work-list-item h2 {
+  .project-list-item h2 {
     margin: 0 0 0.55rem;
     font-size: clamp(1.35rem, 3vw, 2rem);
     font-weight: 610;
@@ -77,12 +77,12 @@ const projects = (await getCollection("projects")).sort((a, b) => a.data.order -
     transition: color 160ms ease;
   }
 
-  .work-list-item p {
+  .project-list-item p {
     margin: 0;
     color: var(--text-soft);
   }
 
-  .work-list-item .work-list-meta {
+  .project-list-item .project-list-meta {
     margin-bottom: 0.55rem;
     color: var(--text-faint);
     font-family: var(--font-mono);
@@ -92,7 +92,7 @@ const projects = (await getCollection("projects")).sort((a, b) => a.data.order -
     text-transform: uppercase;
   }
 
-  .work-list-stack {
+  .project-list-stack {
     color: var(--text-faint);
     font-family: var(--font-mono);
     font-size: 0.7rem;
@@ -100,22 +100,22 @@ const projects = (await getCollection("projects")).sort((a, b) => a.data.order -
   }
 
   @media (max-width: 56rem) {
-    .work-list-item {
+    .project-list-item {
       grid-template-columns: 2.5rem minmax(0, 1fr) auto;
     }
 
-    .work-list-stack {
+    .project-list-stack {
       display: none;
     }
   }
 
   @media (max-width: 40rem) {
-    .work-list-item {
+    .project-list-item {
       grid-template-columns: 2rem minmax(0, 1fr) auto;
       gap: 0.75rem;
     }
 
-    .work-list-item p {
+    .project-list-item p {
       font-size: 0.88rem;
     }
   }

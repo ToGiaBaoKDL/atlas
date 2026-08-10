@@ -11,6 +11,6 @@ export const ui = {
   menuOpen: "Open menu",
   menuClose: "Close menu",
   themeToggle: "Dark theme",
-  nav: { work: "Work", writing: "Writing", notes: "Notes", about: "About" },
+  nav: { projects: "Projects", writing: "Writing", about: "About" },
   footer: "Designed with love.",
 } as const;

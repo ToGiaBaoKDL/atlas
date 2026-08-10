@@ -1,35 +1,20 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { writingTopics } from "../data/topics";
 import PageHero from "./PageHero.astro";
 
-interface Props {
-  collection: "writing" | "notes";
-}
-
-const { collection } = Astro.props;
 const copy = {
-  writing: {
-    kicker: "Long-form",
-    title: "Writing",
-    description: "Technical essays built around one clear engineering argument.",
-    status: "Publishing soon",
-    empty: "The first essay is being prepared.",
-    detail:
-      "It examines why an Iceberg catalog control plane—not Terraform—should own table definitions and evolution.",
-  },
-  notes: {
-    kicker: "Public notebook",
-    title: "Notes",
-    description: "Concise, evolving notes from systems I build and operate.",
-    status: "Publishing soon",
-    empty: "The first set of engineering notes is being edited.",
-    detail:
-      "Topics include Iceberg ownership, idempotent publication, immutable releases, OIDC and typed AI workflows.",
-  },
-}[collection];
+  kicker: "Essays · Notes · Research",
+  title: "Writing",
+  description: "Technical writing on ideas, patterns and problems worth examining carefully.",
+  status: "Publishing soon",
+  empty: "The first piece is being prepared.",
+  detail:
+    "Entries will range from focused essays to concise engineering notes, organized by technical topic.",
+};
 ---
 
-<BaseLayout title={copy.title} description={copy.description} section={collection} noindex>
+<BaseLayout title={copy.title} description={copy.description} section="writing" noindex>
   <div class="container">
     <PageHero kicker={copy.kicker} title={copy.title} description={copy.description} />
     <section class="empty-state">
@@ -37,8 +22,11 @@ const copy = {
       <div class="empty-state-copy">
         <h2>{copy.empty}</h2>
         <p>{copy.detail}</p>
+        <ul class="writing-topics" aria-label="Writing topics">
+          {writingTopics.map((topic) => <li>{topic.label}</li>)}
+        </ul>
         <div class="empty-state-actions">
-          <a class="button" href="/work/">Explore selected work</a>
+          <a class="button" href="/projects/">Explore projects</a>
           <a class="text-link" href="/about/">About me →</a>
         </div>
       </div>
@@ -78,6 +66,24 @@ const copy = {
 
   .empty-state-copy > p {
     color: var(--text-soft);
+  }
+
+  .writing-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 1.4rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .writing-topics li {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.28rem 0.6rem;
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
   }
 
   .empty-state-actions {

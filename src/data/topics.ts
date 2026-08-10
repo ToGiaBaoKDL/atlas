@@ -20,6 +20,15 @@ const topicLabels: Record<TopicSlug, string> = {
   "applied-ai": "Applied AI",
 };
 
-export const topics = topicSlugs.map((slug) => ({ slug, label: topicLabels[slug] }));
-
 export const getTopicLabel = (slug: TopicSlug) => topicLabels[slug];
+
+export const writingTopics = [
+  { slug: "data-systems", label: "Data systems" },
+  { slug: "software-design", label: "Software design" },
+  { slug: "cloud-infrastructure", label: "Cloud infrastructure" },
+  { slug: "applied-ai", label: "Applied AI" },
+  { slug: "developer-tooling", label: "Developer tooling" },
+  { slug: "technical-research", label: "Technical research" },
+] as const;
+
+export type WritingTopicSlug = (typeof writingTopics)[number]["slug"];

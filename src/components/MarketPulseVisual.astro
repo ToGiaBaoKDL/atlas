@@ -1,0 +1,289 @@
+---
+import VisualHeader from "./VisualHeader.astro";
+
+const stages = [
+  { number: "01", owner: "Model", title: "Plan searches", detail: "Focused query set" },
+  { number: "02", owner: "Code", title: "Gather pool", detail: "Bounded metadata" },
+  {
+    number: "03",
+    owner: "Model + provider",
+    title: "Select & extract",
+    detail: "Semantic source choice",
+  },
+  {
+    number: "04",
+    owner: "Typed output",
+    title: "Write & verify",
+    detail: "Exact source IDs",
+  },
+];
+---
+
+<figure class="research-visual">
+  <VisualHeader
+    eyebrow="Bounded research pipeline"
+    title="Topic to source-backed post"
+    status="Completed"
+  />
+
+  <ol class="research-track" aria-label="VN Market Pulse research pipeline">
+    {
+      stages.map((stage, index) => (
+        <li>
+          <div class="stage-meta">
+            <span>{stage.number}</span>
+            <small>{stage.owner}</small>
+          </div>
+          <strong>{stage.title}</strong>
+          <p>{stage.detail}</p>
+          {index < stages.length - 1 && <span class="research-connector" aria-hidden="true" />}
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="responsibility-map">
+    <section>
+      <span class="responsibility-label model"><i></i>Model owns</span>
+      <p>Search planning · semantic selection · synthesis</p>
+    </section>
+    <span class="boundary" aria-hidden="true">Explicit boundary</span>
+    <section>
+      <span class="responsibility-label code"><i></i>Code enforces</span>
+      <p>Deadlines · budgets · retries · URLs · reference validation</p>
+    </section>
+  </div>
+</figure>
+
+<style>
+  .research-visual {
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+    margin: 0;
+    border: 1px solid var(--dark-border);
+    border-radius: var(--radius-md);
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      radial-gradient(circle at 16% 12%, rgba(84, 106, 221, 0.2), transparent 30%),
+      radial-gradient(circle at 88% 82%, rgba(77, 145, 119, 0.13), transparent 28%), #111511;
+    background-size:
+      1.35rem 1.35rem,
+      1.35rem 1.35rem,
+      auto,
+      auto,
+      auto;
+    padding: clamp(1rem, 3vw, 1.6rem);
+    color: var(--dark-text);
+  }
+
+  .research-track {
+    --stage-gap: clamp(1.15rem, 2vw, 1.75rem);
+
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--stage-gap);
+    margin: 0;
+    padding: clamp(1.5rem, 4vw, 2.4rem) 0;
+    list-style: none;
+  }
+
+  .research-track li {
+    position: relative;
+    min-width: 0;
+    border: 1px solid #303831;
+    border-radius: var(--radius-sm);
+    background: rgba(21, 27, 22, 0.94);
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+    padding: clamp(0.85rem, 1.8vw, 1.15rem);
+  }
+
+  .stage-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    margin-bottom: clamp(1.6rem, 3vw, 2.3rem);
+  }
+
+  .stage-meta span,
+  .stage-meta small,
+  .responsibility-label,
+  .boundary {
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    font-weight: 640;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+  }
+
+  .stage-meta span {
+    color: #89a0ff;
+  }
+
+  .stage-meta small {
+    color: #828b80;
+    text-align: right;
+  }
+
+  .research-track strong {
+    display: block;
+    color: #f1f3ed;
+    font-size: clamp(0.84rem, 1.6vw, 1rem);
+    font-weight: 590;
+  }
+
+  .research-track p {
+    margin: 0.4rem 0 0;
+    color: var(--dark-soft);
+    font-size: clamp(0.64rem, 1.2vw, 0.75rem);
+  }
+
+  .research-connector {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    left: calc(100% - 1px);
+    width: calc(var(--stage-gap) + 2px);
+    height: 2px;
+    transform: translateY(-50%);
+    background: linear-gradient(90deg, #5368c2, #8da2ff);
+  }
+
+  .research-connector::before {
+    position: absolute;
+    top: -0.13rem;
+    left: 42%;
+    width: 0.3rem;
+    height: 0.3rem;
+    border-radius: 50%;
+    background: #91a6ff;
+    box-shadow: 0 0 0 0.18rem rgba(141, 162, 255, 0.12);
+    content: "";
+  }
+
+  .research-connector::after {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 0.4rem;
+    height: 0.4rem;
+    transform: translateY(-50%) rotate(45deg);
+    border-top: 2px solid #9bafff;
+    border-right: 2px solid #9bafff;
+    content: "";
+  }
+
+  .responsibility-map {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: clamp(1rem, 3vw, 2rem);
+    align-items: stretch;
+    border-top: 1px solid var(--dark-border);
+    padding-top: 1rem;
+  }
+
+  .responsibility-map section {
+    min-width: 0;
+    border: 1px solid #2e3730;
+    border-radius: var(--radius-sm);
+    background: rgba(20, 26, 21, 0.78);
+    padding: 0.8rem;
+  }
+
+  .responsibility-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .responsibility-label.model {
+    color: #aab9f7;
+  }
+
+  .responsibility-label.code {
+    color: #9cc9ad;
+  }
+
+  .responsibility-label i {
+    width: 0.36rem;
+    height: 0.36rem;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, currentColor 14%, transparent);
+  }
+
+  .responsibility-map p {
+    margin: 0.45rem 0 0;
+    color: #9fa69c;
+    font-size: clamp(0.63rem, 1.15vw, 0.72rem);
+    line-height: 1.45;
+  }
+
+  .boundary {
+    display: grid;
+    place-items: center;
+    color: #737c72;
+    writing-mode: vertical-rl;
+  }
+
+  @media (max-width: 48rem) {
+    .research-track {
+      --stage-gap: 0.85rem;
+
+      grid-template-columns: 1fr;
+      gap: var(--stage-gap);
+      padding-block: 1.25rem;
+    }
+
+    .stage-meta {
+      margin-bottom: 1.15rem;
+    }
+
+    .research-connector {
+      top: calc(100% - 1px);
+      left: 1.35rem;
+      width: 2px;
+      height: calc(var(--stage-gap) + 2px);
+      transform: none;
+      background: linear-gradient(#5368c2, #8da2ff);
+    }
+
+    .research-connector::before {
+      top: 42%;
+      left: -0.13rem;
+    }
+
+    .research-connector::after {
+      top: auto;
+      right: auto;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+      border-top: 0;
+      border-right: 2px solid #9bafff;
+      border-bottom: 2px solid #9bafff;
+    }
+
+    .responsibility-map {
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+    }
+
+    .boundary {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      writing-mode: initial;
+    }
+
+    .boundary::before,
+    .boundary::after {
+      height: 1px;
+      flex: 1;
+      background: #303830;
+      content: "";
+    }
+  }
+</style>

@@ -2,14 +2,13 @@
 import { site, ui } from "../data/site";
 
 interface Props {
-  section?: "work" | "writing" | "notes" | "about";
+  section?: "projects" | "writing" | "about";
 }
 
 const { section } = Astro.props;
 const navItems = [
-  { key: "work", href: "/work/", label: ui.nav.work },
+  { key: "projects", href: "/projects/", label: ui.nav.projects },
   { key: "writing", href: "/writing/", label: ui.nav.writing },
-  { key: "notes", href: "/notes/", label: ui.nav.notes },
   { key: "about", href: "/about/", label: ui.nav.about },
 ] as const;
 ---

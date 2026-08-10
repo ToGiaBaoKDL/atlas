@@ -3,7 +3,7 @@ import { getCollection, render, type CollectionEntry } from "astro:content";
 import { getProjectStatusLabel } from "../data/projects";
 import { getTopicLabel } from "../data/topics";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import ProjectTopology from "./ProjectTopology.astro";
+import ProjectVisual from "./ProjectVisual.astro";
 
 interface Props {
   project: CollectionEntry<"projects">;
@@ -16,10 +16,10 @@ const currentIndex = projects.findIndex(({ id }) => id === project.id);
 const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
 ---
 
-<BaseLayout title={project.data.title} description={project.data.description} section="work">
+<BaseLayout title={project.data.title} description={project.data.description} section="projects">
   <article>
     <header class="project-hero container">
-      <a class="text-link" href="/work/">← All work</a>
+      <a class="text-link" href="/projects/">← All projects</a>
       <div class="project-hero-grid">
         <div>
           <p class="section-kicker">
@@ -63,13 +63,7 @@ const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
       </div>
     </header>
 
-    {
-      project.id === "mini-lakehouse" && (
-        <section class="container" aria-label="Architecture overview">
-          <ProjectTopology />
-        </section>
-      )
-    }
+    <ProjectVisual projectId={project.id} contained />
 
     <div class="container case-study section">
       <div class="prose">
@@ -95,9 +89,9 @@ const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
 
     <footer class="project-continuation container" id="project-continuation">
       <p class="section-kicker">{nextProject ? "Next project" : "Continue exploring"}</p>
-      <a href={nextProject ? `/work/${nextProject.id}/` : "/work/"}>
+      <a href={nextProject ? `/projects/${nextProject.id}/` : "/projects/"}>
         <span>
-          <strong>{nextProject?.data.title ?? "All work"}</strong>
+          <strong>{nextProject?.data.title ?? "All projects"}</strong>
           <small>
             {nextProject?.data.outcome ?? "Return to the complete project collection."}
           </small>

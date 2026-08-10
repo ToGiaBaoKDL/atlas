@@ -1,0 +1,34 @@
+---
+import MarketPulseVisual from "./MarketPulseVisual.astro";
+import MiniLakehouseVisual from "./MiniLakehouseVisual.astro";
+
+interface Props {
+  projectId: string;
+  contained?: boolean;
+}
+
+const { projectId, contained = false } = Astro.props;
+const visuals = {
+  "mini-lakehouse": {
+    component: MiniLakehouseVisual,
+    label: "Mini Lakehouse delivery workflow",
+  },
+  "vn-market-pulse": {
+    component: MarketPulseVisual,
+    label: "VN Market Pulse research pipeline",
+  },
+} as const;
+const visual = visuals[projectId as keyof typeof visuals];
+const Visual = visual?.component;
+---
+
+{
+  Visual &&
+    (contained ? (
+      <section class="container" aria-label={visual.label}>
+        <Visual />
+      </section>
+    ) : (
+      <Visual />
+    ))
+}

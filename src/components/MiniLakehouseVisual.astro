@@ -10,7 +10,7 @@ const stages = [
 ];
 ---
 
-<figure class="project-workflow">
+<figure class="lakehouse-visual">
   <VisualHeader
     eyebrow="Delivery workflow"
     title="Contract to trusted data product"
@@ -19,12 +19,17 @@ const stages = [
 
   <ol class="workflow-track" aria-label="Mini Lakehouse delivery workflow">
     {
-      stages.map((stage) => (
+      stages.map((stage, index) => (
         <li>
           <span class="workflow-number">{stage.number}</span>
           <small>{stage.label}</small>
           <strong>{stage.title}</strong>
           <p>{stage.detail}</p>
+          {index < stages.length - 1 && (
+            <span class="workflow-connector" aria-hidden="true">
+              <i />
+            </span>
+          )}
         </li>
       ))
     }
@@ -41,7 +46,7 @@ const stages = [
 </figure>
 
 <style>
-  .project-workflow {
+  .lakehouse-visual {
     position: relative;
     overflow: hidden;
     min-width: 0;
@@ -62,9 +67,11 @@ const stages = [
   }
 
   .workflow-track {
+    --stage-gap: clamp(0.95rem, 1.8vw, 1.4rem);
+
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: clamp(0.75rem, 1.5vw, 1.2rem);
+    gap: var(--stage-gap);
     margin: 0;
     padding: clamp(1.5rem, 4vw, 2.3rem) 0;
     list-style: none;
@@ -79,18 +86,49 @@ const stages = [
     padding: clamp(0.7rem, 1.5vw, 1rem);
   }
 
-  .workflow-track li:not(:last-child)::after {
+  .workflow-connector {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    left: calc(100% - 1px);
+    width: calc(var(--stage-gap) + 2px);
+    height: 1rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+
+  .workflow-connector::before {
+    position: absolute;
+    top: calc(50% - 1px);
+    right: 0.15rem;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #5369c4, #8da2ff);
+    content: "";
+  }
+
+  .workflow-connector::after {
     position: absolute;
     top: 50%;
-    right: calc(clamp(0.75rem, 1.5vw, 1.2rem) * -1);
-    width: clamp(0.75rem, 1.5vw, 1.2rem);
-    height: 1px;
-    background: #6177d8;
-    content: "→";
-    color: #8da2ff;
-    font-size: 0.6rem;
-    line-height: 0;
-    text-align: center;
+    right: 0.08rem;
+    width: 0.38rem;
+    height: 0.38rem;
+    transform: translateY(-50%) rotate(45deg);
+    border-top: 2px solid #9aafff;
+    border-right: 2px solid #9aafff;
+    content: "";
+  }
+
+  .workflow-connector i {
+    position: absolute;
+    z-index: 1;
+    top: calc(50% - 0.14rem);
+    left: 38%;
+    width: 0.28rem;
+    height: 0.28rem;
+    border-radius: 50%;
+    background: #9aafff;
+    box-shadow: 0 0 0 0.18rem rgba(141, 162, 255, 0.12);
   }
 
   .workflow-number {
@@ -153,8 +191,10 @@ const stages = [
 
   @media (max-width: 40rem) {
     .workflow-track {
+      --stage-gap: 0.85rem;
+
       grid-template-columns: 1fr;
-      gap: 0.65rem;
+      gap: var(--stage-gap);
       padding-block: 1.25rem;
     }
 
@@ -164,15 +204,38 @@ const stages = [
       gap: 0.1rem 0.65rem;
     }
 
-    .workflow-track li:not(:last-child)::after {
+    .workflow-connector {
+      top: calc(100% - 1px);
+      left: 1.45rem;
+      width: 1rem;
+      height: calc(var(--stage-gap) + 2px);
+      transform: none;
+    }
+
+    .workflow-connector::before {
+      top: 0;
+      right: auto;
+      bottom: 0.15rem;
+      left: calc(50% - 1px);
+      width: 2px;
+      height: auto;
+      background: linear-gradient(#5369c4, #8da2ff);
+    }
+
+    .workflow-connector::after {
       top: auto;
       right: auto;
-      bottom: -0.65rem;
-      left: 1.65rem;
-      width: 1px;
-      height: 0.65rem;
-      line-height: 0.65rem;
-      writing-mode: vertical-rl;
+      bottom: 0.08rem;
+      left: 50%;
+      transform: translateX(-50%) rotate(45deg);
+      border-top: 0;
+      border-right: 2px solid #9aafff;
+      border-bottom: 2px solid #9aafff;
+    }
+
+    .workflow-connector i {
+      top: 38%;
+      left: calc(50% - 0.14rem);
     }
 
     .workflow-number {
