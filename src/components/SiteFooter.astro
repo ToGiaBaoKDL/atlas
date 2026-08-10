@@ -15,3 +15,54 @@ const year = new Date().getFullYear();
     </nav>
   </div>
 </footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--border);
+    padding-block: 2rem max(2rem, env(safe-area-inset-bottom));
+  }
+
+  .footer-inner,
+  .footer-links {
+    display: flex;
+    align-items: center;
+  }
+
+  .footer-inner {
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .footer-copy {
+    margin: 0;
+    color: var(--text-faint);
+    font-size: 0.78rem;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 1rem;
+  }
+
+  .footer-links a {
+    color: var(--text-soft);
+    font-size: 0.78rem;
+    text-decoration: none;
+  }
+
+  .footer-links a:hover {
+    color: var(--accent);
+  }
+
+  @media (max-width: 40rem) {
+    .footer-inner {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    .footer-links {
+      justify-content: flex-start;
+    }
+  }
+</style>

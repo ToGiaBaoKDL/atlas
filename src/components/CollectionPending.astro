@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "./PageHero.astro";
 
 interface Props {
   collection: "writing" | "notes";
@@ -28,11 +29,7 @@ const copy = {
 
 <BaseLayout title={copy.title} description={copy.description} section={collection} noindex>
   <div class="container">
-    <header class="page-hero">
-      <p class="section-kicker">{copy.kicker}</p>
-      <h1>{copy.title}</h1>
-      <p>{copy.description}</p>
-    </header>
+    <PageHero kicker={copy.kicker} title={copy.title} description={copy.description} />
     <section class="empty-state">
       <div>
         <h2>{copy.empty}</h2>
@@ -42,3 +39,27 @@ const copy = {
   </div>
   <div class="section"></div>
 </BaseLayout>
+
+<style>
+  .empty-state {
+    display: grid;
+    min-height: 20rem;
+    place-items: center;
+    border-block: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .empty-state > div {
+    max-width: 34rem;
+  }
+
+  .empty-state h2 {
+    margin: 0;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    letter-spacing: -0.04em;
+  }
+
+  .empty-state p {
+    color: var(--text-soft);
+  }
+</style>

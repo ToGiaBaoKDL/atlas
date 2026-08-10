@@ -1,16 +1,24 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
 ---
 
 <BaseLayout title="Page not found" description="The requested page could not be found." noindex>
   <div class="container">
-    <header class="page-hero">
-      <p class="section-kicker">404</p>
-      <h1>Page not found.</h1>
-      <p>The address may have changed, or the page may not exist yet.</p>
+    <PageHero
+      kicker="404"
+      title="Page not found."
+      description="The address may have changed, or the page may not exist yet."
+    >
       <div class="button-row page-actions">
         <a class="button" href="/">Return home</a>
       </div>
-    </header>
+    </PageHero>
   </div>
 </BaseLayout>
+
+<style>
+  .page-actions {
+    margin-top: 2rem;
+  }
+</style>

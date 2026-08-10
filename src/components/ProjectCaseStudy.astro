@@ -70,3 +70,224 @@ const { Content, headings } = await render(project);
     </div>
   </article>
 </BaseLayout>
+
+<style>
+  .project-hero {
+    padding-block: clamp(4.5rem, 9vw, 8rem) clamp(3rem, 6vw, 5rem);
+  }
+
+  .project-hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.45fr);
+    gap: clamp(3rem, 8vw, 8rem);
+    align-items: end;
+  }
+
+  .project-hero h1 {
+    max-width: 13ch;
+    margin: 0;
+    font-size: clamp(3.2rem, 8vw, 7.5rem);
+    font-weight: 670;
+    letter-spacing: -0.072em;
+    line-height: 0.92;
+  }
+
+  .project-outcome {
+    max-width: 49rem;
+    margin: 1.6rem 0 0;
+    color: var(--text-soft);
+    font-size: clamp(1.08rem, 2vw, 1.32rem);
+  }
+
+  .project-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .signal-list {
+    margin: 0;
+  }
+
+  .signal-list div {
+    display: grid;
+    grid-template-columns: 5rem 1fr;
+    gap: 1rem;
+    border-top: 1px solid var(--border);
+    padding-block: 0.7rem;
+  }
+
+  .signal-list div:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .signal-list dt {
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+  }
+
+  .signal-list dd {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 550;
+  }
+
+  .case-study {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 14rem;
+    gap: clamp(3rem, 8vw, 7rem);
+    align-items: start;
+    padding-bottom: clamp(5rem, 10vw, 9rem);
+  }
+
+  .prose {
+    min-width: 0;
+    max-width: var(--article-width);
+  }
+
+  .prose > :global(:first-child) {
+    margin-top: 0;
+  }
+
+  .prose :global(h2) {
+    margin: 4rem 0 1.1rem;
+    font-size: clamp(1.8rem, 4vw, 2.7rem);
+    font-weight: 630;
+    letter-spacing: -0.045em;
+    line-height: 1.1;
+  }
+
+  .prose :global(h3) {
+    margin: 2.5rem 0 0.75rem;
+    font-size: 1.25rem;
+    font-weight: 620;
+    letter-spacing: -0.025em;
+  }
+
+  .prose :global(p),
+  .prose :global(li) {
+    color: var(--text-soft);
+  }
+
+  .prose :global(strong) {
+    color: var(--text);
+    font-weight: 620;
+  }
+
+  .prose :global(a) {
+    color: var(--accent-ink);
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 1.3rem;
+  }
+
+  .prose :global(li + li) {
+    margin-top: 0.45rem;
+  }
+
+  .prose :global(blockquote) {
+    margin: 2rem 0;
+    border-left: 3px solid var(--accent);
+    padding: 0.2rem 0 0.2rem 1.25rem;
+  }
+
+  .prose :global(code) {
+    border-radius: 0.25rem;
+    background: var(--surface);
+    padding: 0.12rem 0.3rem;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+  }
+
+  .prose :global(pre) {
+    max-width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--dark) !important;
+    padding: 1.2rem;
+  }
+
+  .prose :global(pre code) {
+    background: transparent;
+    padding: 0;
+    color: var(--dark-text);
+  }
+
+  .prose :global(table) {
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+  }
+
+  .prose :global(th),
+  .prose :global(td) {
+    border-bottom: 1px solid var(--border);
+    padding: 0.7rem 1rem 0.7rem 0;
+    text-align: left;
+  }
+
+  .case-study-aside {
+    position: sticky;
+    top: calc(var(--header-height) + 2rem);
+  }
+
+  .case-study-aside h2 {
+    margin: 0 0 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .case-study-aside ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .case-study-aside li {
+    border-top: 1px solid var(--border);
+  }
+
+  .case-study-aside li:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .case-study-aside a {
+    display: block;
+    padding-block: 0.65rem;
+    color: var(--text-soft);
+    font-size: 0.8rem;
+    text-decoration: none;
+  }
+
+  .case-study-aside a:hover {
+    color: var(--accent);
+  }
+
+  @media (max-width: 56rem) {
+    .project-hero-grid,
+    .case-study {
+      grid-template-columns: 1fr;
+    }
+
+    .case-study-aside {
+      display: none;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .project-hero h1 {
+      overflow-wrap: anywhere;
+    }
+  }
+</style>

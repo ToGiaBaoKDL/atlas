@@ -1,16 +1,14 @@
+---
+import VisualHeader from "./VisualHeader.astro";
+---
+
 <figure class="signature-figure">
   <div
     class="platform-visual"
     role="img"
     aria-label="A modern data platform connecting source systems to a governed data foundation and trusted data experiences"
   >
-    <div class="platform-visual-heading">
-      <div>
-        <span>REFERENCE ARCHITECTURE</span>
-        <strong>Modern data platform</strong>
-      </div>
-      <span class="platform-status"><i></i> HEALTHY</span>
-    </div>
+    <VisualHeader eyebrow="Reference architecture" title="Modern data platform" status="Healthy" />
 
     <div class="platform-map">
       <section class="platform-sources">
@@ -60,3 +58,242 @@
     One governed foundation, many ways to create value from data.
   </figcaption>
 </figure>
+
+<style>
+  .signature-figure {
+    min-width: 0;
+    margin: 0;
+  }
+
+  .platform-visual {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #2a322b;
+    border-radius: var(--radius-md);
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px), #101510;
+    background-size: 1.4rem 1.4rem;
+    box-shadow: 0 1.5rem 4rem rgba(16, 21, 16, 0.18);
+    color: #f4f5ef;
+    padding: clamp(1rem, 2.5vw, 1.45rem);
+  }
+
+  .platform-visual::before {
+    position: absolute;
+    top: -7rem;
+    right: -6rem;
+    width: 18rem;
+    height: 18rem;
+    border-radius: 50%;
+    background: rgba(76, 105, 231, 0.2);
+    content: "";
+    filter: blur(5rem);
+  }
+
+  .platform-label {
+    color: #7f897d;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 640;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .platform-map {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 0.75fr) 1.5rem minmax(10rem, 1.45fr) 1.5rem minmax(
+        6.5rem,
+        0.9fr
+      );
+    gap: 0.6rem;
+    align-items: center;
+    padding-block: clamp(1.4rem, 4vw, 2.2rem);
+  }
+
+  .platform-sources,
+  .platform-experiences,
+  .platform-foundation {
+    min-width: 0;
+  }
+
+  .source-stack,
+  .experience-stack {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+  }
+
+  .source-stack span,
+  .experience-stack span {
+    border: 1px solid #303930;
+    border-radius: 0.4rem;
+    background: #171d17;
+    padding: 0.58rem 0.65rem;
+    color: #c9cec5;
+    font-size: 0.66rem;
+    line-height: 1.2;
+  }
+
+  .platform-foundation {
+    border: 1px solid #536ee6;
+    border-radius: 0.65rem;
+    background: linear-gradient(145deg, rgba(66, 91, 205, 0.24), rgba(23, 29, 23, 0.94));
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.05);
+    padding: 1rem;
+  }
+
+  .platform-foundation > strong {
+    display: block;
+    margin-top: 0.35rem;
+    color: #fff;
+    font-size: clamp(1.05rem, 2vw, 1.35rem);
+    font-weight: 620;
+    letter-spacing: -0.035em;
+  }
+
+  .foundation-layers {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin-top: 1rem;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    border-radius: 0.35rem;
+  }
+
+  .foundation-layers span {
+    padding: 0.45rem 0.25rem;
+    color: #bfc8ee;
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    text-align: center;
+  }
+
+  .foundation-layers span:not(:last-child) {
+    border-right: 1px solid rgba(255, 255, 255, 0.11);
+  }
+
+  .platform-connector {
+    position: relative;
+    display: block;
+    height: 1px;
+    background: #586bba;
+  }
+
+  .platform-connector::after {
+    position: absolute;
+    top: 50%;
+    right: -1px;
+    width: 0.35rem;
+    height: 0.35rem;
+    transform: translateY(-50%) rotate(45deg);
+    border-top: 1px solid #8ba2ff;
+    border-right: 1px solid #8ba2ff;
+    content: "";
+  }
+
+  .platform-connector i {
+    position: absolute;
+    top: -2px;
+    left: 10%;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #8ba2ff;
+  }
+
+  .control-plane {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1rem;
+    align-items: center;
+    border: 1px solid #2d382e;
+    border-radius: 0.5rem;
+    background: rgba(23, 29, 23, 0.85);
+    padding: 0.75rem;
+  }
+
+  .control-plane > div {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    overflow: hidden;
+    border-left: 1px solid #303930;
+  }
+
+  .control-plane > div span {
+    padding-inline: 0.5rem;
+    color: #aeb6aa;
+    font-family: var(--font-mono);
+    font-size: 0.57rem;
+    text-align: center;
+  }
+
+  .control-plane > div span:not(:last-child) {
+    border-right: 1px solid #303930;
+  }
+
+  .signature-caption {
+    margin-top: 0.8rem;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+  }
+
+  @media (max-width: 56rem) {
+    .signature-figure {
+      max-width: 42rem;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .platform-map {
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+      padding-block: 1.25rem;
+    }
+
+    .source-stack,
+    .experience-stack {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .source-stack span,
+    .experience-stack span {
+      padding-inline: 0.4rem;
+      text-align: center;
+    }
+
+    .platform-connector {
+      width: 1px;
+      height: 1.2rem;
+      margin-inline: auto;
+    }
+
+    .platform-connector::after {
+      top: auto;
+      right: 50%;
+      bottom: -1px;
+      transform: translateX(50%) rotate(135deg);
+    }
+
+    .platform-connector i {
+      top: 10%;
+      left: -2px;
+    }
+
+    .control-plane {
+      grid-template-columns: 1fr;
+      gap: 0.6rem;
+    }
+
+    .control-plane > div {
+      border-top: 1px solid #303930;
+      border-left: 0;
+      padding-top: 0.6rem;
+    }
+  }
+</style>

@@ -1,0 +1,65 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  status: string;
+}
+
+const { eyebrow, title, status } = Astro.props;
+---
+
+<div class="visual-header">
+  <div>
+    <span>{eyebrow}</span>
+    <strong>{title}</strong>
+  </div>
+  <span class="status"><i></i>{status}</span>
+</div>
+
+<style>
+  .visual-header {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid #2a322b;
+    padding-bottom: 1rem;
+  }
+
+  .visual-header > div {
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  span {
+    color: #7f897d;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 640;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    color: #f4f5ef;
+    font-size: 0.92rem;
+    font-weight: 590;
+  }
+
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+  }
+
+  i {
+    width: 0.38rem;
+    height: 0.38rem;
+    border-radius: 50%;
+    background: #78cf91;
+    box-shadow: 0 0 0 0.22rem rgba(120, 207, 145, 0.12);
+  }
+</style>
