@@ -3,6 +3,7 @@ import { defineConfig } from "@playwright/test";
 
 const systemChrome = ["/usr/bin/google-chrome", "/usr/bin/google-chrome-stable"].find(existsSync);
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ?? systemChrome;
+const testOrigin = "http://127.0.0.1:4329";
 
 export default defineConfig({
   testDir: "./tests",
@@ -11,16 +12,16 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {
-    baseURL: "http://127.0.0.1:4321",
+    baseURL: testOrigin,
     colorScheme: "light",
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     ...(executablePath ? { launchOptions: { executablePath } } : {}),
   },
   webServer: {
-    command: "node tests/serve.mjs",
-    url: "http://127.0.0.1:4321",
-    reuseExistingServer: !process.env.CI,
+    command: "ATLAS_TEST_PORT=4329 node tests/serve.mjs",
+    url: testOrigin,
+    reuseExistingServer: false,
     timeout: 30_000,
   },
   projects: [

@@ -4,7 +4,7 @@ import { createServer } from "node:http";
 import { extname, join, normalize, resolve } from "node:path";
 
 const root = resolve("dist");
-const port = 4321;
+const port = Number.parseInt(process.env.ATLAS_TEST_PORT ?? "4329", 10);
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
   ".html": "text/html; charset=utf-8",
