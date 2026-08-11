@@ -90,6 +90,46 @@ test("homepage showcases every project visual", async ({ page }) => {
   await expect(page.locator(".project-showcase .research-visual")).toHaveCount(1);
 });
 
+test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) <= 896, "Desktop-only layout");
+
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  const cards = page.locator(".project-showcase");
+
+  await expect(cards).toHaveCount(2);
+  expect(await cards.first().evaluate((element) => getComputedStyle(element).position)).toBe(
+    "sticky",
+  );
+  const stickyOffsets = await cards.evaluateAll((elements) =>
+    elements.map((element) => Number.parseFloat(getComputedStyle(element).top)),
+  );
+  const cardInsets = await cards.evaluateAll((elements) =>
+    elements.map((element) => Number.parseFloat(getComputedStyle(element).marginInlineStart)),
+  );
+  expect(stickyOffsets[1]).toBeGreaterThan(stickyOffsets[0]);
+  expect(cardInsets[1]).toBeGreaterThan(cardInsets[0]);
+});
+
+test("mobile project visuals stay compact", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
+
+  await page.goto("/");
+  const previews = page.locator(".project-showcase-visual");
+  await expect(previews).toHaveCount(2);
+
+  for (const preview of await previews.all()) {
+    const layout = await preview.evaluate((element) => ({
+      height: element.getBoundingClientRect().height,
+      contentHeight: element.firstElementChild?.getBoundingClientRect().height ?? 0,
+      overflow: getComputedStyle(element).overflow,
+    }));
+    expect(layout.overflow).toBe("hidden");
+    expect(layout.height).toBeLessThanOrEqual(448);
+    expect(layout.contentHeight).toBeGreaterThan(layout.height);
+  }
+});
+
 test("mobile hero previews the platform visual", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
 
