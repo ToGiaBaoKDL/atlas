@@ -175,6 +175,18 @@ test("project stack keeps normal flow when sticky motion is unsuitable", async (
   await expect(page.locator(".project-showcase").first()).toHaveCSS("position", "static");
 });
 
+test("tablet project cards keep a consistent content order", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) <= 640, "Covered by the mobile card layout");
+
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto("/");
+
+  for (const card of await page.locator(".project-card-showcase").all()) {
+    await expect(card.locator(".project-card-body")).toHaveCSS("order", "1");
+    await expect(card.locator(".project-card-media")).toHaveCSS("order", "2");
+  }
+});
+
 test("mobile project cards show complete visual thumbnails", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
 

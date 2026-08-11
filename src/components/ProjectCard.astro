@@ -2,7 +2,6 @@
 import type { CollectionEntry } from "astro:content";
 import { getProjectStatusLabel } from "../data/projects";
 import ProjectVisual from "./ProjectVisual.astro";
-import { getProjectVisual } from "./projectVisuals";
 
 interface Props {
   project: CollectionEntry<"projects">;
@@ -14,7 +13,6 @@ const { project, index, variant } = Astro.props;
 const Heading = variant === "showcase" ? "h3" : "h2";
 const projectNumber = String(index + 1).padStart(2, "0");
 const status = getProjectStatusLabel(project.data.status);
-const hasVisual = Boolean(getProjectVisual(project.id));
 ---
 
 <article
@@ -34,13 +32,9 @@ const hasVisual = Boolean(getProjectVisual(project.id));
     href={`/projects/${project.id}/`}
     aria-label={`${project.data.title} case study`}
   >
-    {
-      hasVisual && (
-        <div class="project-card-media" aria-hidden="true">
-          <ProjectVisual projectId={project.id} thumbnail />
-        </div>
-      )
-    }
+    <div class="project-card-media" aria-hidden="true">
+      <ProjectVisual projectId={project.id} presentation="thumbnail" />
+    </div>
 
     <div class="project-card-body">
       <span class="project-card-meta">
@@ -273,11 +267,13 @@ const hasVisual = Boolean(getProjectVisual(project.id));
       grid-template-columns: 1fr;
     }
 
-    .project-card-showcase .project-card-body {
+    .project-card-showcase .project-card-body,
+    .project-card-showcase.project-card-reverse .project-card-body {
       order: 1;
     }
 
-    .project-card-showcase .project-card-media {
+    .project-card-showcase .project-card-media,
+    .project-card-showcase.project-card-reverse .project-card-media {
       order: 2;
     }
 

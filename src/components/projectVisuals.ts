@@ -19,5 +19,10 @@ export type ProjectVisualId = keyof typeof projectVisuals;
 const isProjectVisualId = (projectId: string): projectId is ProjectVisualId =>
   Object.hasOwn(projectVisuals, projectId);
 
-export const getProjectVisual = (projectId: string) =>
-  isProjectVisualId(projectId) ? projectVisuals[projectId] : undefined;
+export const getProjectVisual = (projectId: string) => {
+  if (!isProjectVisualId(projectId)) {
+    throw new Error(`Missing visual configuration for project: ${projectId}`);
+  }
+
+  return projectVisuals[projectId];
+};

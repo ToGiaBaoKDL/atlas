@@ -4,26 +4,22 @@ import { getProjectVisual } from "./projectVisuals";
 
 interface Props {
   projectId: string;
-  contained?: boolean;
-  thumbnail?: boolean;
+  presentation: "case-study" | "thumbnail";
 }
 
-const { projectId, contained = false, thumbnail = false } = Astro.props;
+const { projectId, presentation } = Astro.props;
 const visual = getProjectVisual(projectId);
-const Visual = visual?.component;
+const Visual = visual.component;
 ---
 
 {
-  Visual &&
-    (contained ? (
-      <section class="container" aria-label={visual.label} data-reveal>
-        <Visual />
-      </section>
-    ) : thumbnail ? (
-      <VisualFrame mobileShape={visual.mobileShape}>
-        <Visual thumbnail />
-      </VisualFrame>
-    ) : (
+  presentation === "case-study" ? (
+    <section class="container" aria-label={visual.label} data-reveal>
       <Visual />
-    ))
+    </section>
+  ) : (
+    <VisualFrame mobileShape={visual.mobileShape}>
+      <Visual thumbnail />
+    </VisualFrame>
+  )
 }
