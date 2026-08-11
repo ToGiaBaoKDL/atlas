@@ -96,16 +96,34 @@ const writing = (await getPublishedWriting()).slice(0, 3);
 <script>
   const projectHeading = document.querySelector<HTMLElement>("[data-project-heading]");
   const writingBoundary = document.querySelector<HTMLElement>(".writing-section");
+  const projectsBand = projectHeading?.closest<HTMLElement>(".projects-band");
 
-  if (projectHeading && writingBoundary && "IntersectionObserver" in window) {
+  if (projectHeading && projectsBand) {
     projectHeading.setAttribute("data-sticky-ready", "");
 
+    const syncHeadingHeight = () => {
+      projectsBand?.style.setProperty(
+        "--project-heading-height",
+        `${projectHeading.offsetHeight}px`,
+      );
+    };
+
+    syncHeadingHeight();
+    if ("ResizeObserver" in window) new ResizeObserver(syncHeadingHeight).observe(projectHeading);
+  }
+
+  if (projectHeading && writingBoundary && "IntersectionObserver" in window) {
     const boundaryObserver = new IntersectionObserver(
       ([entry]) => {
         projectHeading.toggleAttribute("data-sticky-hidden", entry.isIntersecting);
         projectHeading.toggleAttribute("inert", entry.isIntersecting);
       },
-      { rootMargin: "0px 0px -1px 0px", threshold: 0 },
+      {
+        rootMargin: window.matchMedia("(max-width: 40rem)").matches
+          ? "0px 0px -35% 0px"
+          : "0px 0px -1px 0px",
+        threshold: 0,
+      },
     );
 
     boundaryObserver.observe(writingBoundary);
@@ -206,12 +224,15 @@ const writing = (await getPublishedWriting()).slice(0, 3);
   }
 
   .projects-band {
+    --project-heading-height: 0px;
+
     background: var(--dark);
     color: var(--dark-text);
     padding-bottom: clamp(1.5rem, 3vw, 2rem);
   }
 
   .projects-band .section-heading {
+    margin-bottom: clamp(3.5rem, 6vw, 5rem);
     border-color: var(--dark-border);
   }
 
@@ -321,6 +342,10 @@ const writing = (await getPublishedWriting()).slice(0, 3);
       align-items: flex-end;
     }
 
+    .projects-band .section-heading {
+      margin-bottom: 2rem;
+    }
+
     .project-stack {
       gap: 1rem;
     }
@@ -333,6 +358,23 @@ const writing = (await getPublishedWriting()).slice(0, 3);
   }
 
   @media (max-width: 40rem) and (min-height: 46rem) and (prefers-reduced-motion: no-preference) {
+    .projects-band .section-heading[data-sticky-ready] {
+      position: sticky;
+      z-index: 4;
+      top: var(--header-height);
+      background: var(--dark);
+      padding-top: 0.75rem;
+      transition:
+        transform var(--motion-base) var(--ease-out),
+        opacity var(--motion-base) ease;
+    }
+
+    .projects-band .section-heading[data-sticky-hidden] {
+      transform: translateY(-0.5rem);
+      opacity: 0;
+      pointer-events: none;
+    }
+
     .project-stack {
       gap: 2rem;
     }

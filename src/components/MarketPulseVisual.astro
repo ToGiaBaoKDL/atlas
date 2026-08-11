@@ -3,8 +3,8 @@ import VisualHeader from "./VisualHeader.astro";
 
 const stages = [
   { number: "01", owner: "Model", title: "Plan", detail: "Facets + queries" },
-  { number: "02", owner: "Code", title: "Retrieve", detail: "Bounded source pool" },
-  { number: "03", owner: "Model + code", title: "Ground", detail: "Select + extract" },
+  { number: "02", owner: "Code", title: "Retrieve", detail: "Bounded pool" },
+  { number: "03", owner: "Shared", title: "Ground", detail: "Select + extract" },
   { number: "04", owner: "Model", title: "Write", detail: "Typed + cited" },
 ];
 ---
@@ -24,23 +24,28 @@ const stages = [
     </article>
     <i class="flow-arrow" aria-hidden="true"></i>
 
-    {
-      stages.map((stage) => (
-        <>
-          <article class="stage">
-            <div>
-              <>
-                <span>{stage.number}</span>
-                <small>{stage.owner}</small>
-              </>
-            </div>
-            <strong>{stage.title}</strong>
-            <p>{stage.detail}</p>
-          </article>
-          <i class="flow-arrow" aria-hidden="true" />
-        </>
-      ))
-    }
+    <section class="run-boundary">
+      <span class="run-label">Bounded run</span>
+      <div class="run-flow">
+        {
+          stages.map((stage, index) => (
+            <>
+              <article class="stage">
+                <div>
+                  <span>{stage.number}</span>
+                  <small>{stage.owner}</small>
+                </div>
+                <strong>{stage.title}</strong>
+                <p>{stage.detail}</p>
+              </article>
+              {index < stages.length - 1 && <i class="flow-arrow" aria-hidden="true" />}
+            </>
+          ))
+        }
+      </div>
+    </section>
+
+    <i class="flow-arrow" aria-hidden="true"></i>
 
     <article class="endpoint">
       <span>Output</span>
@@ -51,7 +56,7 @@ const stages = [
 
   <div class="guardrail">
     <span><i></i>Code owns execution</span>
-    <p>deadline · provider budget · URL identity · schema · source references</p>
+    <p>deadline · budget · URL identity · schema · source IDs</p>
   </div>
 </figure>
 
@@ -85,17 +90,47 @@ const stages = [
     display: grid;
     min-height: 0;
     grid-template-columns:
-      minmax(0, 0.72fr) minmax(1.2rem, 0.26fr) repeat(4, minmax(0, 1fr) minmax(1.2rem, 0.26fr))
-      minmax(0, 0.72fr);
-    gap: 0.18rem;
+      minmax(0, 0.68fr) minmax(1.4rem, 0.32fr) minmax(0, 4.65fr) minmax(1.4rem, 0.32fr)
+      minmax(0, 0.68fr);
+    gap: 0.24rem;
     align-items: center;
-    padding-block: clamp(0.55rem, 1.15vw, 0.75rem);
+    padding-block: clamp(0.8rem, 1.6vw, 1.1rem);
+  }
+
+  .run-boundary {
+    position: relative;
+    min-width: 0;
+    border: 1px dashed color-mix(in srgb, var(--visual-accent) 52%, var(--visual-border));
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-accent) 2.5%, transparent);
+    padding: 0.78rem 0.48rem 0.48rem;
+  }
+
+  .run-label {
+    position: absolute;
+    top: -0.4rem;
+    left: 0.6rem;
+    background: var(--visual-bg);
+    padding-inline: 0.28rem;
+    color: var(--visual-accent);
+    font-family: var(--font-mono);
+    font-size: 0.44rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .run-flow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr) minmax(1.15rem, 0.28fr)) minmax(0, 1fr);
+    gap: 0.2rem;
+    align-items: center;
   }
 
   article {
     display: grid;
     min-width: 0;
-    min-height: 5.15rem;
+    min-height: 5.2rem;
     align-content: center;
     border: 1px solid var(--visual-border);
     border-radius: var(--radius-sm);
@@ -104,7 +139,16 @@ const stages = [
   }
 
   .endpoint {
+    border-color: color-mix(in srgb, var(--visual-accent) 22%, var(--visual-border));
     background: var(--visual-panel-soft);
+  }
+
+  .endpoint:first-child {
+    border-left-color: var(--visual-accent-strong);
+  }
+
+  .endpoint:last-child {
+    border-right-color: var(--visual-accent-strong);
   }
 
   article span,
@@ -136,7 +180,7 @@ const stages = [
     align-items: center;
     justify-content: space-between;
     gap: 0.3rem;
-    margin-bottom: clamp(0.45rem, 1vw, 0.65rem);
+    margin-bottom: clamp(0.35rem, 0.8vw, 0.52rem);
   }
 
   .stage div span {
@@ -144,6 +188,7 @@ const stages = [
   }
 
   .stage div small {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -160,7 +205,11 @@ const stages = [
     position: relative;
     display: block;
     height: 2px;
-    background: var(--visual-accent-strong);
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--visual-accent) 22%, transparent),
+      var(--visual-accent-strong)
+    );
   }
 
   .flow-arrow::after {

@@ -6,62 +6,79 @@ interface Props {
 }
 
 const { thumbnail = false } = Astro.props;
+const products = ["Landing", "Curated", "Analytics"];
+const capabilities = ["Orchestrate", "Test", "Catalog", "Observe", "Secure"];
 ---
 
 <figure class:list={["signature-figure", { "visual-thumbnail": thumbnail }]}>
   <div
     class="platform-visual"
     role="img"
-    aria-label="A modern data platform connecting source systems to a governed data foundation and trusted data experiences"
+    aria-label="A data platform that turns bounded sources into owned lakehouse products and trusted serving interfaces"
   >
-    <VisualHeader eyebrow="Reference architecture" title="Modern data platform" status="Healthy" />
+    <VisualHeader
+      eyebrow="Platform blueprint"
+      title="A data product path with explicit ownership"
+      status="Reliable by design"
+    />
 
-    <div class="platform-map">
-      <section class="platform-sources">
-        <span class="platform-label">Sources</span>
-        <div class="source-stack">
-          <span>Applications</span>
-          <span>Events</span>
-          <span>Files & APIs</span>
-        </div>
-      </section>
+    <div class="platform-boundary">
+      <div class="boundary-label">
+        <span>Data plane</span>
+        <small>contracts at every boundary</small>
+      </div>
 
-      <span class="platform-connector" aria-hidden="true"><i></i></span>
+      <div class="platform-map">
+        <section class="edge-node">
+          <span>Sources</span>
+          <strong>Bounded inputs</strong>
+          <small>batch · events · APIs</small>
+        </section>
 
-      <section class="platform-foundation">
-        <span class="platform-label">Unified data foundation</span>
-        <strong>Lakehouse</strong>
-        <div class="foundation-layers">
-          <span>Raw</span>
-          <span>Curated</span>
-          <span>Semantic</span>
-        </div>
-      </section>
+        <i class="flow-arrow" aria-hidden="true"><span></span></i>
 
-      <span class="platform-connector" aria-hidden="true"><i></i></span>
+        <section class="compute-node">
+          <span>Execution</span>
+          <strong>Ingest + transform</strong>
+          <small>replaceable compute</small>
+        </section>
 
-      <section class="platform-experiences">
-        <span class="platform-label">Experiences</span>
-        <div class="experience-stack">
-          <span>Analytics</span>
-          <span>Data products</span>
-          <span>AI systems</span>
-        </div>
-      </section>
-    </div>
+        <i class="flow-arrow" aria-hidden="true"><span></span></i>
 
-    <div class="control-plane">
-      <span class="platform-label">Control plane</span>
-      <div>
-        <span>Orchestrate</span>
-        <span>Govern</span>
-        <span>Observe</span>
-        <span>Secure</span>
+        <section class="product-node">
+          <span>Owned data products</span>
+          <ol>
+            {
+              products.map((product, index) => (
+                <li>
+                  <small>0{index + 1}</small>
+                  {product}
+                </li>
+              ))
+            }
+          </ol>
+        </section>
+
+        <i class="flow-arrow" aria-hidden="true"><span></span></i>
+
+        <section class="edge-node">
+          <span>Serving</span>
+          <strong>Trusted interfaces</strong>
+          <small>BI · APIs · AI/ML</small>
+        </section>
+      </div>
+
+      <div class="platform-capabilities">
+        <span>Platform plane</span>
+        <ul>
+          {capabilities.map((capability) => <li>{capability}</li>)}
+        </ul>
       </div>
     </div>
   </div>
-  <figcaption class="signature-caption">
-    One governed foundation, many ways to create value from data.
+
+  <figcaption>
+    Compute can change; contracts and owned data products keep the system stable.
   </figcaption>
 </figure>
 
@@ -77,250 +94,213 @@ const { thumbnail = false } = Astro.props;
     border: 1px solid var(--visual-border-soft);
     border-radius: var(--radius-md);
     background:
-      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px), var(--visual-bg);
-    background-size: 1.4rem 1.4rem;
+      linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+      radial-gradient(circle at 82% 9%, rgba(163, 230, 53, 0.1), transparent 31%), var(--visual-bg);
+    background-size:
+      1.35rem 1.35rem,
+      1.35rem 1.35rem,
+      auto,
+      auto;
     box-shadow: 0 1.5rem 4rem rgba(16, 21, 16, 0.18);
     color: var(--visual-text-strong);
-    padding: clamp(1rem, 2.5vw, 1.45rem);
+    padding: clamp(0.85rem, 2vw, 1.15rem);
   }
 
-  .platform-visual::before {
+  .platform-boundary {
+    position: relative;
+    margin-top: clamp(0.8rem, 2vw, 1.1rem);
+    border: 1px dashed color-mix(in srgb, var(--visual-accent) 52%, var(--visual-border));
+    border-radius: 0.5rem;
+    padding: 1.25rem 0.55rem 0.55rem;
+  }
+
+  .boundary-label {
     position: absolute;
-    top: -7rem;
-    right: -6rem;
-    width: 18rem;
-    height: 18rem;
-    border-radius: 50%;
-    background: rgba(76, 105, 231, 0.2);
-    content: "";
-    filter: blur(5rem);
+    top: -0.48rem;
+    left: 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    background: var(--visual-bg);
+    padding-inline: 0.32rem;
   }
 
-  .platform-label {
-    color: var(--visual-muted);
+  .boundary-label span,
+  .boundary-label small,
+  section > span,
+  section > small,
+  .product-node li small,
+  .platform-capabilities > span,
+  .platform-capabilities li {
     font-family: var(--font-mono);
-    font-size: 0.58rem;
-    font-weight: 640;
-    letter-spacing: 0.09em;
+    font-size: 0.49rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
   }
 
+  .boundary-label span {
+    color: var(--visual-accent);
+  }
+
+  .boundary-label small,
+  section > span,
+  section > small,
+  .product-node li small,
+  .platform-capabilities > span {
+    color: var(--visual-muted);
+  }
+
   .platform-map {
-    position: relative;
-    z-index: 1;
     display: grid;
-    grid-template-columns: minmax(5.5rem, 0.75fr) 1.5rem minmax(10rem, 1.45fr) 1.5rem minmax(
-        6.5rem,
-        0.9fr
-      );
-    gap: 0.6rem;
-    align-items: center;
-    padding-block: clamp(1.4rem, 4vw, 2.2rem);
+    grid-template-columns:
+      minmax(0, 0.82fr) minmax(1.1rem, 0.2fr) minmax(0, 0.95fr) minmax(1.1rem, 0.2fr)
+      minmax(0, 1.55fr) minmax(1.1rem, 0.2fr) minmax(0, 0.82fr);
+    gap: 0.2rem;
+    align-items: stretch;
   }
 
-  .platform-sources,
-  .platform-experiences,
-  .platform-foundation {
+  section {
+    display: grid;
     min-width: 0;
-  }
-
-  .source-stack,
-  .experience-stack {
-    display: grid;
-    gap: 0.45rem;
-    margin-top: 0.65rem;
-  }
-
-  .source-stack span,
-  .experience-stack span {
-    border: 1px solid var(--visual-border);
+    min-height: 5.6rem;
+    align-content: center;
+    border: 1px solid var(--visual-border-soft);
     border-radius: 0.4rem;
-    background: var(--visual-panel);
-    padding: 0.58rem 0.65rem;
+    background: color-mix(in srgb, var(--visual-panel) 95%, transparent);
+    padding: 0.5rem;
+  }
+
+  section strong {
+    margin-block: 0.25rem;
     color: var(--visual-text);
-    font-size: 0.66rem;
+    font-size: clamp(0.58rem, 1.25vw, 0.73rem);
+    font-weight: 600;
     line-height: 1.2;
   }
 
-  .platform-foundation {
-    border: 1px solid var(--visual-accent-strong);
-    border-radius: 0.65rem;
-    background: linear-gradient(145deg, rgba(66, 91, 205, 0.24), rgba(23, 29, 23, 0.94));
-    box-shadow: inset 0 1px rgba(255, 255, 255, 0.05);
-    padding: 1rem;
+  .product-node {
+    border-color: color-mix(in srgb, var(--visual-accent) 38%, var(--visual-border));
+    background: color-mix(in srgb, var(--visual-accent) 4%, var(--visual-panel));
   }
 
-  .platform-foundation > strong {
-    display: block;
-    margin-top: 0.35rem;
-    color: var(--visual-text-strong);
-    font-size: clamp(1.05rem, 2vw, 1.35rem);
-    font-weight: 620;
-    letter-spacing: -0.035em;
+  .product-node > span,
+  .product-node li small {
+    color: var(--visual-soft);
   }
 
-  .foundation-layers {
+  .product-node ol {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    margin-top: 1rem;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.11);
-    border-radius: 0.35rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.3rem;
+    margin: 0.55rem 0 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .foundation-layers span {
-    padding: 0.45rem 0.25rem;
-    color: var(--visual-accent);
-    font-family: var(--font-mono);
-    font-size: 0.55rem;
-    text-align: center;
+  .product-node li {
+    display: grid;
+    min-width: 0;
+    gap: 0.15rem;
+    border-left: 1px solid var(--visual-border);
+    padding-left: 0.35rem;
+    color: var(--visual-soft);
+    font-size: clamp(0.5rem, 1vw, 0.62rem);
   }
 
-  .foundation-layers span:not(:last-child) {
-    border-right: 1px solid rgba(255, 255, 255, 0.11);
-  }
-
-  .platform-connector {
+  .flow-arrow {
     position: relative;
-    display: block;
+    align-self: center;
     height: 2px;
     background: var(--visual-accent-strong);
   }
 
-  .platform-connector::after {
+  .flow-arrow::after {
     position: absolute;
     top: 50%;
-    right: -1px;
-    width: 0.35rem;
-    height: 0.35rem;
+    right: 0;
+    width: 0.32rem;
+    height: 0.32rem;
     transform: translateY(-50%) rotate(45deg);
     border-top: 2px solid var(--visual-accent);
     border-right: 2px solid var(--visual-accent);
     content: "";
   }
 
-  .platform-connector i {
-    --visual-flow-distance: 0.75rem;
+  .flow-arrow span {
+    --visual-flow-distance: 0.7rem;
 
     position: absolute;
     top: -1.5px;
-    left: 15%;
+    left: 8%;
     width: 5px;
     height: 5px;
     border-radius: 50%;
     background: var(--visual-accent);
   }
 
-  .control-plane {
-    position: relative;
-    z-index: 1;
+  .platform-capabilities {
     display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 1rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.7rem;
     align-items: center;
-    border: 1px solid var(--visual-border);
-    border-radius: 0.5rem;
-    background: color-mix(in srgb, var(--visual-panel) 85%, transparent);
-    padding: 0.75rem;
+    margin-top: 0.5rem;
+    border-top: 1px solid var(--visual-border-soft);
+    padding-top: 0.5rem;
   }
 
-  .control-plane > div {
+  .platform-capabilities ul {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    overflow: hidden;
-    border-left: 1px solid var(--visual-border);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .control-plane > div span {
-    padding-inline: 0.5rem;
+  .platform-capabilities li {
+    border-left: 1px solid var(--visual-border);
     color: var(--visual-soft);
-    font-family: var(--font-mono);
-    font-size: 0.57rem;
     text-align: center;
   }
 
-  .control-plane > div span:not(:last-child) {
-    border-right: 1px solid var(--visual-border);
-  }
-
-  .signature-caption {
-    margin-top: 0.8rem;
+  figcaption {
+    margin-top: 0.75rem;
     color: var(--text-faint);
     font-family: var(--font-mono);
     font-size: 0.68rem;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 40rem) {
+    figcaption {
+      color: var(--visual-soft);
+    }
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    :global([data-enter]) .platform-connector i {
+    :global([data-enter]) .flow-arrow {
+      animation: flow-pulse 1.1s ease-in-out infinite alternate;
+    }
+
+    :global([data-enter]) .flow-arrow span {
       animation: visual-flow-inline var(--motion-flow) linear infinite;
       will-change: transform, opacity;
     }
 
-    :global([data-enter]) .platform-connector:nth-child(4) i {
+    :global([data-enter]) .flow-arrow:nth-of-type(2) span {
       animation-delay: var(--motion-flow-half);
     }
-  }
 
-  @media (max-width: 56rem) {
-    .signature-figure:not(.visual-thumbnail) {
-      max-width: 42rem;
-    }
-  }
+    @keyframes flow-pulse {
+      from {
+        opacity: 0.22;
+      }
 
-  @media (max-width: 40rem) {
-    .signature-figure:not(.visual-thumbnail) .platform-map {
-      grid-template-columns: 1fr;
-      gap: 0.65rem;
-      padding-block: 1.25rem;
-    }
-
-    .signature-figure:not(.visual-thumbnail) .source-stack,
-    .signature-figure:not(.visual-thumbnail) .experience-stack {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .signature-figure:not(.visual-thumbnail) .source-stack span,
-    .signature-figure:not(.visual-thumbnail) .experience-stack span {
-      padding-inline: 0.4rem;
-      text-align: center;
-    }
-
-    .signature-figure:not(.visual-thumbnail) .platform-connector {
-      width: 2px;
-      height: 1.2rem;
-      margin-inline: auto;
-    }
-
-    .signature-figure:not(.visual-thumbnail) .platform-connector::after {
-      top: auto;
-      right: 50%;
-      bottom: -1px;
-      transform: translateX(50%) rotate(135deg);
-    }
-
-    .signature-figure:not(.visual-thumbnail) .platform-connector i {
-      --visual-flow-distance: 0.55rem;
-
-      top: 15%;
-      left: -1.5px;
-    }
-
-    .signature-figure:not(.visual-thumbnail) .control-plane {
-      grid-template-columns: 1fr;
-      gap: 0.6rem;
-    }
-
-    .signature-figure:not(.visual-thumbnail) .control-plane > div {
-      border-top: 1px solid var(--visual-border);
-      border-left: 0;
-      padding-top: 0.6rem;
-    }
-  }
-
-  @media (max-width: 40rem) and (prefers-reduced-motion: no-preference) {
-    :global([data-enter]) .signature-figure:not(.visual-thumbnail) .platform-connector i {
-      animation-name: visual-flow-block;
+      to {
+        opacity: 1;
+        filter: drop-shadow(0 0 0.28rem var(--visual-accent-glow));
+      }
     }
   }
 </style>

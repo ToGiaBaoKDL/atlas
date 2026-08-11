@@ -93,6 +93,12 @@ test("homepage showcases every project visual", async ({ page }) => {
   await expect(page.locator(".project-showcase")).toHaveCount(2);
   await expect(page.locator(".project-showcase .lakehouse-map")).toHaveCount(1);
   await expect(page.locator(".project-showcase .market-map")).toHaveCount(1);
+  await expect(page.locator(".hero-visual .product-node li")).toHaveText([
+    /Landing/,
+    /Curated/,
+    /Analytics/,
+  ]);
+  await expect(page.locator(".hero-visual .platform-capabilities li")).toHaveCount(5);
 });
 
 test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
@@ -125,13 +131,20 @@ test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
     .evaluate((element) => element.getBoundingClientRect().height);
   const availableCenter = (headerHeight + (page.viewportSize()?.height ?? 0)) / 2;
   const cardCenter = stickyOffsets[0] + firstCardHeight / 2;
-  expect(Math.abs(cardCenter - availableCenter)).toBeLessThanOrEqual(1);
+  expect(cardCenter).toBeGreaterThanOrEqual(availableCenter - 1);
 
   await cards.first().scrollIntoViewIfNeeded();
   const headingTop = await sectionHeading.evaluate(
     (element) => element.getBoundingClientRect().top,
   );
   expect(Math.abs(headingTop - headerHeight)).toBeLessThanOrEqual(1);
+  const [headingBox, firstCardBox] = await Promise.all([
+    sectionHeading.boundingBox(),
+    cards.first().boundingBox(),
+  ]);
+  expect(
+    (firstCardBox?.y ?? 0) - ((headingBox?.y ?? 0) + (headingBox?.height ?? 0)),
+  ).toBeGreaterThanOrEqual(31);
 
   const writingTop = await page
     .locator(".writing-section")
@@ -349,6 +362,15 @@ test("market pulse visual keeps a compact, explicit responsibility path", async 
   ]);
   await expect(visual.locator(".flow-arrow")).toHaveCount(5);
 
+  const clippedOwnerLabels = await visual
+    .locator(".stage div small")
+    .evaluateAll((labels) =>
+      labels
+        .filter((label) => label.scrollWidth > label.clientWidth + 1)
+        .map((label) => label.textContent),
+    );
+  expect(clippedOwnerLabels).toEqual([]);
+
   const comparison = page.locator(".case-figure").filter({ hasText: "Fewer stages" });
   await comparison.scrollIntoViewIfNeeded();
   const [earlier, current] = await Promise.all([
@@ -362,8 +384,10 @@ test("mobile homepage uses a motion-safe project cover stack", async ({ page }) 
   test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
 
   await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.setViewportSize({ width: 402, height: 874 });
   await page.goto("/");
   const cards = page.locator(".project-showcase");
+  const sectionHeading = page.locator(".projects-band .section-heading");
   const stickyTop = Number.parseFloat(
     await cards.first().evaluate((element) => getComputedStyle(element).top),
   );
@@ -371,11 +395,31 @@ test("mobile homepage uses a motion-safe project cover stack", async ({ page }) 
 
   await expect(cards).toHaveCount(2);
   await expect(cards.first()).toHaveCSS("position", "sticky");
+  await expect(sectionHeading).toHaveCSS("position", "sticky");
   for (const card of await cards.all()) {
     expect((await card.boundingBox())?.height ?? viewportHeight).toBeLessThan(
       viewportHeight - stickyTop,
     );
   }
+
+  const firstCardDocumentTop = await cards
+    .first()
+    .evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
+  await page.evaluate(({ top }) => window.scrollTo({ top, behavior: "instant" }), {
+    top: firstCardDocumentTop - stickyTop,
+  });
+  await page.waitForTimeout(300);
+
+  const [headerBox, headingBox, firstCardBox] = await Promise.all([
+    page.locator(".site-header").boundingBox(),
+    sectionHeading.boundingBox(),
+    cards.first().boundingBox(),
+  ]);
+  expect(Math.abs((headingBox?.y ?? 0) - (headerBox?.height ?? 0))).toBeLessThanOrEqual(1);
+  expect(Math.abs((firstCardBox?.y ?? 0) - stickyTop)).toBeLessThanOrEqual(1);
+  expect(
+    (firstCardBox?.y ?? 0) - ((headingBox?.y ?? 0) + (headingBox?.height ?? 0)),
+  ).toBeGreaterThanOrEqual(10);
 
   const lastCardDocumentTop = await cards
     .last()
@@ -386,6 +430,10 @@ test("mobile homepage uses a motion-safe project cover stack", async ({ page }) 
   await page.waitForTimeout(500);
   const lastCardTop = await cards.last().evaluate((element) => element.getBoundingClientRect().top);
   expect(Math.abs(lastCardTop - stickyTop)).toBeLessThanOrEqual(1);
+  const finalHeadingTop = await sectionHeading.evaluate(
+    (element) => element.getBoundingClientRect().top,
+  );
+  expect(Math.abs(finalHeadingTop - (headerBox?.height ?? 0))).toBeLessThanOrEqual(1);
 });
 
 test("mobile hero uses the shared overview frame", async ({ page }) => {

@@ -102,7 +102,7 @@ const dataStages = [
       1.35rem 1.35rem,
       auto,
       auto;
-    padding: clamp(0.8rem, 1.45vw, 1rem);
+    padding: clamp(0.7rem, 1.2vw, 0.9rem);
     color: var(--visual-text);
   }
 
@@ -124,10 +124,8 @@ const dataStages = [
     grid-template-columns: minmax(7.5rem, 0.56fr) minmax(0, 2.44fr);
     gap: 0.55rem;
     align-items: stretch;
-    border: 1px solid var(--visual-border);
-    border-radius: 0.42rem;
-    background: color-mix(in srgb, var(--visual-panel) 92%, transparent);
-    padding: 0.42rem;
+    border-block: 1px solid var(--visual-border-soft);
+    padding-block: 0.38rem;
   }
 
   .layer-label,
@@ -139,7 +137,7 @@ const dataStages = [
 
   .layer-label {
     border-left: 2px solid var(--visual-accent-strong);
-    padding-inline: 0.5rem;
+    padding-inline: 0.55rem;
   }
 
   .foundation ul {
@@ -155,7 +153,7 @@ const dataStages = [
     display: grid;
     align-content: center;
     border-left: 1px solid var(--visual-border-soft);
-    padding: 0.28rem 0.48rem;
+    padding: 0.22rem 0.48rem;
   }
 
   .layer-label span,
@@ -204,7 +202,7 @@ const dataStages = [
     position: relative;
     border: 1px dashed color-mix(in srgb, var(--visual-accent) 56%, var(--visual-border));
     border-radius: 0.42rem;
-    padding: 1.35rem 0.55rem 0.55rem;
+    padding: 1.35rem 0.55rem 0.1rem;
   }
 
   .boundary-label {
@@ -229,7 +227,7 @@ const dataStages = [
 
   .data-stage {
     display: grid;
-    min-height: 4.35rem;
+    min-height: 4.05rem;
     align-content: center;
     border: 1px solid var(--visual-border-soft);
     border-radius: 0.35rem;
@@ -239,6 +237,10 @@ const dataStages = [
 
   .data-stage.product {
     border-color: color-mix(in srgb, var(--visual-accent) 24%, var(--visual-border));
+  }
+
+  .data-stage.product > span {
+    color: var(--visual-accent);
   }
 
   .data-stage strong,
@@ -254,7 +256,11 @@ const dataStages = [
     position: relative;
     display: block;
     height: 2px;
-    background: var(--visual-accent-strong);
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--visual-accent) 22%, transparent),
+      var(--visual-accent-strong)
+    );
   }
 
   .flow-arrow::after {

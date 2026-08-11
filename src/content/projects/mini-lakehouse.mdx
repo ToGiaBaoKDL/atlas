@@ -53,6 +53,10 @@ The platform is hybrid by intent, not because every component needs a different 
 
 Within the data plane, versioned contracts describe the Iceberg structure and validation rules. Spark owns landing and curated publication; OCR workers own document artifacts and their run records; each dbt domain owns its analytics models, tests, runtime identity and release. Airflow submits work, observes it and emits a logical asset only after the producer succeeds. It never becomes the place where business state is stored.
 
+Terraform owns the infrastructure boundary, not the table lifecycle. It provisions the OCI host, Cloudflare Tunnel and Tailscale access, plus AWS networking, buckets, KMS, IAM, ECR, EMR and the containers for runtime secrets. Versioned YAML contracts and PyIceberg own Glue databases and tables, so an infrastructure apply cannot silently change a dataset schema, partition spec or identifier field.
+
+Access is split by workload rather than inherited from the host. The OCI machine has no public ingress: browser traffic crosses Cloudflare Access and operator traffic stays on Tailscale. Airflow may submit and cancel EMR work but cannot read or write the lake on a job’s behalf; the EMR runtime owns source and data permissions. Each dbt domain receives a separate identity scoped to its curated inputs, analytics output and query-result prefix, while CI exchanges short-lived credentials instead of storing AWS keys.
+
 This creates more deployment surfaces than a single-machine stack. I accept that cost because the boundaries line up with the things I need to debug and roll back. If a small deployment did not need independent recovery, I would collapse some of them.
 
 ## Following one GitHub day through the system
@@ -62,8 +66,6 @@ The GitHub Archive path is the clearest example of how those boundaries work. At
 Landing is treated as an authoritative window: replaying the day replaces exactly those hourly partitions. Curated events merge by `event_id`; actor and repository state use `(last_observed_at, last_event_id)` so an older observation cannot overwrite a newer one. Only after the remote job succeeds does Airflow publish the curated asset that triggers the Engineering dbt domain.
 
 <RunTraceVisual variant="lakehouse" />
-
-The same ownership rule appears in access control. Airflow can submit or cancel EMR work, but it cannot read and write the data on the job’s behalf. The EMR runtime owns those permissions. The Engineering dbt identity can read its curated GitHub inputs and write only its analytics and query-result prefixes.
 
 ## Failure is part of the data contract
 

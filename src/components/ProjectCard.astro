@@ -403,7 +403,7 @@ const status = getProjectStatusLabel(project.data.status);
   @media (max-width: 40rem) and (min-height: 46rem) and (prefers-reduced-motion: no-preference) {
     .project-card-showcase {
       position: sticky;
-      top: calc(var(--header-height) + 0.75rem);
+      top: calc(var(--header-height) + var(--project-heading-height, 0px) + 0.75rem);
       align-self: start;
     }
   }
@@ -414,7 +414,10 @@ const status = getProjectStatusLabel(project.data.status);
       --stack-inset: 0rem;
 
       position: sticky;
-      top: calc((100svh + var(--header-height) - var(--stack-card-height)) / 2);
+      top: max(
+        calc((100svh + var(--header-height) - var(--stack-card-height)) / 2),
+        calc(var(--header-height) + var(--project-heading-height, 0px) + 2rem)
+      );
       min-height: var(--stack-card-height);
       align-self: start;
       margin-inline: var(--stack-inset);

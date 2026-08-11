@@ -30,6 +30,12 @@ const { aspect = "standard", presentation = "detail" } = Astro.props;
 
     overflow: hidden;
     aspect-ratio: var(--visual-frame-ratio);
+    background: var(--visual-bg);
+    padding: 0.125rem 0.25rem;
+  }
+
+  .visual-frame-standard.visual-frame-thumbnail {
+    padding-block: 0.16rem;
   }
 
   .visual-frame-thumbnail > :global(*) {
@@ -46,10 +52,14 @@ const { aspect = "standard", presentation = "detail" } = Astro.props;
 
       overflow: hidden;
       aspect-ratio: var(--visual-frame-ratio);
+      background: var(--visual-bg);
+      padding: 0.125rem 0.25rem;
     }
 
     .visual-frame-standard {
       --visual-frame-scale: 0.64;
+
+      padding-block: 0.16rem;
     }
 
     .visual-frame-landscape {
