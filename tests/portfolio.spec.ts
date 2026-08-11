@@ -65,8 +65,8 @@ test("mobile navigation opens, links and closes", async ({ page }) => {
   await page.goto("/");
   const openButton = page.getByRole("button", { name: "Open menu" });
   const buttonBox = await openButton.boundingBox();
-  expect(buttonBox?.width).toBeLessThanOrEqual(40);
-  expect(buttonBox?.height).toBeLessThanOrEqual(40);
+  expect(buttonBox?.width).toBeLessThanOrEqual(36);
+  expect(buttonBox?.height).toBeLessThanOrEqual(36);
   await openButton.click();
 
   const dialog = page.getByRole("dialog");
@@ -76,7 +76,7 @@ test("mobile navigation opens, links and closes", async ({ page }) => {
   const linkFontSize = await projectsLink.evaluate((element) =>
     Number.parseFloat(getComputedStyle(element).fontSize),
   );
-  expect(linkFontSize).toBeLessThanOrEqual(25);
+  expect(linkFontSize).toBeLessThanOrEqual(21);
   await projectsLink.click();
   await expect(page).toHaveURL(/\/projects\/$/);
   await expect(dialog).not.toBeVisible();
