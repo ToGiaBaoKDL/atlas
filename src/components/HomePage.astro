@@ -5,6 +5,7 @@ import { site } from "../data/site";
 import { writingTopics } from "../data/topics";
 import ProjectCard from "./ProjectCard.astro";
 import SignatureVisual from "./SignatureVisual.astro";
+import VisualFrame from "./VisualFrame.astro";
 import WritingList from "./WritingList.astro";
 
 const projects = await getProjects();
@@ -37,7 +38,9 @@ const writing = (await getPublishedWriting()).slice(0, 3);
       </ul>
     </div>
     <div class="hero-visual" data-enter="delayed">
-      <SignatureVisual />
+      <VisualFrame mobileShape="wide">
+        <SignatureVisual thumbnail />
+      </VisualFrame>
     </div>
   </div>
 

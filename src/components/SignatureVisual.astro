@@ -1,8 +1,14 @@
 ---
 import VisualHeader from "./VisualHeader.astro";
+
+interface Props {
+  thumbnail?: boolean;
+}
+
+const { thumbnail = false } = Astro.props;
 ---
 
-<figure class="signature-figure">
+<figure class:list={["signature-figure", { "visual-thumbnail": thumbnail }]}>
   <div
     class="platform-visual"
     role="img"
@@ -257,55 +263,55 @@ import VisualHeader from "./VisualHeader.astro";
   }
 
   @media (max-width: 56rem) {
-    .signature-figure {
+    .signature-figure:not(.visual-thumbnail) {
       max-width: 42rem;
     }
   }
 
   @media (max-width: 40rem) {
-    .platform-map {
+    .signature-figure:not(.visual-thumbnail) .platform-map {
       grid-template-columns: 1fr;
       gap: 0.65rem;
       padding-block: 1.25rem;
     }
 
-    .source-stack,
-    .experience-stack {
+    .signature-figure:not(.visual-thumbnail) .source-stack,
+    .signature-figure:not(.visual-thumbnail) .experience-stack {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .source-stack span,
-    .experience-stack span {
+    .signature-figure:not(.visual-thumbnail) .source-stack span,
+    .signature-figure:not(.visual-thumbnail) .experience-stack span {
       padding-inline: 0.4rem;
       text-align: center;
     }
 
-    .platform-connector {
+    .signature-figure:not(.visual-thumbnail) .platform-connector {
       width: 2px;
       height: 1.2rem;
       margin-inline: auto;
     }
 
-    .platform-connector::after {
+    .signature-figure:not(.visual-thumbnail) .platform-connector::after {
       top: auto;
       right: 50%;
       bottom: -1px;
       transform: translateX(50%) rotate(135deg);
     }
 
-    .platform-connector i {
+    .signature-figure:not(.visual-thumbnail) .platform-connector i {
       --visual-flow-distance: 0.55rem;
 
       top: 15%;
       left: -1.5px;
     }
 
-    .control-plane {
+    .signature-figure:not(.visual-thumbnail) .control-plane {
       grid-template-columns: 1fr;
       gap: 0.6rem;
     }
 
-    .control-plane > div {
+    .signature-figure:not(.visual-thumbnail) .control-plane > div {
       border-top: 1px solid var(--visual-border);
       border-left: 0;
       padding-top: 0.6rem;
@@ -313,7 +319,7 @@ import VisualHeader from "./VisualHeader.astro";
   }
 
   @media (max-width: 40rem) and (prefers-reduced-motion: no-preference) {
-    :global([data-enter]) .platform-connector i {
+    :global([data-enter]) .signature-figure:not(.visual-thumbnail) .platform-connector i {
       animation-name: visual-flow-block;
     }
   }

@@ -288,21 +288,16 @@ test("mobile homepage uses a motion-safe project cover stack", async ({ page }) 
   expect(Math.abs(lastCardTop - stickyTop)).toBeLessThanOrEqual(1);
 });
 
-test("mobile hero previews the platform visual", async ({ page }) => {
+test("mobile hero uses the shared overview frame", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
 
   await page.goto("/");
-  const visual = await page.locator(".platform-visual").boundingBox();
-  const viewportHeight = page.viewportSize()?.height ?? 0;
+  const frame = page.locator(".hero-visual .visual-frame");
+  const visual = frame.locator(":scope > .signature-figure");
 
-  expect(visual).not.toBeNull();
-  const visualTop = visual?.y ?? 0;
-  const visualBottom = visualTop + (visual?.height ?? 0);
-  const visibleHeight = Math.max(
-    0,
-    Math.min(visualBottom, viewportHeight) - Math.max(visualTop, 0),
-  );
-  expect(visibleHeight).toBeGreaterThanOrEqual(120);
+  await expect(frame).not.toHaveCSS("aspect-ratio", "auto");
+  await expect(visual).not.toHaveCSS("transform", "none");
+  expect((await frame.boundingBox())?.height ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(300);
 });
 
 test("mobile overview connectors bridge adjacent stages", async ({ page }) => {
