@@ -14,7 +14,7 @@ const visuals = {
     status: "Explicit recovery",
     number: "02 / RECOVERY MAP",
     caption:
-      "A retry never depends on Airflow remembering business state. Each producer rejects incomplete work and resumes from a bounded, verifiable boundary.",
+      "Each producer rejects incomplete work and retries from a bounded boundary; Airflow stores no business state.",
     baseline: ["Resolve window", "Produce data", "Validate output", "Commit boundary"],
     branches: [
       { trigger: "Broken source object", action: "Reject before publish", proof: "gzip + SHA-256" },
@@ -36,7 +36,7 @@ const visuals = {
     status: "Fail closed",
     number: "03 / FAILURE MAP",
     caption:
-      "Provider and model failures are bounded and observable. When grounding disappears or references cannot be validated, the application returns a typed failure instead of a plausible post.",
+      "Provider and model failures stop at typed boundaries; missing grounding or invalid references cannot produce a post.",
     baseline: ["Plan", "Retrieve", "Ground", "Validate"],
     branches: [
       {

@@ -21,7 +21,7 @@ const core = [
   eyebrow="Architecture correction"
   title="Fewer stages, clearer ownership"
   status="Reduced surface"
-  caption="The redesign removed layers whose schemas, retries and fallbacks cost more than the quality they added. The remaining semantic stages share one typed application path."
+  caption="The final path keeps semantic decisions in three typed stages. Code owns budgets, deadlines, validation and diagnostics around them."
   number="01 / DESIGN CHANGE"
 >
   <div class="reduction">
@@ -66,13 +66,15 @@ const core = [
   .reduction {
     display: grid;
     height: 100%;
-    grid-template-columns: minmax(0, 0.92fr) 4.5rem minmax(0, 1.08fr);
+    grid-template-columns: minmax(0, 1fr) 4.5rem minmax(0, 1fr);
     gap: 1rem;
-    align-items: center;
+    align-items: stretch;
   }
 
   section {
+    display: grid;
     min-width: 0;
+    align-content: center;
     border: 1px solid var(--visual-border);
     border-radius: var(--radius-sm);
     background: var(--visual-panel-soft);

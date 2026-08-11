@@ -335,6 +335,29 @@ test("mini lakehouse visual keeps deployment and data boundaries explicit", asyn
   await expect(visual.locator(".serving-lane")).toContainText("Remote OCR service");
 });
 
+test("market pulse visual keeps a compact, explicit responsibility path", async ({ page }) => {
+  await page.goto("/projects/vn-market-pulse/");
+  const visual = page.locator(".project-cover-visual .market-map");
+
+  await expect(visual.locator("article strong")).toHaveText([
+    "Request",
+    "Plan",
+    "Retrieve",
+    "Ground",
+    "Write",
+    "Post",
+  ]);
+  await expect(visual.locator(".flow-arrow")).toHaveCount(5);
+
+  const comparison = page.locator(".case-figure").filter({ hasText: "Fewer stages" });
+  await comparison.scrollIntoViewIfNeeded();
+  const [earlier, current] = await Promise.all([
+    comparison.locator(".earlier").boundingBox(),
+    comparison.locator(".current").boundingBox(),
+  ]);
+  expect(Math.abs((earlier?.height ?? 0) - (current?.height ?? 0))).toBeLessThanOrEqual(1);
+});
+
 test("mobile homepage uses a motion-safe project cover stack", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
 

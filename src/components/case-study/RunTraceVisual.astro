@@ -14,7 +14,7 @@ const visuals = {
     status: "Idempotent path",
     number: "01 / RUN TRACE",
     caption:
-      "The scheduler coordinates the run, but correctness lives in the producer: a bounded overwrite, deterministic merge and an asset emitted only after success.",
+      "Airflow coordinates the run; deterministic producers own replay, merge and publication boundaries.",
     steps: [
       { owner: "Airflow", title: "Resolve window", detail: "Previous local day" },
       { owner: "Spark", title: "Fetch 24 hours", detail: "Checksum every object" },
@@ -31,7 +31,7 @@ const visuals = {
     status: "Bounded path",
     number: "02 / RUN TRACE",
     caption:
-      "Every semantic decision is visible as a typed stage, while the application carries budgets, source identity and deadlines across the complete run.",
+      "Typed stages expose semantic decisions; code carries budgets, source identity and deadlines across the run.",
     steps: [
       { owner: "Interface", title: "Normalize request", detail: "Topic, depth, style" },
       { owner: "Model", title: "Plan intent", detail: "Facets and queries" },
