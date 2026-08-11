@@ -15,12 +15,12 @@ const Visual = visual.component;
 {
   presentation === "case-study" ? (
     <section class="project-cover-visual container" aria-label={visual.label} data-reveal>
-      <VisualFrame>
+      <VisualFrame aspect="landscape" presentation="detail">
         <Visual />
       </VisualFrame>
     </section>
   ) : (
-    <VisualFrame>
+    <VisualFrame aspect="landscape" presentation="thumbnail">
       <Visual />
     </VisualFrame>
   )

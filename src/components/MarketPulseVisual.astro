@@ -2,11 +2,25 @@
 import VisualHeader from "./VisualHeader.astro";
 
 const stages = [
-  { number: "01", owner: "Model", title: "Plan", detail: "Intent + query facets" },
-  { number: "02", owner: "Code", title: "Pool", detail: "URLs + provider metadata" },
-  { number: "03", owner: "Model", title: "Select", detail: "Semantic source choice" },
-  { number: "04", owner: "Provider", title: "Extract", detail: "Bounded source packets" },
-  { number: "05", owner: "Model", title: "Write", detail: "Content + source refs" },
+  { number: "01", owner: "Model", title: "Plan", detail: "Intent + queries" },
+  {
+    number: "02",
+    owner: "Code + providers",
+    title: "Search",
+    detail: "Bounded URL pool",
+  },
+  {
+    number: "03",
+    owner: "Model + provider",
+    title: "Select + extract",
+    detail: "Source packets",
+  },
+  {
+    number: "04",
+    owner: "Model",
+    title: "Write",
+    detail: "Content + source refs",
+  },
 ];
 ---
 
@@ -27,7 +41,7 @@ const stages = [
     <ol>
       {
         stages.map((stage, index) => (
-          <li class:list={[stage.owner.toLowerCase()]}>
+          <li>
             <div>
               <>
                 <span>{stage.number}</span>
@@ -51,55 +65,51 @@ const stages = [
 
   <div class="guardrail">
     <span class="guardrail-label"><i></i>Code carries the run boundary</span>
-    <ul>
-      <li>Deadline</li>
-      <li>Provider budget</li>
-      <li>URL identity</li>
-      <li>Schema validation</li>
-      <li>Sanitized failure</li>
-    </ul>
+    <p>Deadline · provider budget · URL identity · schema and source references</p>
   </div>
 </figure>
 
 <style>
   .market-map {
     position: relative;
+    display: grid;
     overflow: hidden;
-    aspect-ratio: 1.59;
+    aspect-ratio: var(--visual-canvas-ratio, auto);
     min-width: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
     margin: 0;
     border: 1px solid var(--visual-border);
     border-radius: var(--radius-md);
     background:
       linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-      radial-gradient(circle at 15% 12%, rgba(111, 131, 238, 0.19), transparent 29%),
-      radial-gradient(circle at 87% 82%, rgba(120, 207, 145, 0.12), transparent 28%),
-      var(--visual-bg);
+      radial-gradient(circle at 16% 15%, rgba(163, 230, 53, 0.08), transparent 28%),
+      radial-gradient(circle at 84% 76%, rgba(163, 230, 53, 0.1), transparent 27%), var(--visual-bg);
     background-size:
       1.35rem 1.35rem,
       1.35rem 1.35rem,
       auto,
       auto,
       auto;
-    padding: clamp(1rem, 2.7vw, 1.55rem);
+    padding: clamp(0.8rem, 1.45vw, 1rem);
     color: var(--visual-text);
   }
 
   .pipeline {
+    position: relative;
     display: grid;
-    height: calc(100% - 7.4rem);
+    min-height: 0;
     grid-template-columns: 0.68fr minmax(0, 3.7fr) 0.68fr;
     gap: clamp(0.6rem, 1.4vw, 0.9rem);
     align-items: center;
-    padding-block: clamp(1rem, 2.4vw, 1.5rem);
+    padding-block: clamp(0.5rem, 1.1vw, 0.7rem);
   }
 
   .input-card,
   .output-card {
     display: grid;
     align-content: center;
-    min-height: 54%;
+    min-height: 5.8rem;
     border: 1px solid var(--visual-border);
     border-radius: var(--radius-sm);
     background: var(--visual-panel-soft);
@@ -113,7 +123,7 @@ const stages = [
   ol li div span,
   ol li div small,
   .guardrail-label,
-  .guardrail li {
+  .guardrail p {
     font-family: var(--font-mono);
     font-size: 0.48rem;
     font-weight: 650;
@@ -144,7 +154,7 @@ const stages = [
   ol {
     display: grid;
     min-width: 0;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.58rem;
     margin: 0;
     padding: 0;
@@ -153,7 +163,10 @@ const stages = [
 
   ol li {
     position: relative;
+    display: grid;
     min-width: 0;
+    min-height: 5.8rem;
+    align-content: center;
     border: 1px solid var(--visual-border);
     border-radius: var(--radius-sm);
     background: color-mix(in srgb, var(--visual-panel) 95%, transparent);
@@ -161,21 +174,12 @@ const stages = [
     padding: clamp(0.55rem, 1.2vw, 0.75rem);
   }
 
-  ol li.model {
-    border-top-color: var(--visual-model);
-  }
-
-  ol li.code,
-  ol li.provider {
-    border-top-color: var(--visual-code);
-  }
-
   ol li div {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.35rem;
-    margin-bottom: clamp(0.8rem, 2.2vw, 1.55rem);
+    margin-bottom: clamp(0.55rem, 1.3vw, 0.85rem);
   }
 
   ol li div span {
@@ -239,7 +243,7 @@ const stages = [
     display: inline-flex;
     align-items: center;
     gap: 0.42rem;
-    color: var(--visual-code);
+    color: var(--visual-accent);
   }
 
   .guardrail-label i {
@@ -250,20 +254,10 @@ const stages = [
     box-shadow: 0 0 0 0.18rem color-mix(in srgb, currentColor 14%, transparent);
   }
 
-  .guardrail ul {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.38rem;
+  .guardrail p {
     margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .guardrail li {
-    border: 1px solid var(--visual-border);
-    border-radius: 999px;
-    padding: 0.23rem 0.45rem;
     color: var(--visual-soft);
+    text-align: right;
     white-space: nowrap;
   }
 </style>

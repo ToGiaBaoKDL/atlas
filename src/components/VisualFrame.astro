@@ -1,4 +1,13 @@
-<div class="visual-frame">
+---
+interface Props {
+  aspect?: "standard" | "landscape";
+  presentation?: "detail" | "thumbnail";
+}
+
+const { aspect = "standard", presentation = "detail" } = Astro.props;
+---
+
+<div class:list={["visual-frame", `visual-frame-${aspect}`, `visual-frame-${presentation}`]}>
   <slot />
 </div>
 
@@ -7,15 +16,44 @@
     min-width: 0;
   }
 
+  .visual-frame-standard {
+    --visual-frame-ratio: 1.59;
+  }
+
+  .visual-frame-landscape {
+    --visual-frame-ratio: 2;
+  }
+
+  .visual-frame-thumbnail {
+    --visual-frame-scale: 0.72;
+    --visual-canvas-ratio: var(--visual-frame-ratio);
+
+    overflow: hidden;
+    aspect-ratio: var(--visual-frame-ratio);
+  }
+
+  .visual-frame-thumbnail > :global(*) {
+    width: calc(100% / var(--visual-frame-scale));
+    max-width: none;
+    transform: scale(var(--visual-frame-scale));
+    transform-origin: top left;
+  }
+
   @media (max-width: 40rem) {
     .visual-frame {
-      --visual-frame-scale: 0.64;
+      --visual-frame-scale: 0.62;
+      --visual-canvas-ratio: var(--visual-frame-ratio);
 
       overflow: hidden;
+      aspect-ratio: var(--visual-frame-ratio);
     }
 
-    .visual-frame {
-      aspect-ratio: 1.59;
+    .visual-frame-standard {
+      --visual-frame-scale: 0.64;
+    }
+
+    .visual-frame-landscape {
+      --visual-frame-scale: 0.52;
     }
 
     .visual-frame > :global(*) {

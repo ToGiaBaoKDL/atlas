@@ -85,8 +85,9 @@ const visual = visuals[variant];
   .trace {
     display: grid;
     height: 100%;
-    grid-template-rows: minmax(0, 1fr) auto;
-    gap: 1rem;
+    grid-template-rows: auto auto;
+    gap: 0.85rem;
+    align-content: center;
   }
 
   ol {
@@ -101,7 +102,10 @@ const visual = visuals[variant];
 
   ol li {
     position: relative;
+    display: grid;
     min-width: 0;
+    min-height: 6.4rem;
+    align-content: start;
     border: 1px solid var(--visual-border);
     border-radius: var(--radius-sm);
     background: color-mix(in srgb, var(--visual-panel) 94%, transparent);
@@ -119,7 +123,7 @@ const visual = visuals[variant];
   }
 
   .step-index {
-    margin-bottom: clamp(0.7rem, 2vw, 1.4rem);
+    margin-bottom: 0.75rem;
     color: var(--visual-accent);
   }
 
@@ -182,7 +186,7 @@ const visual = visuals[variant];
     gap: 0.9rem;
     align-items: center;
     border-top: 1px solid var(--visual-border);
-    padding-top: 0.75rem;
+    padding-top: 0.65rem;
   }
 
   .invariants > span {

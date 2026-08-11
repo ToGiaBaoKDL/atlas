@@ -1,377 +1,314 @@
 ---
 import VisualHeader from "./VisualHeader.astro";
 
-const sources = ["GitHub Archive", "arXiv metadata", "Documents"];
-const dataProducts = ["Landing", "Curated", "Analytics"];
+const foundation = [
+  { label: "OCI runtime", value: "Airflow · PostgreSQL" },
+  { label: "Private edge", value: "Cloudflare Tunnel · Tailscale" },
+  { label: "AWS resources", value: "IAM · Network · S3 · EMR" },
+];
+
+const dataStages = [
+  { label: "Sources", title: "Batch inputs", detail: "GitHub · arXiv" },
+  { label: "Compute", title: "Spark ingest", detail: "EMR Serverless" },
+  { label: "01 · S3 / Iceberg", title: "Landing", detail: "Replayable windows" },
+  { label: "02 · S3 / Iceberg", title: "Curated", detail: "Canonical entities" },
+  { label: "03 · S3 / Iceberg", title: "Analytics", detail: "dbt-owned marts" },
+];
 ---
 
 <figure class="lakehouse-map">
   <VisualHeader
     eyebrow="Hybrid platform map"
-    title="Private control plane, managed data plane"
+    title="Provisioned foundation, explicit data layers"
     status="Deployed"
   />
 
-  <div class="architecture" aria-label="Mini Lakehouse system boundaries">
-    <svg class="routes" viewBox="0 0 1000 330" preserveAspectRatio="none" aria-hidden="true">
-      <path class="route route-input" d="M150 165 C220 165 218 165 285 165"></path>
-      <path class="route route-control" d="M785 95 C690 95 720 135 620 135"></path>
-      <path class="route route-control" d="M785 235 C690 235 715 196 620 196"></path>
-      <path class="route route-data" d="M395 165 H510 H625"></path>
-      <circle cx="285" cy="165" r="4"></circle>
-      <circle cx="510" cy="165" r="4"></circle>
-      <circle cx="625" cy="165" r="4"></circle>
-    </svg>
-
-    <section class="source-zone">
-      <span class="zone-label">Bounded sources</span>
+  <div class="system-map" aria-label="Mini Lakehouse deployment and data architecture">
+    <section class="foundation">
+      <div class="layer-label">
+        <span>Terraform</span>
+        <small>provisions infrastructure</small>
+      </div>
       <ul>
-        {sources.map((source) => <li>{source}</li>)}
-      </ul>
-    </section>
-
-    <section class="data-zone">
-      <div class="zone-heading">
-        <span class="zone-label">AWS data plane</span>
-        <small>Ephemeral compute</small>
-      </div>
-      <div class="compute-node">
-        <span>EXECUTE</span>
-        <strong>EMR Serverless</strong>
-        <small>Spark producers</small>
-      </div>
-      <ol class="product-line">
         {
-          dataProducts.map((product, index) => (
+          foundation.map((item) => (
             <li>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{product}</strong>
-              <small>{index === 0 ? "Replayable" : index === 1 ? "Iceberg" : "Domain-owned"}</small>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
             </li>
           ))
         }
-      </ol>
-      <div class="serve-node"><span>QUERY</span><strong>Athena + dbt</strong></div>
+      </ul>
     </section>
 
-    <div class="service-column">
-      <section class="private-zone">
-        <div class="zone-heading">
-          <span class="zone-label">Private services</span>
-          <small>OCI / ARM</small>
-        </div>
-        <strong>Airflow coordinates</strong>
-        <p>PostgreSQL · Inspector</p>
-        <span class="access-note">Tailscale + Cloudflare Access</span>
-      </section>
-      <section class="worker-zone">
-        <span class="zone-label">Remote document compute</span>
-        <strong>Provider-neutral OCR</strong>
-        <small>Pinned worker · resumable run</small>
-      </section>
-    </div>
-  </div>
+    <section class="execution-boundary">
+      <div class="boundary-label">
+        <span>Airflow orchestration</span>
+        <small>submit · observe · retry</small>
+      </div>
 
-  <footer>
-    <span><i class="control"></i>Control</span>
-    <span><i class="data"></i>Data</span>
-    <strong>No public ingress · short-lived identity · independent releases</strong>
-  </footer>
+      <div class="data-pipeline">
+        {
+          dataStages.map((stage, index) => (
+            <>
+              <article class:list={["data-stage", { product: index >= 2 }]}>
+                <span>{stage.label}</span>
+                <strong>{stage.title}</strong>
+                <small>{stage.detail}</small>
+              </article>
+              {index < dataStages.length - 1 && <i class="flow-arrow" aria-hidden="true" />}
+            </>
+          ))
+        }
+      </div>
+
+      <div class="serving-lane">
+        <div class="lane-label">
+          <span>Independent serving</span>
+          <small>outside the data-layer sequence</small>
+        </div>
+        <article>
+          <span>Document workload</span>
+          <strong>Remote OCR service</strong>
+          <small>provider-neutral · resumable</small>
+        </article>
+        <article>
+          <span>Read-only access</span>
+          <strong>Athena + Inspector</strong>
+          <small>analytics · document review</small>
+        </article>
+      </div>
+    </section>
+  </div>
 </figure>
 
 <style>
   .lakehouse-map {
     position: relative;
+    display: grid;
     overflow: hidden;
-    aspect-ratio: 1.59;
+    aspect-ratio: var(--visual-canvas-ratio, auto);
     min-width: 0;
+    grid-template-rows: auto minmax(0, 1fr);
     margin: 0;
     border: 1px solid var(--visual-border);
     border-radius: var(--radius-md);
     background:
       linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-      radial-gradient(circle at 76% 14%, rgba(163, 230, 53, 0.1), transparent 31%),
-      radial-gradient(circle at 12% 82%, rgba(111, 131, 238, 0.16), transparent 28%),
-      var(--visual-bg);
+      radial-gradient(circle at 80% 8%, rgba(163, 230, 53, 0.11), transparent 30%), var(--visual-bg);
     background-size:
       1.35rem 1.35rem,
       1.35rem 1.35rem,
       auto,
-      auto,
       auto;
-    padding: clamp(1rem, 2.7vw, 1.55rem);
+    padding: clamp(0.8rem, 1.45vw, 1rem);
     color: var(--visual-text);
   }
 
-  .architecture {
-    position: relative;
+  .system-map {
     display: grid;
-    height: calc(100% - 6rem);
-    grid-template-columns: 0.64fr 1.65fr 0.82fr;
-    gap: clamp(0.75rem, 1.8vw, 1.2rem);
-    align-items: stretch;
-    padding-block: clamp(1rem, 2vw, 1.35rem);
-  }
-
-  .routes {
-    position: absolute;
-    z-index: 0;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-    pointer-events: none;
-  }
-
-  .route {
-    fill: none;
-    stroke-width: 2;
-    vector-effect: non-scaling-stroke;
-  }
-
-  .route-input,
-  .route-data {
-    stroke: var(--visual-accent-strong);
-  }
-
-  .route-control {
-    stroke: var(--visual-success);
-    stroke-dasharray: 4 5;
-  }
-
-  .routes circle {
-    fill: var(--visual-accent);
-    filter: drop-shadow(0 0 5px var(--visual-accent));
+    min-height: 0;
+    gap: 0.55rem;
+    align-content: center;
+    padding-top: clamp(0.55rem, 1.1vw, 0.7rem);
   }
 
   section,
-  .service-column {
-    position: relative;
-    z-index: 1;
+  article {
     min-width: 0;
   }
 
-  section {
+  .foundation {
+    display: grid;
+    grid-template-columns: minmax(7.5rem, 0.56fr) minmax(0, 2.44fr);
+    gap: 0.55rem;
+    align-items: stretch;
     border: 1px solid var(--visual-border);
-    border-radius: var(--radius-sm);
-    background: color-mix(in srgb, var(--visual-panel) 94%, transparent);
-    box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
-    padding: clamp(0.65rem, 1.4vw, 0.9rem);
+    border-radius: 0.42rem;
+    background: color-mix(in srgb, var(--visual-panel) 92%, transparent);
+    padding: 0.42rem;
   }
 
-  .zone-label,
-  .zone-heading small,
-  .compute-node span,
-  .compute-node small,
-  .product-line span,
-  .product-line small,
-  .serve-node span,
-  .access-note,
-  .worker-zone small,
-  footer {
-    font-family: var(--font-mono);
-    font-size: 0.5rem;
-    font-weight: 650;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-  }
-
-  .zone-label {
-    color: var(--visual-muted);
-  }
-
-  .zone-heading {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.6rem;
-    border-bottom: 1px solid var(--visual-border-soft);
-    padding-bottom: 0.55rem;
-  }
-
-  .zone-heading small {
-    color: var(--visual-code);
-  }
-
-  .source-zone {
+  .layer-label,
+  .boundary-label,
+  .lane-label {
     display: grid;
     align-content: center;
   }
 
-  .source-zone ul {
-    display: grid;
-    gap: 0.42rem;
-    margin: 0.8rem 0 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .source-zone li {
+  .layer-label {
     border-left: 2px solid var(--visual-accent-strong);
-    background: rgba(255, 255, 255, 0.025);
-    padding: 0.42rem 0.5rem;
-    color: var(--visual-soft);
-    font-size: clamp(0.56rem, 1vw, 0.67rem);
+    padding-inline: 0.5rem;
   }
 
-  .data-zone {
-    display: grid;
-    grid-template-columns: 0.75fr 1.7fr;
-    grid-template-rows: auto minmax(0, 1fr) auto;
-    gap: 0.62rem;
-  }
-
-  .data-zone .zone-heading,
-  .serve-node {
-    grid-column: 1 / -1;
-  }
-
-  .compute-node {
-    display: grid;
-    align-content: center;
-    border: 1px solid var(--visual-border-soft);
-    border-radius: 0.35rem;
-    background: rgba(111, 131, 238, 0.07);
-    padding: 0.55rem;
-  }
-
-  .compute-node span,
-  .compute-node small,
-  .product-line span,
-  .product-line small,
-  .serve-node span {
-    color: var(--visual-muted);
-  }
-
-  .compute-node strong,
-  .product-line strong,
-  .serve-node strong {
-    color: var(--visual-text);
-    font-size: clamp(0.58rem, 1.15vw, 0.74rem);
-    font-weight: 590;
-  }
-
-  .compute-node strong {
-    margin-block: 0.25rem;
-  }
-
-  .product-line {
+  .foundation ul {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.38rem;
+    gap: 0.35rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .product-line li {
+  .foundation li {
+    display: grid;
+    align-content: center;
+    border-left: 1px solid var(--visual-border-soft);
+    padding: 0.28rem 0.48rem;
+  }
+
+  .layer-label span,
+  .layer-label small,
+  .boundary-label span,
+  .boundary-label small,
+  .foundation li span,
+  .data-stage span,
+  .data-stage small,
+  .lane-label span,
+  .lane-label small,
+  .serving-lane article span,
+  .serving-lane article small {
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .layer-label span,
+  .boundary-label span {
+    color: var(--visual-accent);
+  }
+
+  .layer-label small,
+  .boundary-label small,
+  .foundation li span,
+  .data-stage span,
+  .data-stage small,
+  .lane-label small,
+  .serving-lane article span,
+  .serving-lane article small {
+    color: var(--visual-muted);
+  }
+
+  .foundation li strong {
+    margin-top: 0.16rem;
+    color: var(--visual-soft);
+    font-size: clamp(0.5rem, 0.9vw, 0.61rem);
+    font-weight: 560;
+    line-height: 1.25;
+  }
+
+  .execution-boundary {
+    position: relative;
+    border: 1px dashed color-mix(in srgb, var(--visual-accent) 56%, var(--visual-border));
+    border-radius: 0.42rem;
+    padding: 1.35rem 0.55rem 0.55rem;
+  }
+
+  .boundary-label {
+    position: absolute;
+    top: -0.47rem;
+    left: 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    background: var(--visual-bg);
+    padding-inline: 0.32rem;
+  }
+
+  .data-pipeline {
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr) 0.24fr minmax(0, 1fr) 0.24fr minmax(0, 1fr) 0.24fr minmax(0, 1fr)
+      0.24fr minmax(0, 1fr);
+    gap: 0.2rem;
+    align-items: center;
+  }
+
+  .data-stage {
+    display: grid;
+    min-height: 4.35rem;
+    align-content: center;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: 0.35rem;
+    background: color-mix(in srgb, var(--visual-panel) 96%, transparent);
+    padding: 0.42rem 0.48rem;
+  }
+
+  .data-stage.product {
+    border-color: color-mix(in srgb, var(--visual-accent) 24%, var(--visual-border));
+  }
+
+  .data-stage strong,
+  .serving-lane article strong {
+    margin-block: 0.18rem;
+    color: var(--visual-text);
+    font-size: clamp(0.56rem, 1vw, 0.68rem);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .flow-arrow {
+    position: relative;
+    display: block;
+    height: 2px;
+    background: var(--visual-accent-strong);
+  }
+
+  .flow-arrow::after {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 0.32rem;
+    height: 0.32rem;
+    transform: translateY(-50%) rotate(45deg);
+    border-top: 2px solid var(--visual-accent);
+    border-right: 2px solid var(--visual-accent);
+    content: "";
+  }
+
+  .serving-lane {
+    display: grid;
+    grid-template-columns: minmax(7.5rem, 0.62fr) repeat(2, minmax(0, 1fr));
+    gap: 0.42rem;
+    margin-top: 0.48rem;
+    border-top: 1px solid var(--visual-border-soft);
+    padding-top: 0.48rem;
+  }
+
+  .lane-label {
+    padding-inline: 0.45rem;
+  }
+
+  .lane-label span {
+    color: var(--visual-soft);
+  }
+
+  .serving-lane article {
     display: grid;
     align-content: center;
     border: 1px solid var(--visual-border-soft);
     border-radius: 0.35rem;
-    background: rgba(255, 255, 255, 0.018);
-    padding: 0.48rem;
-  }
-
-  .product-line strong {
-    margin-block: 0.2rem;
-  }
-
-  .serve-node {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.6rem;
-    border-top: 1px solid var(--visual-border-soft);
-    padding-top: 0.52rem;
-  }
-
-  .service-column {
-    display: grid;
-    grid-template-rows: 1.25fr 0.75fr;
-    gap: 0.65rem;
-  }
-
-  .private-zone,
-  .worker-zone {
-    display: grid;
-    align-content: center;
-  }
-
-  .private-zone .zone-heading {
-    margin-bottom: 0.7rem;
-  }
-
-  .private-zone > strong,
-  .worker-zone strong {
-    color: var(--visual-text);
-    font-size: clamp(0.62rem, 1.15vw, 0.78rem);
-    font-weight: 590;
-  }
-
-  .private-zone p {
-    margin: 0.3rem 0 0.65rem;
-    color: var(--visual-soft);
-    font-size: clamp(0.54rem, 1vw, 0.65rem);
-  }
-
-  .access-note {
-    color: var(--visual-code);
-  }
-
-  .worker-zone {
-    gap: 0.25rem;
-  }
-
-  .worker-zone small {
-    color: var(--visual-soft);
-  }
-
-  footer {
-    display: flex;
-    align-items: center;
-    gap: 0.9rem;
-    border-top: 1px solid var(--visual-border-soft);
-    padding-top: 0.75rem;
-    color: var(--visual-muted);
-  }
-
-  footer span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  footer i {
-    width: 0.75rem;
-    height: 2px;
-  }
-
-  footer i.control {
-    background: var(--visual-success);
-  }
-
-  footer i.data {
-    background: var(--visual-accent);
-  }
-
-  footer strong {
-    margin-left: auto;
-    color: var(--visual-soft);
-    font-weight: 560;
+    background: var(--visual-panel-soft);
+    padding: 0.32rem 0.48rem;
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    :global([data-reveal].is-revealed) .route-data,
-    :global([data-reveal].is-revealed) .route-input {
-      animation: route-dash 1.5s linear infinite;
-      stroke-dasharray: 5 7;
+    :global([data-reveal].is-revealed) .flow-arrow,
+    :global([data-enter]) .flow-arrow {
+      animation: flow-pulse 1.1s ease-in-out infinite alternate;
     }
 
-    @keyframes route-dash {
+    @keyframes flow-pulse {
+      from {
+        opacity: 0.55;
+      }
+
       to {
-        stroke-dashoffset: -24;
+        opacity: 1;
+        filter: drop-shadow(0 0 0.25rem var(--visual-accent-glow));
       }
     }
   }

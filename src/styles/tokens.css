@@ -46,14 +46,14 @@
   --visual-soft: #aeb4aa;
   --visual-muted: #7f877b;
   --visual-faint: #788177;
-  --visual-accent: #a7b5ff;
-  --visual-accent-strong: #6f83ee;
-  --visual-accent-glow: rgba(167, 181, 255, 0.18);
-  --visual-model: #aab9f7;
-  --visual-code: #9cc9ad;
+  --visual-accent: #b7ee58;
+  --visual-accent-strong: #8fce2f;
+  --visual-accent-glow: rgba(183, 238, 88, 0.18);
+  --visual-model: #c9cec5;
+  --visual-code: #b8c3ad;
   --visual-copy: #9fa69c;
-  --visual-success: #78cf91;
-  --visual-success-glow: rgba(120, 207, 145, 0.12);
+  --visual-success: #a3e635;
+  --visual-success-glow: rgba(163, 230, 53, 0.14);
 }
 
 :root[data-theme="dark"] {

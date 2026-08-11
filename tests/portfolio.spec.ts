@@ -187,7 +187,7 @@ test("tablet project cards keep a consistent content order", async ({ page }) =>
   }
 });
 
-test("desktop project index pairs content with full visuals", async ({ page }) => {
+test("desktop project index pairs content with overview visuals", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) <= 896, "Desktop-only layout");
 
   await page.goto("/projects/");
@@ -202,7 +202,8 @@ test("desktop project index pairs content with full visuals", async ({ page }) =
     const [bodyBox, mediaBox] = await Promise.all([body.boundingBox(), media.boundingBox()]);
 
     await expect(media).toBeVisible();
-    await expect(visual).toHaveCSS("transform", "none");
+    await expect(media.locator(".visual-frame")).not.toHaveCSS("aspect-ratio", "auto");
+    await expect(visual).not.toHaveCSS("transform", "none");
     expect((bodyBox?.x ?? Number.POSITIVE_INFINITY) + (bodyBox?.width ?? 0)).toBeLessThan(
       mediaBox?.x ?? 0,
     );
@@ -261,16 +262,13 @@ test("mobile project cards show complete visual thumbnails", async ({ page }) =>
   }
 });
 
-test("project visuals stay full on desktop and use mobile overview frames", async ({ page }) => {
+test("project cards use overviews while case studies keep desktop detail", async ({ page }) => {
   await page.goto("/");
   const cardVisual = page.locator(".project-card-media .visual-frame").first();
   const cardContent = cardVisual.locator(":scope > *");
 
-  if ((page.viewportSize()?.width ?? 0) > 640) {
-    await expect(cardContent).toHaveCSS("transform", "none");
-  } else {
-    await expect(cardContent).not.toHaveCSS("transform", "none");
-  }
+  await expect(cardVisual).not.toHaveCSS("aspect-ratio", "auto");
+  await expect(cardContent).not.toHaveCSS("transform", "none");
 
   await page.goto("/projects/mini-lakehouse/");
   const caseStudyVisual = page.locator(".project-cover-visual .visual-frame");
@@ -279,11 +277,62 @@ test("project visuals stay full on desktop and use mobile overview frames", asyn
   await expect(caseStudyContent).toBeVisible();
 
   if ((page.viewportSize()?.width ?? 0) > 640) {
+    await expect(caseStudyVisual).toHaveCSS("aspect-ratio", "auto");
+    await expect(caseStudyContent).toHaveCSS("aspect-ratio", "auto");
     await expect(caseStudyContent).toHaveCSS("transform", "none");
   } else {
     await expect(caseStudyVisual).not.toHaveCSS("aspect-ratio", "auto");
     await expect(caseStudyContent).not.toHaveCSS("transform", "none");
   }
+});
+
+test("project visual canvases do not clip their internal layouts", async ({ page }) => {
+  for (const route of [
+    "/",
+    "/projects/",
+    "/projects/mini-lakehouse/",
+    "/projects/vn-market-pulse/",
+  ]) {
+    await page.goto(route);
+    const canvases = page.locator(".lakehouse-map, .market-map, .case-figure-panel");
+
+    for (const canvas of await canvases.all()) {
+      await canvas.scrollIntoViewIfNeeded();
+      const box = await canvas.evaluate((element) => ({
+        className: element.className,
+        clientHeight: element.clientHeight,
+        clientWidth: element.clientWidth,
+        scrollHeight: element.scrollHeight,
+        scrollWidth: element.scrollWidth,
+        title: element.querySelector(".visual-header strong")?.textContent,
+      }));
+
+      expect(box.scrollWidth, `${route} ${JSON.stringify(box)}`).toBeLessThanOrEqual(
+        box.clientWidth + 1,
+      );
+      expect(box.scrollHeight, `${route} ${JSON.stringify(box)}`).toBeLessThanOrEqual(
+        box.clientHeight + 1,
+      );
+    }
+  }
+});
+
+test("mini lakehouse visual keeps deployment and data boundaries explicit", async ({ page }) => {
+  await page.goto("/projects/mini-lakehouse/");
+  const visual = page.locator(".project-cover-visual .lakehouse-map");
+
+  await expect(visual.locator(".data-stage strong")).toHaveText([
+    "Batch inputs",
+    "Spark ingest",
+    "Landing",
+    "Curated",
+    "Analytics",
+  ]);
+  await expect(visual.locator(".flow-arrow")).toHaveCount(4);
+  await expect(visual.locator(".foundation")).toContainText("Terraform");
+  await expect(visual.locator(".foundation")).toContainText("Cloudflare Tunnel");
+  await expect(visual.locator(".foundation")).not.toContainText("Glue");
+  await expect(visual.locator(".serving-lane")).toContainText("Remote OCR service");
 });
 
 test("mobile homepage uses a motion-safe project cover stack", async ({ page }) => {
