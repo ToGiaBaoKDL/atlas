@@ -1,6 +1,6 @@
 ---
-import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { getProjects, getPublishedWriting } from "../data/content";
 import { getProjectStatusLabel } from "../data/projects";
 import { site } from "../data/site";
 import { writingTopics } from "../data/topics";
@@ -8,10 +8,8 @@ import ProjectVisual from "./ProjectVisual.astro";
 import SignatureVisual from "./SignatureVisual.astro";
 import WritingList from "./WritingList.astro";
 
-const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
-const writing = (await getCollection("writing", ({ data }) => !data.draft))
-  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf())
-  .slice(0, 3);
+const projects = await getProjects();
+const writing = (await getPublishedWriting()).slice(0, 3);
 const featured = projects.find(({ data }) => data.featured);
 const secondary = projects.filter(({ data }) => !data.featured).slice(0, 2);
 
@@ -20,11 +18,11 @@ if (!featured) throw new Error("Missing featured project");
 
 <BaseLayout
   title={site.name}
-  description="Tô Gia Bảo is a Data Engineer building reliable data platforms, lakehouse systems and AI-powered data products."
+  description={`${site.name} is a ${site.role} building reliable data platforms, lakehouse systems and AI-powered data products.`}
 >
   <div class="container hero">
     <div class="hero-copy" data-enter>
-      <p class="eyebrow">Data Engineer · Data Platforms</p>
+      <p class="eyebrow">{site.role} · Data Platforms</p>
       <h1>I build reliable data platforms, end to end.</h1>
       <p class="hero-lead">
         I'm {site.name}, a {site.role} at {site.employer}. I work across ingestion, orchestration,

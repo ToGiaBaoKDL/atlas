@@ -1,5 +1,7 @@
 ---
-import { getCollection, render, type CollectionEntry } from "astro:content";
+import { render, type CollectionEntry } from "astro:content";
+import { getPublishedWriting } from "../data/content";
+import { site } from "../data/site";
 import { getWritingMaturityLabel, getWritingTopicLabel } from "../data/topics";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import TableOfContents from "./TableOfContents.astro";
@@ -11,7 +13,7 @@ interface Props {
 
 const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
-const entries = await getCollection("writing", ({ data }) => !data.draft);
+const entries = await getPublishedWriting();
 const related = entries
   .filter(({ id }) => id !== entry.id)
   .map((candidate) => ({
@@ -34,6 +36,7 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 });
 const topicLabels = entry.data.topics.map(getWritingTopicLabel);
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+const socialImage = Astro.site ? new URL("/social-card.png", Astro.site).href : undefined;
 const personId = Astro.site ? `${new URL("/", Astro.site).href}#person` : undefined;
 const articleSchema = {
   "@type": "BlogPosting",
@@ -41,9 +44,12 @@ const articleSchema = {
   description: entry.data.description,
   datePublished: entry.data.publishedAt.toISOString(),
   dateModified: (entry.data.updatedAt ?? entry.data.publishedAt).toISOString(),
-  author: personId ? { "@id": personId } : { "@type": "Person", name: "Tô Gia Bảo" },
+  author: personId ? { "@id": personId } : { "@type": "Person", name: site.name },
   keywords: topicLabels,
-  ...(canonical ? { mainEntityOfPage: canonical, url: canonical } : {}),
+  ...(socialImage ? { image: socialImage } : {}),
+  ...(canonical
+    ? { mainEntityOfPage: { "@type": "WebPage", "@id": canonical }, url: canonical }
+    : {}),
 };
 ---
 
@@ -54,6 +60,7 @@ const articleSchema = {
   ogType="article"
   publishedAt={entry.data.publishedAt}
   updatedAt={entry.data.updatedAt}
+  tags={topicLabels}
   schema={articleSchema}
 >
   <article>

@@ -1,13 +1,11 @@
 ---
-import { getCollection } from "astro:content";
+import { getPublishedWriting } from "../data/content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { writingTopics } from "../data/topics";
 import PageHero from "./PageHero.astro";
 import WritingList from "./WritingList.astro";
 
-const entries = (await getCollection("writing", ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf(),
-);
+const entries = await getPublishedWriting();
 const activeTopics = writingTopics.filter(({ slug }) =>
   entries.some(({ data }) => data.topics.includes(slug)),
 );
@@ -23,12 +21,7 @@ const copy = {
 };
 ---
 
-<BaseLayout
-  title={copy.title}
-  description={copy.description}
-  section="writing"
-  noindex={entries.length === 0}
->
+<BaseLayout title={copy.title} description={copy.description} section="writing">
   <div class="container">
     <PageHero kicker={copy.kicker} title={copy.title} description={copy.description} />
     {

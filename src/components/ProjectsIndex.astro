@@ -1,10 +1,10 @@
 ---
-import { getCollection } from "astro:content";
+import { getProjects } from "../data/content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getProjectStatusLabel } from "../data/projects";
 import PageHero from "./PageHero.astro";
 
-const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
+const projects = await getProjects();
 ---
 
 <BaseLayout

@@ -7,7 +7,7 @@ import PageHero from "./PageHero.astro";
 
 <BaseLayout
   title="About"
-  description="About Tô Gia Bảo, a Data Engineer focused on reliable data platforms, analytics systems and AI-assisted tools."
+  description={`About ${site.name}, a ${site.role} focused on reliable data platforms, analytics systems and AI-assisted tools.`}
   section="about"
 >
   <div class="container">
@@ -81,11 +81,11 @@ import PageHero from "./PageHero.astro";
             href={site.resume}
             target="_blank"
             rel="noopener"
-            aria-label="View Tô Gia Bảo's full resume in a new tab"
+            aria-label={`View ${site.name}'s full resume in a new tab`}
           >
             <img
               src="/resume/togia-bao-resume-preview.png"
-              alt="Preview of Tô Gia Bảo's resume"
+              alt={`Preview of ${site.name}'s resume`}
               loading="lazy"
               width="708"
               height="1000"

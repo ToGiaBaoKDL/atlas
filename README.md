@@ -25,6 +25,10 @@ Run the static quality gate:
 pnpm check
 ```
 
+The quality scripts build against the reserved `https://portfolio.example` origin so canonical,
+sitemap, RSS-discovery and social metadata are exercised without pretending a production domain
+has been chosen.
+
 Run the release gate, including desktop/mobile browser, accessibility and visual regression tests:
 
 ```bash

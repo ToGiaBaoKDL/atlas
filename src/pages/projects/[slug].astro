@@ -1,9 +1,10 @@
 ---
-import { getCollection, type CollectionEntry } from "astro:content";
+import type { CollectionEntry } from "astro:content";
 import ProjectCaseStudy from "../../components/ProjectCaseStudy.astro";
+import { getProjects } from "../../data/content";
 
 export async function getStaticPaths() {
-  const projectEntries = await getCollection("projects");
+  const projectEntries = await getProjects();
   return projectEntries.map((project) => ({ params: { slug: project.id }, props: { project } }));
 }
 

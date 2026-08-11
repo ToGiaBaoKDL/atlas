@@ -11,10 +11,10 @@
     "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
     "build": "ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build",
     "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
-    "check": "prettier --check . && eslint . && ASTRO_TELEMETRY_DISABLED=1 astro check && ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "check": "prettier --check . && eslint . && ASTRO_TELEMETRY_DISABLED=1 astro check && SITE_URL=https://portfolio.example ASTRO_TELEMETRY_DISABLED=1 astro build",
     "check:release": "pnpm check && playwright test",
-    "test:e2e": "pnpm build && playwright test",
-    "test:e2e:update": "pnpm build && playwright test --update-snapshots",
+    "test:e2e": "SITE_URL=https://portfolio.example pnpm build && playwright test",
+    "test:e2e:update": "SITE_URL=https://portfolio.example pnpm build && playwright test --update-snapshots",
     "format": "prettier --write ."
   },
   "dependencies": {

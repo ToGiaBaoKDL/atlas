@@ -81,6 +81,70 @@ test("RSS endpoint is valid XML", async ({ request }) => {
   expect(await response.text()).toContain("<rss");
 });
 
+test("production SEO metadata is canonical and internally consistent", async ({
+  page,
+  request,
+}) => {
+  await page.goto("/");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    "href",
+    "https://portfolio.example/",
+  );
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+    "content",
+    "https://portfolio.example/social-card.png",
+  );
+  await expect(page.locator('meta[name="twitter:image:alt"]')).toHaveAttribute(
+    "content",
+    "Tô Gia Bảo — Data Engineer",
+  );
+  const graph = await page.locator('script[type="application/ld+json"]').textContent();
+  expect(JSON.parse(graph ?? "{}")["@graph"]).toEqual(
+    expect.arrayContaining([expect.objectContaining({ "@type": "Person", name: "Tô Gia Bảo" })]),
+  );
+
+  const feed = await (await request.get("/rss.xml")).text();
+  const hasPublishedWriting = feed.includes("<item>");
+  await expect(page.locator('link[type="application/rss+xml"]')).toHaveCount(
+    hasPublishedWriting ? 1 : 0,
+  );
+  await expect(page.locator("footer").getByRole("link", { name: "RSS" })).toHaveCount(
+    hasPublishedWriting ? 1 : 0,
+  );
+
+  const sitemap = await (await request.get("/sitemap-0.xml")).text();
+  expect(sitemap).toContain("https://portfolio.example/writing/");
+  expect(sitemap).not.toContain("/404");
+
+  const robots = await (await request.get("/robots.txt")).text();
+  expect(robots).toContain("Sitemap: https://portfolio.example/sitemap-index.xml");
+});
+
+test("project metadata describes the case study", async ({ page }) => {
+  await page.goto("/projects/mini-lakehouse/");
+  await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "article");
+  await expect(page.locator('meta[property="article:tag"]')).not.toHaveCount(0);
+
+  const graph = await page.locator('script[type="application/ld+json"]').textContent();
+  expect(JSON.parse(graph ?? "{}")["@graph"]).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        "@type": "SoftwareSourceCode",
+        codeRepository: "https://github.com/ToGiaBaoKDL/mini-lakehouse",
+      }),
+    ]),
+  );
+});
+
+test("404 stays out of indexable metadata", async ({ page }) => {
+  await page.goto("/404.html");
+
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex");
+  await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+  await expect(page.locator('meta[property^="og:"]')).toHaveCount(0);
+  await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
+});
+
 test("resume opens as a PDF", async ({ request }) => {
   const response = await request.get("/resume/togia-bao-resume.pdf");
   expect(response.ok()).toBe(true);

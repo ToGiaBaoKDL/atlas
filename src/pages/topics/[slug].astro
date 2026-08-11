@@ -1,21 +1,21 @@
 ---
-import { getCollection, type CollectionEntry } from "astro:content";
+import type { CollectionEntry } from "astro:content";
 import PageHero from "../../components/PageHero.astro";
 import WritingList from "../../components/WritingList.astro";
+import { getPublishedWriting } from "../../data/content";
+import { site } from "../../data/site";
 import { getWritingTopicLabel, type WritingTopicSlug } from "../../data/topics";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 export async function getStaticPaths() {
-  const entries = await getCollection("writing", ({ data }) => !data.draft);
+  const entries = await getPublishedWriting();
   const topics = [...new Set(entries.flatMap(({ data }) => data.topics))];
 
   return topics.map((topic) => ({
     params: { slug: topic },
     props: {
       topic,
-      entries: entries
-        .filter(({ data }) => data.topics.includes(topic))
-        .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf()),
+      entries: entries.filter(({ data }) => data.topics.includes(topic)),
     },
   }));
 }
@@ -27,7 +27,7 @@ interface Props {
 
 const { topic, entries } = Astro.props;
 const label = getWritingTopicLabel(topic);
-const description = `Technical writing by Tô Gia Bảo on ${label.toLowerCase()}.`;
+const description = `Technical writing by ${site.name} on ${label.toLowerCase()}.`;
 ---
 
 <BaseLayout title={label} description={description} section="writing">

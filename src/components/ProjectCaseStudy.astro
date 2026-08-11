@@ -1,6 +1,8 @@
 ---
-import { getCollection, render, type CollectionEntry } from "astro:content";
+import { render, type CollectionEntry } from "astro:content";
+import { getProjects } from "../data/content";
 import { getProjectStatusLabel } from "../data/projects";
+import { site } from "../data/site";
 import { getTopicLabel } from "../data/topics";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ProjectVisual from "./ProjectVisual.astro";
@@ -12,14 +14,15 @@ interface Props {
 
 const { project } = Astro.props;
 const { Content, headings } = await render(project);
-const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
+const projects = await getProjects();
 const currentIndex = projects.findIndex(({ id }) => id === project.id);
 const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
+const personId = Astro.site ? `${new URL("/", Astro.site).href}#person` : undefined;
 const projectSchema = {
   "@type": "SoftwareSourceCode",
   name: project.data.title,
   description: project.data.description,
-  author: { "@type": "Person", name: "Tô Gia Bảo" },
+  author: personId ? { "@id": personId } : { "@type": "Person", name: site.name },
   keywords: project.data.stack,
   ...(project.data.links.repository ? { codeRepository: project.data.links.repository } : {}),
   ...(Astro.site ? { url: new URL(Astro.url.pathname, Astro.site).href } : {}),
@@ -30,6 +33,8 @@ const projectSchema = {
   title={project.data.title}
   description={project.data.description}
   section="projects"
+  ogType="article"
+  tags={project.data.topics.map(getTopicLabel)}
   schema={projectSchema}
 >
   <article>
