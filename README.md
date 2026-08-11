@@ -91,7 +91,9 @@ Environment         SITE_URL=https://your-domain.tld
 Node.js             24
 ```
 
-The site uses no server adapter and no framework runtime. Cloudflare reads additional static security headers from `public/_headers`.
+The site uses no server adapter and no framework runtime. Cloudflare reads additional security and
+cache headers from `public/_headers`: fingerprinted Astro assets are immutable, while HTML and feeds
+keep the platform's revalidation behavior.
 
 After deployment, smoke-check `/`, `/projects/mini-lakehouse/`, `/writing/`, `/rss.xml` and the PDF
 resume on the production origin. Privacy-conscious analytics remain optional and are not loaded by
