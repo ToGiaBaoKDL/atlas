@@ -233,18 +233,29 @@ test("mobile project cards show complete visual thumbnails", async ({ page }) =>
   }
 });
 
-test("project visuals keep their full layout outside mobile cards", async ({ page }) => {
+test("project visuals stay full on desktop and use mobile overview frames", async ({ page }) => {
   await page.goto("/");
   const cardVisual = page.locator(".project-card-media .visual-frame").first();
   const cardContent = cardVisual.locator(":scope > *");
 
   if ((page.viewportSize()?.width ?? 0) > 640) {
     await expect(cardContent).toHaveCSS("transform", "none");
+  } else {
+    await expect(cardContent).not.toHaveCSS("transform", "none");
   }
 
   await page.goto("/projects/mini-lakehouse/");
-  await expect(page.locator(".visual-frame")).toHaveCount(0);
-  await expect(page.locator(".lakehouse-visual")).toBeVisible();
+  const caseStudyVisual = page.locator(".visual-frame");
+  const caseStudyContent = caseStudyVisual.locator(":scope > *");
+  await expect(caseStudyVisual).toHaveCount(1);
+  await expect(caseStudyContent).toBeVisible();
+
+  if ((page.viewportSize()?.width ?? 0) > 640) {
+    await expect(caseStudyContent).toHaveCSS("transform", "none");
+  } else {
+    await expect(caseStudyVisual).not.toHaveCSS("aspect-ratio", "auto");
+    await expect(caseStudyContent).not.toHaveCSS("transform", "none");
+  }
 });
 
 test("mobile homepage uses a motion-safe project cover stack", async ({ page }) => {
@@ -294,7 +305,7 @@ test("mobile hero previews the platform visual", async ({ page }) => {
   expect(visibleHeight).toBeGreaterThanOrEqual(120);
 });
 
-test("mobile workflow connectors stay centered", async ({ page }) => {
+test("mobile overview connectors bridge adjacent stages", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
 
   for (const [route, selector] of [
@@ -306,17 +317,28 @@ test("mobile workflow connectors stay centered", async ({ page }) => {
     await connector.scrollIntoViewIfNeeded();
     await expect(connector).toBeVisible();
 
-    const offset = await connector.evaluate((element) => {
+    const offsets = await connector.evaluate((element) => {
       const connectorBox = element.getBoundingClientRect();
-      const stageBox = element.closest("li")?.getBoundingClientRect();
-      if (!stageBox) return Number.POSITIVE_INFINITY;
+      const stage = element.closest("li");
+      const nextStage = stage?.nextElementSibling;
+      const stageBox = stage?.getBoundingClientRect();
+      const nextStageBox = nextStage?.getBoundingClientRect();
+      if (!stageBox || !nextStageBox) {
+        return { end: Number.POSITIVE_INFINITY, start: Number.POSITIVE_INFINITY, vertical: 0 };
+      }
 
-      const connectorCenter = connectorBox.left + connectorBox.width / 2;
-      const stageCenter = stageBox.left + stageBox.width / 2;
-      return Math.abs(connectorCenter - stageCenter);
+      return {
+        start: Math.abs(connectorBox.left - stageBox.right),
+        end: Math.abs(connectorBox.right - nextStageBox.left),
+        vertical: Math.abs(
+          connectorBox.top + connectorBox.height / 2 - (stageBox.top + stageBox.height / 2),
+        ),
+      };
     });
 
-    expect(offset).toBeLessThanOrEqual(1);
+    expect(offsets.start).toBeLessThanOrEqual(2);
+    expect(offsets.end).toBeLessThanOrEqual(2);
+    expect(offsets.vertical).toBeLessThanOrEqual(2);
   }
 });
 

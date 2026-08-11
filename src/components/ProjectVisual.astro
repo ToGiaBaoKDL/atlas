@@ -15,7 +15,9 @@ const Visual = visual.component;
 {
   presentation === "case-study" ? (
     <section class="container" aria-label={visual.label} data-reveal>
-      <Visual />
+      <VisualFrame mobileShape={visual.mobileShape}>
+        <Visual thumbnail />
+      </VisualFrame>
     </section>
   ) : (
     <VisualFrame mobileShape={visual.mobileShape}>
