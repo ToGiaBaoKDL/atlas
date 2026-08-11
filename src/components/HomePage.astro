@@ -86,7 +86,7 @@ const writing = (await getPublishedWriting()).slice(0, 3);
     </div>
   </section>
 
-  <section class="section">
+  <section class="writing-section section">
     <div class="container writing-grid" data-reveal>
       <div class="writing-intro">
         <p class="section-kicker">II / Writing</p>
@@ -211,6 +211,7 @@ const writing = (await getPublishedWriting()).slice(0, 3);
   .projects-band {
     background: var(--dark);
     color: var(--dark-text);
+    padding-bottom: clamp(1.5rem, 3vw, 2rem);
   }
 
   .projects-band .section-heading {
@@ -238,21 +239,11 @@ const writing = (await getPublishedWriting()).slice(0, 3);
   }
 
   .project-showcase {
-    --stack-offset: 0rem;
-
     display: grid;
     grid-template-columns: minmax(15rem, 0.76fr) minmax(0, 1.24fr);
     gap: clamp(2rem, 5vw, 5rem);
     align-items: center;
     padding-bottom: clamp(3rem, 6vw, 5rem);
-  }
-
-  .project-showcase:nth-child(2) {
-    --stack-offset: 0.75rem;
-  }
-
-  .project-showcase:nth-child(3) {
-    --stack-offset: 1.5rem;
   }
 
   .project-showcase + .project-showcase {
@@ -323,6 +314,10 @@ const writing = (await getPublishedWriting()).slice(0, 3);
 
   .project-showcase-visual {
     min-width: 0;
+  }
+
+  .writing-section {
+    padding-top: clamp(3.5rem, 6vw, 4.5rem);
   }
 
   .writing-grid {
@@ -448,24 +443,39 @@ const writing = (await getPublishedWriting()).slice(0, 3);
     }
   }
 
-  @media (min-width: 56.001rem) and (prefers-reduced-motion: no-preference) {
+  @media (min-width: 56.001rem) and (min-height: 44rem) and (prefers-reduced-motion: no-preference) {
     .project-stack {
+      --stack-card-height: 37rem;
+
       gap: clamp(3rem, 8vh, 5rem);
-      padding-bottom: clamp(3rem, 6vh, 4rem);
     }
 
-    .project-showcase,
-    .project-showcase + .project-showcase,
-    .project-showcase:last-child {
+    .project-stack::after {
+      height: clamp(9rem, 32svh, 18rem);
+      content: "";
+    }
+
+    .project-stack > .project-showcase {
+      --stack-inset: 0rem;
+
       position: sticky;
-      top: calc(var(--header-height) + 1rem + var(--stack-offset));
+      top: calc((100svh + var(--header-height) - var(--stack-card-height)) / 2);
+      min-height: var(--stack-card-height);
       align-self: start;
-      margin-inline: var(--stack-offset);
+      margin-inline: var(--stack-inset);
       border: 1px solid var(--dark-border);
       border-radius: calc(var(--radius-md) + 0.2rem);
       background: color-mix(in srgb, var(--dark) 96%, var(--dark-text));
       box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.3);
       padding: clamp(1.75rem, 3vw, 2.5rem);
+    }
+
+    .project-showcase + .project-showcase {
+      --stack-inset: 0.75rem;
+    }
+
+    .project-showcase + .project-showcase + .project-showcase {
+      --stack-inset: 1.5rem;
     }
   }
 </style>

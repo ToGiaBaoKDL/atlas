@@ -107,8 +107,42 @@ test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
   const cardInsets = await cards.evaluateAll((elements) =>
     elements.map((element) => Number.parseFloat(getComputedStyle(element).marginInlineStart)),
   );
-  expect(stickyOffsets[1]).toBeGreaterThan(stickyOffsets[0]);
+  expect(stickyOffsets[1]).toBe(stickyOffsets[0]);
   expect(cardInsets[1]).toBeGreaterThan(cardInsets[0]);
+
+  const firstCardHeight = await cards
+    .first()
+    .evaluate((element) => element.getBoundingClientRect().height);
+  const headerHeight = await page
+    .locator(".site-header")
+    .evaluate((element) => element.getBoundingClientRect().height);
+  const availableCenter = (headerHeight + (page.viewportSize()?.height ?? 0)) / 2;
+  const cardCenter = stickyOffsets[0] + firstCardHeight / 2;
+  expect(Math.abs(cardCenter - availableCenter)).toBeLessThanOrEqual(1);
+
+  await cards.first().scrollIntoViewIfNeeded();
+  const writingTop = await page
+    .locator(".writing-section")
+    .evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
+  await page.evaluate(
+    (top) => window.scrollTo({ top, behavior: "instant" }),
+    writingTop - (page.viewportSize()?.height ?? 0),
+  );
+  await page.waitForTimeout(500);
+  const lastCardTop = await cards.last().evaluate((element) => element.getBoundingClientRect().top);
+  expect(Math.abs(lastCardTop - stickyOffsets[0])).toBeLessThanOrEqual(1);
+});
+
+test("project stack keeps normal flow when sticky motion is unsuitable", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) <= 896, "Desktop-only layout");
+
+  await page.goto("/");
+  await expect(page.locator(".project-showcase").first()).toHaveCSS("position", "static");
+
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.setViewportSize({ width: 1024, height: 650 });
+  await page.reload();
+  await expect(page.locator(".project-showcase").first()).toHaveCSS("position", "static");
 });
 
 test("mobile project visuals stay compact", async ({ page }) => {
