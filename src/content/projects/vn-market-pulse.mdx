@@ -1,0 +1,73 @@
+---
+title: VN Market Pulse
+description: A bounded research pipeline that turns a Vietnamese topic into one typed, source-backed Facebook post.
+outcome: Semantic work stays with the model; code keeps the run finite, traceable and unable to publish unknown references.
+role: Sole designer and engineer
+period: Jul 2026
+status: completed
+featured: false
+order: 2
+topics:
+  - applied-ai
+  - reliability
+stack:
+  - Python
+  - PydanticAI
+  - Streamlit
+links:
+  repository: https://github.com/ToGiaBaoKDL/vn-market-pulse
+---
+
+import PipelineReductionVisual from "../../components/case-study/PipelineReductionVisual.astro";
+import RunTraceVisual from "../../components/case-study/RunTraceVisual.astro";
+import FailureRecoveryVisual from "../../components/case-study/FailureRecoveryVisual.astro";
+
+## The question behind the project
+
+VN Market Pulse starts with an ordinary request—a topic, a time window and a preferred writing style—and returns one Vietnamese Facebook post with the sources it actually used. The interesting problem was not how many research stages I could assemble. It was deciding what the model should own and what the application must never delegate.
+
+The same use case is available through Typer and Streamlit. Neither interface contains research logic; both submit a `ResearchRequest` and render the same typed result. Search defaults to Vietnamese sources in Vietnam, while absolute dates and lookback windows are normalised to `Asia/Ho_Chi_Minh`.
+
+## The first design was doing too much
+
+My first architecture accumulated domain-specific market schemas, an evidence and claim graph, local BM25/MMR ranking, HTML and PDF extraction, multiple models, a portfolio of drafts and a reviewer. Every layer looked defensible on its own. Together they multiplied prompts, schemas, retries, configuration and fallback branches without producing a proportional improvement in the final post.
+
+Worse, ownership became difficult to explain. A weak source could have passed through search ranking, local extraction, evidence construction, writing or review, and each stage had a slightly different idea of relevance. The system was slower, but not easier to trust.
+
+I removed the layers that could not justify their complexity and kept one visible path with three semantic stages: plan, select and write.
+
+<PipelineReductionVisual />
+
+## A smaller contract between model and code
+
+The configured model owns decisions that require meaning: interpreting the request, forming a query plan, selecting useful sources from the complete bounded metadata pool and choosing the angle of the final post. I deliberately do not put a local BM25, tokenizer or fusion score in front of that selection and then pretend two competing rankers have one owner.
+
+Deterministic code owns the things it can prove. It normalises dates and URLs, routes providers by capability, limits concurrency and usage, propagates one deadline, assigns stable source IDs and validates the final schema and references. PydanticAI handles typed outputs and bounded self-correction; it does not turn model output into an accuracy guarantee.
+
+The trade-off is explicit. Quality depends on the configured model and the search providers’ indexes, and the run currently makes three sequential model calls. Source packets provide grounding context, not fact-checking or proof that every interpretation is correct.
+
+## Following one research run
+
+The interface first normalises topic, lookback, depth, diversity and style. The planner turns that request into an intent, answer facets and queries with absolute time bounds. Search runs concurrently through the providers allowed by the selected mode; the application canonicalises URLs, removes duplicates and pools results without inventing a local relevance score.
+
+The model sees the complete bounded metadata pool and chooses which URLs are worth extracting. Tavily Extract is attempted first and Jina Reader is the finite fallback. Extracted text is packed under both per-source and total-context ceilings, after which the writer selects a compatible subset and returns a typed `PostDraft` containing `content` and exact `source_refs`.
+
+<RunTraceVisual variant="market-pulse" />
+
+`fast`, `balanced` and `deep` do not branch into separate architectures. They use the same stages and contracts with different capacity and budget. That keeps the behaviour comparable and prevents fixes in one mode from quietly drifting away from the others.
+
+## What the system refuses to hide
+
+A failed search provider does not discard valid results from the others. Extraction moves through a finite provider chain and preserves diagnostics per URL. The model gateway retries only transient failures, while invalid structured output can be repaired only inside the stage’s bounded validation budget.
+
+The most important failure is the quiet one: reaching the writer without useful grounding. VN Market Pulse returns `no_sources` instead. Unknown or duplicated source IDs, a post outside its hard content bounds and exhausted run deadlines are rejected before the result reaches either interface.
+
+<FailureRecoveryVisual variant="market-pulse" />
+
+There is no checkpoint system or hidden model fallback. A failure that cannot be recovered inside the declared budgets ends the run with a sanitised diagnostic, and the user can choose to run it again. That makes individual runs less magical and much easier to reason about.
+
+## Current result and the next evidence
+
+The completed project has one observable pipeline, three semantic stages, typed contracts, citation preservation, provider-aware budgets and the same behaviour in CLI and Streamlit. Ruff, Pyright and unit tests protect the application boundary; the old evidence graph, portfolio, reviewer, lexical ranking and local extraction paths are gone rather than left dormant behind flags.
+
+The next step is measurement. I want quality metrics from real runs and live smoke tests before claiming that the smaller design is better. After that, the most useful additions are bounded discovery from hub pages or attachments and an optional context follow-up—not another permanent ranking layer. Length policy also needs calibration around completing the argument rather than stopping near an arbitrary soft word target.

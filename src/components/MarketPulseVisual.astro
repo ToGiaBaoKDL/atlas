@@ -1,70 +1,71 @@
 ---
 import VisualHeader from "./VisualHeader.astro";
 
-interface Props {
-  thumbnail?: boolean;
-}
-
-const { thumbnail = false } = Astro.props;
-
 const stages = [
-  { number: "01", owner: "Model", title: "Plan searches", detail: "Focused query set" },
-  { number: "02", owner: "Code", title: "Gather pool", detail: "Bounded metadata" },
-  {
-    number: "03",
-    owner: "Model + provider",
-    title: "Select & extract",
-    detail: "Semantic source choice",
-  },
-  {
-    number: "04",
-    owner: "Typed output",
-    title: "Write & verify",
-    detail: "Exact source IDs",
-  },
+  { number: "01", owner: "Model", title: "Plan", detail: "Intent + query facets" },
+  { number: "02", owner: "Code", title: "Pool", detail: "URLs + provider metadata" },
+  { number: "03", owner: "Model", title: "Select", detail: "Semantic source choice" },
+  { number: "04", owner: "Provider", title: "Extract", detail: "Bounded source packets" },
+  { number: "05", owner: "Model", title: "Write", detail: "Content + source refs" },
 ];
 ---
 
-<figure class:list={["research-visual", { "visual-thumbnail": thumbnail }]}>
+<figure class="market-map">
   <VisualHeader
-    eyebrow="Bounded research pipeline"
-    title="Topic to source-backed post"
+    eyebrow="Research contract"
+    title="Semantic choices inside deterministic limits"
     status="Completed"
   />
 
-  <ol class="research-track" aria-label="VN Market Pulse research pipeline">
-    {
-      stages.map((stage, index) => (
-        <li>
-          <div class="stage-meta">
-            <span>{stage.number}</span>
-            <small>{stage.owner}</small>
-          </div>
-          <strong>{stage.title}</strong>
-          <p>{stage.detail}</p>
-          {index < stages.length - 1 && <span class="research-connector" aria-hidden="true" />}
-        </li>
-      ))
-    }
-  </ol>
+  <div class="pipeline" aria-label="VN Market Pulse responsibility pipeline">
+    <div class="input-card">
+      <span>INPUT</span>
+      <strong>Vietnamese topic</strong>
+      <small>depth · lookback · style</small>
+    </div>
 
-  <div class="responsibility-map">
-    <section>
-      <span class="responsibility-label model"><i></i>Model owns</span>
-      <p>Search planning · semantic selection · synthesis</p>
-    </section>
-    <span class="boundary" aria-hidden="true">Explicit boundary</span>
-    <section>
-      <span class="responsibility-label code"><i></i>Code enforces</span>
-      <p>Deadlines · budgets · retries · URLs · reference validation</p>
-    </section>
+    <ol>
+      {
+        stages.map((stage, index) => (
+          <li class:list={[stage.owner.toLowerCase()]}>
+            <div>
+              <>
+                <span>{stage.number}</span>
+                <small>{stage.owner}</small>
+              </>
+            </div>
+            <strong>{stage.title}</strong>
+            <p>{stage.detail}</p>
+            {index < stages.length - 1 && <i aria-hidden="true" />}
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="output-card">
+      <span>OUTPUT</span>
+      <strong>One typed post</strong>
+      <small>exact source IDs</small>
+    </div>
+  </div>
+
+  <div class="guardrail">
+    <span class="guardrail-label"><i></i>Code carries the run boundary</span>
+    <ul>
+      <li>Deadline</li>
+      <li>Provider budget</li>
+      <li>URL identity</li>
+      <li>Schema validation</li>
+      <li>Sanitized failure</li>
+    </ul>
   </div>
 </figure>
 
 <style>
-  .research-visual {
+  .market-map {
     position: relative;
     overflow: hidden;
+    aspect-ratio: 1.59;
     min-width: 0;
     margin: 0;
     border: 1px solid var(--visual-border);
@@ -72,8 +73,8 @@ const stages = [
     background:
       linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-      radial-gradient(circle at 16% 12%, rgba(84, 106, 221, 0.2), transparent 30%),
-      radial-gradient(circle at 88% 82%, rgba(77, 145, 119, 0.13), transparent 28%),
+      radial-gradient(circle at 15% 12%, rgba(111, 131, 238, 0.19), transparent 29%),
+      radial-gradient(circle at 87% 82%, rgba(120, 207, 145, 0.12), transparent 28%),
       var(--visual-bg);
     background-size:
       1.35rem 1.35rem,
@@ -81,243 +82,188 @@ const stages = [
       auto,
       auto,
       auto;
-    padding: clamp(1rem, 3vw, 1.6rem);
+    padding: clamp(1rem, 2.7vw, 1.55rem);
     color: var(--visual-text);
   }
 
-  .research-track {
-    --stage-gap: clamp(1.15rem, 2vw, 1.75rem);
-
+  .pipeline {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--stage-gap);
+    height: calc(100% - 7.4rem);
+    grid-template-columns: 0.68fr minmax(0, 3.7fr) 0.68fr;
+    gap: clamp(0.6rem, 1.4vw, 0.9rem);
+    align-items: center;
+    padding-block: clamp(1rem, 2.4vw, 1.5rem);
+  }
+
+  .input-card,
+  .output-card {
+    display: grid;
+    align-content: center;
+    min-height: 54%;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel-soft);
+    padding: 0.6rem;
+  }
+
+  .input-card span,
+  .input-card small,
+  .output-card span,
+  .output-card small,
+  ol li div span,
+  ol li div small,
+  .guardrail-label,
+  .guardrail li {
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .input-card span,
+  .output-card span {
+    color: var(--visual-muted);
+  }
+
+  .input-card strong,
+  .output-card strong {
+    margin-block: 0.35rem;
+    color: var(--visual-text);
+    font-size: clamp(0.58rem, 1.1vw, 0.72rem);
+    font-weight: 590;
+    line-height: 1.25;
+  }
+
+  .input-card small,
+  .output-card small {
+    color: var(--visual-soft);
+    line-height: 1.4;
+  }
+
+  ol {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.58rem;
     margin: 0;
-    padding: clamp(1.5rem, 4vw, 2.4rem) 0;
+    padding: 0;
     list-style: none;
   }
 
-  .research-track li {
+  ol li {
     position: relative;
     min-width: 0;
     border: 1px solid var(--visual-border);
     border-radius: var(--radius-sm);
-    background: color-mix(in srgb, var(--visual-panel) 94%, transparent);
+    background: color-mix(in srgb, var(--visual-panel) 95%, transparent);
     box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
-    padding: clamp(0.85rem, 1.8vw, 1.15rem);
+    padding: clamp(0.55rem, 1.2vw, 0.75rem);
   }
 
-  .stage-meta {
+  ol li.model {
+    border-top-color: var(--visual-model);
+  }
+
+  ol li.code,
+  ol li.provider {
+    border-top-color: var(--visual-code);
+  }
+
+  ol li div {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.65rem;
-    margin-bottom: clamp(1.6rem, 3vw, 2.3rem);
+    gap: 0.35rem;
+    margin-bottom: clamp(0.8rem, 2.2vw, 1.55rem);
   }
 
-  .stage-meta span,
-  .stage-meta small,
-  .responsibility-label,
-  .boundary {
-    font-family: var(--font-mono);
-    font-size: 0.56rem;
-    font-weight: 640;
-    letter-spacing: 0.075em;
-    text-transform: uppercase;
-  }
-
-  .stage-meta span {
+  ol li div span {
     color: var(--visual-accent);
   }
 
-  .stage-meta small {
+  ol li div small {
+    overflow: hidden;
     color: var(--visual-muted);
-    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
-  .research-track strong {
+  ol li strong {
     display: block;
     color: var(--visual-text);
-    font-size: clamp(0.84rem, 1.6vw, 1rem);
-    font-weight: 590;
+    font-size: clamp(0.62rem, 1.15vw, 0.78rem);
+    font-weight: 600;
   }
 
-  .research-track p {
-    margin: 0.4rem 0 0;
+  ol li p {
+    margin: 0.35rem 0 0;
     color: var(--visual-soft);
-    font-size: clamp(0.64rem, 1.2vw, 0.75rem);
+    font-size: clamp(0.5rem, 0.92vw, 0.61rem);
+    line-height: 1.35;
   }
 
-  .research-connector {
+  ol li i {
     position: absolute;
     z-index: 2;
     top: 50%;
     left: calc(100% - 1px);
-    width: calc(var(--stage-gap) + 2px);
+    width: calc(0.58rem + 2px);
     height: 2px;
     transform: translateY(-50%);
-    background: linear-gradient(90deg, var(--visual-accent-strong), var(--visual-accent));
+    background: var(--visual-accent-strong);
   }
 
-  .research-connector::before {
-    --visual-flow-distance: 0.7rem;
-
-    position: absolute;
-    top: -0.13rem;
-    left: 20%;
-    width: 0.3rem;
-    height: 0.3rem;
-    border-radius: 50%;
-    background: var(--visual-accent);
-    box-shadow: 0 0 0 0.18rem var(--visual-accent-glow);
-    content: "";
-  }
-
-  .research-connector::after {
+  ol li i::after {
     position: absolute;
     top: 50%;
     right: 0;
-    width: 0.4rem;
-    height: 0.4rem;
+    width: 0.32rem;
+    height: 0.32rem;
     transform: translateY(-50%) rotate(45deg);
     border-top: 2px solid var(--visual-accent);
     border-right: 2px solid var(--visual-accent);
     content: "";
   }
 
-  .responsibility-map {
+  .guardrail {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-    gap: clamp(1rem, 3vw, 2rem);
-    align-items: stretch;
-    border-top: 1px solid var(--visual-border);
-    padding-top: 1rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: center;
+    border-top: 1px solid var(--visual-border-soft);
+    padding-top: 0.75rem;
   }
 
-  .responsibility-map section {
-    min-width: 0;
-    border: 1px solid var(--visual-border);
-    border-radius: var(--radius-sm);
-    background: var(--visual-panel-soft);
-    padding: 0.8rem;
-  }
-
-  .responsibility-label {
+  .guardrail-label {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-  }
-
-  .responsibility-label.model {
-    color: var(--visual-model);
-  }
-
-  .responsibility-label.code {
+    gap: 0.42rem;
     color: var(--visual-code);
   }
 
-  .responsibility-label i {
-    width: 0.36rem;
-    height: 0.36rem;
+  .guardrail-label i {
+    width: 0.35rem;
+    height: 0.35rem;
     border-radius: 50%;
     background: currentColor;
-    box-shadow: 0 0 0 0.2rem color-mix(in srgb, currentColor 14%, transparent);
+    box-shadow: 0 0 0 0.18rem color-mix(in srgb, currentColor 14%, transparent);
   }
 
-  .responsibility-map p {
-    margin: 0.45rem 0 0;
-    color: var(--visual-copy);
-    font-size: clamp(0.63rem, 1.15vw, 0.72rem);
-    line-height: 1.45;
+  .guardrail ul {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.38rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .boundary {
-    display: grid;
-    place-items: center;
-    color: var(--visual-faint);
-    writing-mode: vertical-rl;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    :global([data-reveal].is-revealed) .research-connector::before {
-      animation: visual-flow-inline var(--motion-flow) linear infinite;
-      will-change: transform, opacity;
-    }
-
-    :global([data-reveal].is-revealed) li:nth-child(2) .research-connector::before {
-      animation-delay: var(--motion-flow-third);
-    }
-
-    :global([data-reveal].is-revealed) li:nth-child(3) .research-connector::before {
-      animation-delay: calc(var(--motion-flow-third) + var(--motion-flow-third));
-    }
-  }
-
-  @media (max-width: 48rem) {
-    .research-visual:not(.visual-thumbnail) .research-track {
-      --stage-gap: 0.85rem;
-
-      grid-template-columns: 1fr;
-      gap: var(--stage-gap);
-      padding-block: 1.25rem;
-    }
-
-    .research-visual:not(.visual-thumbnail) .stage-meta {
-      margin-bottom: 1.15rem;
-    }
-
-    .research-visual:not(.visual-thumbnail) .research-connector {
-      top: calc(100% - 1px);
-      left: 50%;
-      width: 2px;
-      height: calc(var(--stage-gap) + 2px);
-      transform: translateX(-50%);
-      background: linear-gradient(var(--visual-accent-strong), var(--visual-accent));
-    }
-
-    .research-visual:not(.visual-thumbnail) .research-connector::before {
-      --visual-flow-distance: 0.45rem;
-
-      top: 20%;
-      left: -0.13rem;
-    }
-
-    .research-visual:not(.visual-thumbnail) .research-connector::after {
-      top: auto;
-      right: auto;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%) rotate(45deg);
-      border-top: 0;
-      border-right: 2px solid var(--visual-accent);
-      border-bottom: 2px solid var(--visual-accent);
-    }
-
-    .research-visual:not(.visual-thumbnail) .responsibility-map {
-      grid-template-columns: 1fr;
-      gap: 0.65rem;
-    }
-
-    .research-visual:not(.visual-thumbnail) .boundary {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      writing-mode: initial;
-    }
-
-    .research-visual:not(.visual-thumbnail) .boundary::before,
-    .research-visual:not(.visual-thumbnail) .boundary::after {
-      height: 1px;
-      flex: 1;
-      background: var(--visual-border);
-      content: "";
-    }
-  }
-
-  @media (max-width: 48rem) and (prefers-reduced-motion: no-preference) {
-    :global([data-reveal].is-revealed)
-      .research-visual:not(.visual-thumbnail)
-      .research-connector::before {
-      animation-name: visual-flow-block;
-    }
+  .guardrail li {
+    border: 1px solid var(--visual-border);
+    border-radius: 999px;
+    padding: 0.23rem 0.45rem;
+    color: var(--visual-soft);
+    white-space: nowrap;
   }
 </style>

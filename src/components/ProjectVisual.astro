@@ -14,14 +14,14 @@ const Visual = visual.component;
 
 {
   presentation === "case-study" ? (
-    <section class="container" aria-label={visual.label} data-reveal>
-      <VisualFrame mobileShape={visual.mobileShape}>
-        <Visual thumbnail />
+    <section class="project-cover-visual container" aria-label={visual.label} data-reveal>
+      <VisualFrame>
+        <Visual />
       </VisualFrame>
     </section>
   ) : (
-    <VisualFrame mobileShape={visual.mobileShape}>
-      <Visual thumbnail />
+    <VisualFrame>
+      <Visual />
     </VisualFrame>
   )
 }

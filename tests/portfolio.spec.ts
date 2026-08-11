@@ -91,8 +91,8 @@ test("homepage showcases every project visual", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.locator(".project-showcase")).toHaveCount(2);
-  await expect(page.locator(".project-showcase .lakehouse-visual")).toHaveCount(1);
-  await expect(page.locator(".project-showcase .research-visual")).toHaveCount(1);
+  await expect(page.locator(".project-showcase .lakehouse-map")).toHaveCount(1);
+  await expect(page.locator(".project-showcase .market-map")).toHaveCount(1);
 });
 
 test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
@@ -273,7 +273,7 @@ test("project visuals stay full on desktop and use mobile overview frames", asyn
   }
 
   await page.goto("/projects/mini-lakehouse/");
-  const caseStudyVisual = page.locator(".visual-frame");
+  const caseStudyVisual = page.locator(".project-cover-visual .visual-frame");
   const caseStudyContent = caseStudyVisual.locator(":scope > *");
   await expect(caseStudyVisual).toHaveCount(1);
   await expect(caseStudyContent).toBeVisible();
@@ -328,40 +328,33 @@ test("mobile hero uses the shared overview frame", async ({ page }) => {
   expect((await frame.boundingBox())?.height ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(300);
 });
 
-test("mobile overview connectors bridge adjacent stages", async ({ page }) => {
+test("mobile inline case-study visuals use complete overview frames", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
 
-  for (const [route, selector] of [
-    ["/projects/mini-lakehouse/", ".workflow-connector"],
-    ["/projects/vn-market-pulse/", ".research-connector"],
-  ] as const) {
+  for (const route of ["/projects/mini-lakehouse/", "/projects/vn-market-pulse/"] as const) {
     await page.goto(route);
-    const connector = page.locator(selector).first();
-    await connector.scrollIntoViewIfNeeded();
-    await expect(connector).toBeVisible();
+    const figures = page.locator(".case-figure");
+    await expect(figures).not.toHaveCount(0);
 
-    const offsets = await connector.evaluate((element) => {
-      const connectorBox = element.getBoundingClientRect();
-      const stage = element.closest("li");
-      const nextStage = stage?.nextElementSibling;
-      const stageBox = stage?.getBoundingClientRect();
-      const nextStageBox = nextStage?.getBoundingClientRect();
-      if (!stageBox || !nextStageBox) {
-        return { end: Number.POSITIVE_INFINITY, start: Number.POSITIVE_INFINITY, vertical: 0 };
-      }
+    for (const figure of await figures.all()) {
+      await figure.scrollIntoViewIfNeeded();
+      const frame = figure.locator(".visual-frame");
+      const content = frame.locator(":scope > *");
+      await expect(frame).not.toHaveCSS("aspect-ratio", "auto");
+      await expect(content).not.toHaveCSS("transform", "none");
 
-      return {
-        start: Math.abs(connectorBox.left - stageBox.right),
-        end: Math.abs(connectorBox.right - nextStageBox.left),
-        vertical: Math.abs(
-          connectorBox.top + connectorBox.height / 2 - (stageBox.top + stageBox.height / 2),
-        ),
-      };
-    });
-
-    expect(offsets.start).toBeLessThanOrEqual(2);
-    expect(offsets.end).toBeLessThanOrEqual(2);
-    expect(offsets.vertical).toBeLessThanOrEqual(2);
+      const [frameBox, contentBox] = await Promise.all([
+        frame.boundingBox(),
+        content.boundingBox(),
+      ]);
+      expect(contentBox?.x ?? 0).toBeGreaterThanOrEqual((frameBox?.x ?? 0) - 1);
+      expect((contentBox?.x ?? 0) + (contentBox?.width ?? 0)).toBeLessThanOrEqual(
+        (frameBox?.x ?? 0) + (frameBox?.width ?? 0) + 1,
+      );
+      expect((contentBox?.y ?? 0) + (contentBox?.height ?? 0)).toBeLessThanOrEqual(
+        (frameBox?.y ?? 0) + (frameBox?.height ?? 0) + 1,
+      );
+    }
   }
 });
 

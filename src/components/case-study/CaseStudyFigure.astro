@@ -1,0 +1,103 @@
+---
+import VisualFrame from "../VisualFrame.astro";
+import VisualHeader from "../VisualHeader.astro";
+
+interface Props {
+  eyebrow: string;
+  title: string;
+  status: string;
+  caption: string;
+  number: string;
+}
+
+const { eyebrow, title, status, caption, number } = Astro.props;
+---
+
+<figure class="case-figure" data-reveal>
+  <VisualFrame>
+    <div class="case-figure-panel">
+      <VisualHeader {eyebrow} {title} {status} />
+      <div class="case-figure-canvas">
+        <slot />
+      </div>
+    </div>
+  </VisualFrame>
+  <figcaption>
+    <span>{number}</span>
+    <p>{caption}</p>
+  </figcaption>
+</figure>
+
+<style>
+  .case-figure {
+    width: 100%;
+    margin: clamp(2.5rem, 6vw, 4rem) 0;
+  }
+
+  .case-figure-panel {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1.59;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-md);
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      radial-gradient(circle at 82% 12%, rgba(163, 230, 53, 0.1), transparent 30%),
+      radial-gradient(circle at 14% 88%, rgba(111, 131, 238, 0.12), transparent 28%),
+      var(--visual-bg);
+    background-size:
+      1.35rem 1.35rem,
+      1.35rem 1.35rem,
+      auto,
+      auto,
+      auto;
+    padding: clamp(1rem, 2.6vw, 1.45rem);
+    color: var(--visual-text);
+  }
+
+  .case-figure-canvas {
+    min-height: 0;
+    height: calc(100% - 3.25rem);
+    padding-top: clamp(1rem, 2.5vw, 1.4rem);
+  }
+
+  figcaption {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+    margin-top: 0.8rem;
+  }
+
+  figcaption span {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  figcaption p {
+    max-width: 42rem;
+    margin: 0;
+    color: var(--text-faint);
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 40rem) {
+    .case-figure {
+      margin-block: 2.5rem;
+    }
+
+    figcaption {
+      margin-top: 0.65rem;
+    }
+
+    figcaption span {
+      font-size: 0.58rem;
+    }
+  }
+</style>

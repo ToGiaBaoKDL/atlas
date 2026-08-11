@@ -87,7 +87,7 @@ const projectSchema = {
 
     <div class="container case-study section">
       <TableOfContents headings={headings} mode="mobile" />
-      <div class="prose">
+      <div class="prose project-prose">
         <Content />
       </div>
       <TableOfContents headings={headings} mode="desktop" />
@@ -174,10 +174,24 @@ const projectSchema = {
 
   .case-study {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 14rem;
-    gap: clamp(3rem, 8vw, 7rem);
+    grid-template-columns: minmax(0, 1fr) 13rem;
+    gap: clamp(3rem, 6vw, 5rem);
     align-items: start;
     padding-bottom: clamp(5rem, 10vw, 9rem);
+  }
+
+  .project-prose {
+    max-width: none;
+  }
+
+  .project-prose > :global(p),
+  .project-prose > :global(ul),
+  .project-prose > :global(ol),
+  .project-prose > :global(blockquote),
+  .project-prose > :global(h2),
+  .project-prose > :global(h3),
+  .project-prose > :global(h4) {
+    max-width: var(--article-width);
   }
 
   .project-continuation {

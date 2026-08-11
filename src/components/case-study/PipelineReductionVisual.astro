@@ -1,0 +1,212 @@
+---
+import CaseStudyFigure from "./CaseStudyFigure.astro";
+
+const removed = [
+  "Domain schemas",
+  "Evidence graph",
+  "Local BM25 / MMR",
+  "Local extraction",
+  "Draft portfolio",
+  "Reviewer stage",
+];
+
+const core = [
+  { owner: "Model", title: "Plan" },
+  { owner: "Model", title: "Select" },
+  { owner: "Model", title: "Write" },
+];
+---
+
+<CaseStudyFigure
+  eyebrow="Architecture correction"
+  title="Fewer stages, clearer ownership"
+  status="Reduced surface"
+  caption="The redesign removed layers whose schemas, retries and fallbacks cost more than the quality they added. The remaining semantic stages share one typed application path."
+  number="01 / DESIGN CHANGE"
+>
+  <div class="reduction">
+    <section class="earlier">
+      <div class="section-label"><span>Earlier design</span><small>Too many owners</small></div>
+      <ul>
+        {
+          removed.map((item) => (
+            <li>
+              <span aria-hidden="true">×</span>
+              {item}
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <div class="change" aria-hidden="true">
+      <span>reduce</span>
+      <i></i>
+    </div>
+
+    <section class="current">
+      <div class="section-label"><span>Current core</span><small>One visible path</small></div>
+      <ol>
+        {
+          core.map((item, index) => (
+            <li>
+              <small>{item.owner}</small>
+              <strong>{item.title}</strong>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+            </li>
+          ))
+        }
+      </ol>
+      <p><span>Code wraps every stage</span> budget · deadline · validation · diagnostics</p>
+    </section>
+  </div>
+</CaseStudyFigure>
+
+<style>
+  .reduction {
+    display: grid;
+    height: 100%;
+    grid-template-columns: minmax(0, 0.92fr) 4.5rem minmax(0, 1.08fr);
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  section {
+    min-width: 0;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel-soft);
+    padding: clamp(0.75rem, 1.8vw, 1rem);
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.7rem;
+    border-bottom: 1px solid var(--visual-border-soft);
+    padding-bottom: 0.65rem;
+  }
+
+  .section-label span,
+  .section-label small,
+  .change span,
+  li small,
+  li > span,
+  .current p {
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .section-label span {
+    color: var(--visual-text);
+  }
+
+  .section-label small {
+    color: var(--visual-muted);
+  }
+
+  .earlier ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0.8rem 0 0;
+    list-style: none;
+  }
+
+  .earlier li {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.42rem;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: 0.35rem;
+    padding: 0.48rem;
+    color: var(--visual-muted);
+    font-size: clamp(0.54rem, 1vw, 0.65rem);
+  }
+
+  .earlier li span {
+    color: #df8f82;
+    font-size: 0.7rem;
+  }
+
+  .change {
+    display: grid;
+    place-content: center;
+    gap: 0.6rem;
+    color: var(--visual-accent);
+    text-align: center;
+  }
+
+  .change i {
+    position: relative;
+    width: 3.4rem;
+    height: 2px;
+    background: linear-gradient(90deg, var(--visual-accent-strong), var(--visual-accent));
+  }
+
+  .change i::after {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 0.4rem;
+    height: 0.4rem;
+    transform: translateY(-50%) rotate(45deg);
+    border-top: 2px solid var(--visual-accent);
+    border-right: 2px solid var(--visual-accent);
+    content: "";
+  }
+
+  .current ol {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.8rem 0;
+    list-style: none;
+  }
+
+  .current li {
+    position: relative;
+    min-width: 0;
+    border: 1px solid var(--visual-border);
+    border-radius: 0.35rem;
+    background: var(--visual-panel);
+    padding: 0.65rem;
+  }
+
+  .current li small {
+    color: var(--visual-model);
+  }
+
+  .current li strong {
+    display: block;
+    margin-top: 0.35rem;
+    color: var(--visual-text);
+    font-size: clamp(0.68rem, 1.3vw, 0.9rem);
+  }
+
+  .current li > span {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.45rem;
+    color: var(--visual-muted);
+  }
+
+  .current p {
+    margin: 0;
+    border-top: 1px solid var(--visual-border-soft);
+    padding-top: 0.65rem;
+    color: var(--visual-soft);
+    line-height: 1.6;
+  }
+
+  .current p span {
+    color: var(--visual-code);
+  }
+</style>

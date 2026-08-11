@@ -1,0 +1,90 @@
+---
+title: Mini Lakehouse
+description: A deployed personal data platform for replayable batch ingestion, Iceberg data products, analytics and remote document processing.
+outcome: One operator can deploy, replay and recover each workload without turning the platform into one tightly coupled release.
+role: Sole designer and engineer
+period: Jul 2026 — Present
+status: maintained
+featured: true
+order: 1
+topics:
+  - data-platforms
+  - lakehouse
+  - cloud-infrastructure
+  - reliability
+stack:
+  - Apache Iceberg
+  - AWS
+  - Airflow
+  - dbt
+  - Terraform
+  - OCI
+links:
+  repository: https://github.com/ToGiaBaoKDL/mini-lakehouse
+---
+
+import RunTraceVisual from "../../components/case-study/RunTraceVisual.astro";
+import FailureRecoveryVisual from "../../components/case-study/FailureRecoveryVisual.astro";
+
+## The platform I wanted to operate
+
+I built Mini Lakehouse to answer a practical question: how close could a personal data platform get to production behaviour without inheriting the cost and operational weight of a large organisation?
+
+“Production-like” did not mean adding every service I could find. It meant being able to point to the owner of a dataset, replay a failed day without corrupting current state, replace one runtime without releasing the whole platform, and explain what would happen when a remote job stopped halfway through.
+
+The deployed system ingests GitHub Archive and arXiv metadata, processes documents through remote OCR workers, publishes Iceberg data products and serves analytics through Athena, dbt and small read-only applications. The AWS data plane is separate from a private services host on Oracle Cloud; expensive compute is created only when a workload needs it.
+
+## Why the first architecture had to change
+
+The project started as a local stack built around AIStor, Polaris, Trino and Prefect. It was useful for learning Iceberg quickly, but the closer I pushed it towards a real deployment, the more the boundaries blurred. Source code could create or evolve tables, generic ingestion abstractions hid source-specific invariants, and a shared runtime made unrelated changes move together.
+
+The larger problem was that a local stack could not teach the failure modes I cared about. It did not expose the same identity, network and managed-execution constraints as jobs crossing OCI, AWS and a remote GPU provider.
+
+I rebuilt the project around four constraints that genuinely changed the design:
+
+- The OCI host has no public ingress; operator and browser access must cross private, authenticated paths.
+- AWS workloads use short-lived, workload-specific identity rather than a mounted credential directory.
+- Schedulers and remote providers can retry, so correctness must come from deterministic producers rather than an exactly-once claim.
+- Airflow, Spark, OCR, dbt domains and applications must be releasable and recoverable independently.
+
+## Boundaries with operational meaning
+
+The platform is hybrid by intent, not because every component needs a different cloud. OCI hosts the long-running control services I already operate. AWS owns the data plane and ephemeral Spark execution. OCR work can move between remote GPU or CPU providers without importing their SDKs into the Airflow runtime.
+
+Within the data plane, versioned contracts describe the Iceberg structure and validation rules. Spark owns landing and curated publication; OCR workers own document artifacts and their run records; each dbt domain owns its analytics models, tests, runtime identity and release. Airflow submits work, observes it and emits a logical asset only after the producer succeeds. It never becomes the place where business state is stored.
+
+This creates more deployment surfaces than a single-machine stack. I accept that cost because the boundaries line up with the things I need to debug and roll back. If a small deployment did not need independent recovery, I would collapse some of them.
+
+## Following one GitHub day through the system
+
+The GitHub Archive path is the clearest example of how those boundaries work. At 07:30, Airflow resolves the previous local day and submits a pinned EMR entrypoint with its locked environment and contract bundle. The Spark driver fetches all 24 hourly archives, validates gzip content and records SHA-256 metadata before publication.
+
+Landing is treated as an authoritative window: replaying the day replaces exactly those hourly partitions. Curated events merge by `event_id`; actor and repository state use `(last_observed_at, last_event_id)` so an older observation cannot overwrite a newer one. Only after the remote job succeeds does Airflow publish the curated asset that triggers the Engineering dbt domain.
+
+<RunTraceVisual variant="lakehouse" />
+
+The same ownership rule appears in access control. Airflow can submit or cancel EMR work, but it cannot read and write the data on the job’s behalf. The EMR runtime owns those permissions. The Engineering dbt identity can read its curated GitHub inputs and write only its analytics and query-result prefixes.
+
+## Failure is part of the data contract
+
+I designed replay before trying to make the happy path look exactly-once. A broken or empty archive never reaches S3 as valid input. A retry can reuse an object only after its checksum is verified. If Spark is interrupted, Airflow cancels the remote job and retries the same bounded window; partition replacement and deterministic merges make that rerun converge.
+
+The OCR path follows a similar pattern with a different recovery boundary. Its request ID is derived from the document revision and configuration. Provider tokens are checkpointed, artifacts and manifests are validated, and the Iceberg run record is marked `imported` only after the outputs are safe to reuse.
+
+<FailureRecoveryVisual variant="lakehouse" />
+
+This design does not pretend that every failure is solved. The development environment favours rebuild and restore over high availability. The OCI host is not HA, backup and restore drills are not yet automated, and S3 data plus catalog metadata must be recovered as one Iceberg system. Those are current operational gaps, not hidden fallbacks.
+
+## Delivery without a platform-wide release
+
+A reviewed merge publishes immutable images by digest or EMR artifacts under the Git commit SHA. An EMR revision is not visible to workloads until its entrypoints, dependencies, contract bundle and checksum manifest all exist. Only then does CI move the SSM release pointer. A partial upload can be repaired without exposing an incomplete release.
+
+Airflow, each dbt domain, OCR and the Inspector can move to a reviewed revision independently. Rollback verifies the target artifact instead of rebuilding an old commit and hoping it produces the same bytes. CI uses short-lived credentials, so releases do not depend on stored AWS keys, SSH keys or shared runtime credentials.
+
+## Where the project stands
+
+The complete topology is deployed and maintained. It currently supports two batch sources, curated Iceberg products, provider-neutral document OCR, two analytics domains and read-only inspection workflows. A single quality gate checks lockfiles, data contracts, dbt projects, linting, types, unit tests, infrastructure, Compose definitions and images.
+
+The next useful work is operational evidence rather than another engine: boundary data-quality rules, actionable freshness alerts, end-to-end lineage and telemetry, cost/SLA dashboards, and automated restore drills with explicit RPO/RTO. After that, I can test permissions and idempotency against disposable infrastructure before deciding whether incremental dbt or deeper governance is justified.
+
+I will add cost and workload numbers only after they come from a repeatable measurement process. The criterion for future scope stays the same: every capability needs a use case, an owner, a source of truth and a recovery story I can test.

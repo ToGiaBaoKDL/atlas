@@ -4,13 +4,11 @@ import MiniLakehouseVisual from "./MiniLakehouseVisual.astro";
 export const projectVisuals = {
   "mini-lakehouse": {
     component: MiniLakehouseVisual,
-    label: "Mini Lakehouse delivery workflow",
-    mobileShape: "wide",
+    label: "Mini Lakehouse hybrid platform boundaries",
   },
   "vn-market-pulse": {
     component: MarketPulseVisual,
-    label: "VN Market Pulse research pipeline",
-    mobileShape: "tall",
+    label: "VN Market Pulse responsibility pipeline",
   },
 } as const;
 

@@ -1,0 +1,211 @@
+---
+import CaseStudyFigure from "./CaseStudyFigure.astro";
+
+interface Props {
+  variant: "lakehouse" | "market-pulse";
+}
+
+const { variant } = Astro.props;
+
+const visuals = {
+  lakehouse: {
+    eyebrow: "One bounded data run",
+    title: "A GitHub day, replayed safely",
+    status: "Idempotent path",
+    number: "01 / RUN TRACE",
+    caption:
+      "The scheduler coordinates the run, but correctness lives in the producer: a bounded overwrite, deterministic merge and an asset emitted only after success.",
+    steps: [
+      { owner: "Airflow", title: "Resolve window", detail: "Previous local day" },
+      { owner: "Spark", title: "Fetch 24 hours", detail: "Checksum every object" },
+      { owner: "Landing", title: "Replace partition", detail: "Authoritative replay" },
+      { owner: "Curated", title: "Merge state", detail: "Deterministic keys" },
+      { owner: "Airflow", title: "Emit asset", detail: "Success only" },
+      { owner: "dbt", title: "Publish marts", detail: "Domain-owned release" },
+    ],
+    invariants: ["No duplicate event_id", "Older observations cannot win", "Retry converges"],
+  },
+  "market-pulse": {
+    eyebrow: "One research run",
+    title: "A topic becomes a referenced post",
+    status: "Bounded path",
+    number: "02 / RUN TRACE",
+    caption:
+      "Every semantic decision is visible as a typed stage, while the application carries budgets, source identity and deadlines across the complete run.",
+    steps: [
+      { owner: "Interface", title: "Normalize request", detail: "Topic, depth, style" },
+      { owner: "Model", title: "Plan intent", detail: "Facets and queries" },
+      { owner: "Providers", title: "Build pool", detail: "Parallel, bounded search" },
+      { owner: "Model", title: "Choose sources", detail: "Full metadata pool" },
+      { owner: "Providers", title: "Extract packets", detail: "Capped context" },
+      { owner: "Writer", title: "Return one post", detail: "Exact source refs" },
+    ],
+    invariants: [
+      "One pipeline for every depth",
+      "No local relevance score",
+      "No unreferenced output",
+    ],
+  },
+} as const;
+
+const visual = visuals[variant];
+---
+
+<CaseStudyFigure
+  eyebrow={visual.eyebrow}
+  title={visual.title}
+  status={visual.status}
+  caption={visual.caption}
+  number={visual.number}
+>
+  <div class="trace">
+    <ol>
+      {
+        visual.steps.map((step, index) => (
+          <li>
+            <div class="step-index">{String(index + 1).padStart(2, "0")}</div>
+            <small>{step.owner}</small>
+            <strong>{step.title}</strong>
+            <p>{step.detail}</p>
+            {index < visual.steps.length - 1 && <i aria-hidden="true" />}
+          </li>
+        ))
+      }
+    </ol>
+    <div class="invariants">
+      <span>Run invariants</span>
+      <ul>
+        {visual.invariants.map((invariant) => <li>{invariant}</li>)}
+      </ul>
+    </div>
+  </div>
+</CaseStudyFigure>
+
+<style>
+  .trace {
+    display: grid;
+    height: 100%;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 1rem;
+  }
+
+  ol {
+    display: grid;
+    min-height: 0;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.72rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  ol li {
+    position: relative;
+    min-width: 0;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel) 94%, transparent);
+    padding: 0.72rem;
+  }
+
+  .step-index,
+  small,
+  .invariants > span {
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    font-weight: 650;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+  }
+
+  .step-index {
+    margin-bottom: clamp(0.7rem, 2vw, 1.4rem);
+    color: var(--visual-accent);
+  }
+
+  small {
+    display: block;
+    color: var(--visual-muted);
+  }
+
+  strong {
+    display: block;
+    margin-top: 0.28rem;
+    color: var(--visual-text);
+    font-size: clamp(0.64rem, 1.2vw, 0.78rem);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+
+  p {
+    margin: 0.35rem 0 0;
+    color: var(--visual-soft);
+    font-size: clamp(0.53rem, 1vw, 0.64rem);
+    line-height: 1.35;
+  }
+
+  ol i {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    left: calc(100% - 0.1rem);
+    width: 0.95rem;
+    height: 0.45rem;
+    transform: translateY(-50%);
+  }
+
+  ol i::before {
+    position: absolute;
+    top: calc(50% - 1px);
+    right: 0.1rem;
+    left: 0;
+    height: 2px;
+    background: var(--visual-accent-strong);
+    content: "";
+  }
+
+  ol i::after {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 0.3rem;
+    height: 0.3rem;
+    transform: translateY(-50%) rotate(45deg);
+    border-top: 2px solid var(--visual-accent);
+    border-right: 2px solid var(--visual-accent);
+    content: "";
+  }
+
+  .invariants {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.9rem;
+    align-items: center;
+    border-top: 1px solid var(--visual-border);
+    padding-top: 0.75rem;
+  }
+
+  .invariants > span {
+    color: var(--visual-muted);
+  }
+
+  .invariants ul {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .invariants li {
+    border: 1px solid var(--visual-border);
+    border-radius: 999px;
+    background: var(--visual-panel-soft);
+    padding: 0.25rem 0.52rem;
+    color: var(--visual-code);
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    white-space: nowrap;
+  }
+</style>

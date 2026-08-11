@@ -1,12 +1,4 @@
----
-interface Props {
-  mobileShape: "wide" | "tall";
-}
-
-const { mobileShape } = Astro.props;
----
-
-<div class:list={["visual-frame", `visual-frame-${mobileShape}`]}>
+<div class="visual-frame">
   <slot />
 </div>
 
@@ -22,12 +14,8 @@ const { mobileShape } = Astro.props;
       overflow: hidden;
     }
 
-    .visual-frame-wide {
+    .visual-frame {
       aspect-ratio: 1.59;
-    }
-
-    .visual-frame-tall {
-      aspect-ratio: 1.23;
     }
 
     .visual-frame > :global(*) {

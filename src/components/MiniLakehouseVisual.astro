@@ -1,60 +1,89 @@
 ---
 import VisualHeader from "./VisualHeader.astro";
 
-interface Props {
-  thumbnail?: boolean;
-}
-
-const { thumbnail = false } = Astro.props;
-
-const stages = [
-  { number: "01", label: "Define", title: "Data contracts", detail: "Schemas and ownership" },
-  { number: "02", label: "Land", title: "Ingest safely", detail: "Idempotent publication" },
-  { number: "03", label: "Refine", title: "Transform", detail: "Curated domain data" },
-  { number: "04", label: "Verify", title: "Quality gates", detail: "Tests before release" },
-  { number: "05", label: "Deliver", title: "Serve", detail: "Analytics and apps" },
-];
+const sources = ["GitHub Archive", "arXiv metadata", "Documents"];
+const dataProducts = ["Landing", "Curated", "Analytics"];
 ---
 
-<figure class:list={["lakehouse-visual", { "visual-thumbnail": thumbnail }]}>
+<figure class="lakehouse-map">
   <VisualHeader
-    eyebrow="Delivery workflow"
-    title="Contract to trusted data product"
+    eyebrow="Hybrid platform map"
+    title="Private control plane, managed data plane"
     status="Deployed"
   />
 
-  <ol class="workflow-track" aria-label="Mini Lakehouse delivery workflow">
-    {
-      stages.map((stage, index) => (
-        <li>
-          <span class="workflow-number">{stage.number}</span>
-          <small>{stage.label}</small>
-          <strong>{stage.title}</strong>
-          <p>{stage.detail}</p>
-          {index < stages.length - 1 && (
-            <span class="workflow-connector" aria-hidden="true">
-              <i />
-            </span>
-          )}
-        </li>
-      ))
-    }
-  </ol>
+  <div class="architecture" aria-label="Mini Lakehouse system boundaries">
+    <svg class="routes" viewBox="0 0 1000 330" preserveAspectRatio="none" aria-hidden="true">
+      <path class="route route-input" d="M150 165 C220 165 218 165 285 165"></path>
+      <path class="route route-control" d="M785 95 C690 95 720 135 620 135"></path>
+      <path class="route route-control" d="M785 235 C690 235 715 196 620 196"></path>
+      <path class="route route-data" d="M395 165 H510 H625"></path>
+      <circle cx="285" cy="165" r="4"></circle>
+      <circle cx="510" cy="165" r="4"></circle>
+      <circle cx="625" cy="165" r="4"></circle>
+    </svg>
 
-  <div class="workflow-operations">
-    <span>OPERATIONS</span>
-    <div>
-      <span>Orchestration</span>
-      <span>Observability</span>
-      <span>Immutable releases</span>
+    <section class="source-zone">
+      <span class="zone-label">Bounded sources</span>
+      <ul>
+        {sources.map((source) => <li>{source}</li>)}
+      </ul>
+    </section>
+
+    <section class="data-zone">
+      <div class="zone-heading">
+        <span class="zone-label">AWS data plane</span>
+        <small>Ephemeral compute</small>
+      </div>
+      <div class="compute-node">
+        <span>EXECUTE</span>
+        <strong>EMR Serverless</strong>
+        <small>Spark producers</small>
+      </div>
+      <ol class="product-line">
+        {
+          dataProducts.map((product, index) => (
+            <li>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{product}</strong>
+              <small>{index === 0 ? "Replayable" : index === 1 ? "Iceberg" : "Domain-owned"}</small>
+            </li>
+          ))
+        }
+      </ol>
+      <div class="serve-node"><span>QUERY</span><strong>Athena + dbt</strong></div>
+    </section>
+
+    <div class="service-column">
+      <section class="private-zone">
+        <div class="zone-heading">
+          <span class="zone-label">Private services</span>
+          <small>OCI / ARM</small>
+        </div>
+        <strong>Airflow coordinates</strong>
+        <p>PostgreSQL · Inspector</p>
+        <span class="access-note">Tailscale + Cloudflare Access</span>
+      </section>
+      <section class="worker-zone">
+        <span class="zone-label">Remote document compute</span>
+        <strong>Provider-neutral OCR</strong>
+        <small>Pinned worker · resumable run</small>
+      </section>
     </div>
   </div>
+
+  <footer>
+    <span><i class="control"></i>Control</span>
+    <span><i class="data"></i>Data</span>
+    <strong>No public ingress · short-lived identity · independent releases</strong>
+  </footer>
 </figure>
 
 <style>
-  .lakehouse-visual {
+  .lakehouse-map {
     position: relative;
     overflow: hidden;
+    aspect-ratio: 1.59;
     min-width: 0;
     margin: 0;
     border: 1px solid var(--visual-border);
@@ -62,240 +91,288 @@ const stages = [
     background:
       linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-      radial-gradient(circle at 80% 15%, rgba(82, 105, 217, 0.17), transparent 32%),
+      radial-gradient(circle at 76% 14%, rgba(163, 230, 53, 0.1), transparent 31%),
+      radial-gradient(circle at 12% 82%, rgba(111, 131, 238, 0.16), transparent 28%),
       var(--visual-bg);
     background-size:
       1.35rem 1.35rem,
       1.35rem 1.35rem,
       auto,
+      auto,
       auto;
-    padding: clamp(1rem, 3vw, 1.6rem);
+    padding: clamp(1rem, 2.7vw, 1.55rem);
     color: var(--visual-text);
   }
 
-  .workflow-track {
-    --stage-gap: clamp(0.95rem, 1.8vw, 1.4rem);
-
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: var(--stage-gap);
-    margin: 0;
-    padding: clamp(1.5rem, 4vw, 2.3rem) 0;
-    list-style: none;
-  }
-
-  .workflow-track li {
+  .architecture {
     position: relative;
-    min-width: 0;
-    border: 1px solid var(--visual-border);
-    border-radius: var(--radius-sm);
-    background: color-mix(in srgb, var(--visual-panel) 94%, transparent);
-    padding: clamp(0.7rem, 1.5vw, 1rem);
+    display: grid;
+    height: calc(100% - 6rem);
+    grid-template-columns: 0.64fr 1.65fr 0.82fr;
+    gap: clamp(0.75rem, 1.8vw, 1.2rem);
+    align-items: stretch;
+    padding-block: clamp(1rem, 2vw, 1.35rem);
   }
 
-  .workflow-connector {
+  .routes {
     position: absolute;
-    z-index: 2;
-    top: 50%;
-    left: calc(100% - 1px);
-    width: calc(var(--stage-gap) + 2px);
-    height: 1rem;
-    transform: translateY(-50%);
+    z-index: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
     pointer-events: none;
   }
 
-  .workflow-connector::before {
-    position: absolute;
-    top: calc(50% - 1px);
-    right: 0.15rem;
-    left: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--visual-accent-strong), var(--visual-accent));
-    content: "";
+  .route {
+    fill: none;
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke;
   }
 
-  .workflow-connector::after {
-    position: absolute;
-    top: 50%;
-    right: 0.08rem;
-    width: 0.38rem;
-    height: 0.38rem;
-    transform: translateY(-50%) rotate(45deg);
-    border-top: 2px solid var(--visual-accent);
-    border-right: 2px solid var(--visual-accent);
-    content: "";
+  .route-input,
+  .route-data {
+    stroke: var(--visual-accent-strong);
   }
 
-  .workflow-connector i {
-    --visual-flow-distance: 0.55rem;
+  .route-control {
+    stroke: var(--visual-success);
+    stroke-dasharray: 4 5;
+  }
 
-    position: absolute;
+  .routes circle {
+    fill: var(--visual-accent);
+    filter: drop-shadow(0 0 5px var(--visual-accent));
+  }
+
+  section,
+  .service-column {
+    position: relative;
     z-index: 1;
-    top: calc(50% - 0.14rem);
-    left: 20%;
-    width: 0.28rem;
-    height: 0.28rem;
-    border-radius: 50%;
-    background: var(--visual-accent);
-    box-shadow: 0 0 0 0.18rem var(--visual-accent-glow);
+    min-width: 0;
   }
 
-  .workflow-number {
-    display: block;
-    margin-bottom: 1.8rem;
-    color: var(--visual-accent);
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
+  section {
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel) 94%, transparent);
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.025);
+    padding: clamp(0.65rem, 1.4vw, 0.9rem);
   }
 
-  .workflow-track small,
-  .workflow-operations > span {
-    display: block;
-    color: var(--visual-muted);
+  .zone-label,
+  .zone-heading small,
+  .compute-node span,
+  .compute-node small,
+  .product-line span,
+  .product-line small,
+  .serve-node span,
+  .access-note,
+  .worker-zone small,
+  footer {
     font-family: var(--font-mono);
-    font-size: 0.55rem;
-    font-weight: 640;
-    letter-spacing: 0.08em;
+    font-size: 0.5rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
     text-transform: uppercase;
   }
 
-  .workflow-track strong {
-    display: block;
-    margin-top: 0.3rem;
-    color: var(--visual-text);
-    font-size: clamp(0.72rem, 1.3vw, 0.88rem);
-    font-weight: 580;
+  .zone-label {
+    color: var(--visual-muted);
   }
 
-  .workflow-track p {
-    margin: 0.35rem 0 0;
-    color: var(--visual-soft);
-    font-size: clamp(0.58rem, 1.1vw, 0.7rem);
-    line-height: 1.4;
-  }
-
-  .workflow-operations {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 1rem;
-    align-items: center;
-    border-top: 1px solid var(--visual-border);
-    padding-top: 1rem;
-  }
-
-  .workflow-operations > div {
+  .zone-heading {
     display: flex;
-    justify-content: flex-end;
-    gap: 0.45rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    border-bottom: 1px solid var(--visual-border-soft);
+    padding-bottom: 0.55rem;
   }
 
-  .workflow-operations > div span {
-    border: 1px solid var(--visual-border);
-    border-radius: 999px;
-    padding: 0.25rem 0.55rem;
+  .zone-heading small {
+    color: var(--visual-code);
+  }
+
+  .source-zone {
+    display: grid;
+    align-content: center;
+  }
+
+  .source-zone ul {
+    display: grid;
+    gap: 0.42rem;
+    margin: 0.8rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .source-zone li {
+    border-left: 2px solid var(--visual-accent-strong);
+    background: rgba(255, 255, 255, 0.025);
+    padding: 0.42rem 0.5rem;
     color: var(--visual-soft);
-    font-family: var(--font-mono);
-    font-size: 0.55rem;
+    font-size: clamp(0.56rem, 1vw, 0.67rem);
+  }
+
+  .data-zone {
+    display: grid;
+    grid-template-columns: 0.75fr 1.7fr;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 0.62rem;
+  }
+
+  .data-zone .zone-heading,
+  .serve-node {
+    grid-column: 1 / -1;
+  }
+
+  .compute-node {
+    display: grid;
+    align-content: center;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: 0.35rem;
+    background: rgba(111, 131, 238, 0.07);
+    padding: 0.55rem;
+  }
+
+  .compute-node span,
+  .compute-node small,
+  .product-line span,
+  .product-line small,
+  .serve-node span {
+    color: var(--visual-muted);
+  }
+
+  .compute-node strong,
+  .product-line strong,
+  .serve-node strong {
+    color: var(--visual-text);
+    font-size: clamp(0.58rem, 1.15vw, 0.74rem);
+    font-weight: 590;
+  }
+
+  .compute-node strong {
+    margin-block: 0.25rem;
+  }
+
+  .product-line {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.38rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .product-line li {
+    display: grid;
+    align-content: center;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: 0.35rem;
+    background: rgba(255, 255, 255, 0.018);
+    padding: 0.48rem;
+  }
+
+  .product-line strong {
+    margin-block: 0.2rem;
+  }
+
+  .serve-node {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    border-top: 1px solid var(--visual-border-soft);
+    padding-top: 0.52rem;
+  }
+
+  .service-column {
+    display: grid;
+    grid-template-rows: 1.25fr 0.75fr;
+    gap: 0.65rem;
+  }
+
+  .private-zone,
+  .worker-zone {
+    display: grid;
+    align-content: center;
+  }
+
+  .private-zone .zone-heading {
+    margin-bottom: 0.7rem;
+  }
+
+  .private-zone > strong,
+  .worker-zone strong {
+    color: var(--visual-text);
+    font-size: clamp(0.62rem, 1.15vw, 0.78rem);
+    font-weight: 590;
+  }
+
+  .private-zone p {
+    margin: 0.3rem 0 0.65rem;
+    color: var(--visual-soft);
+    font-size: clamp(0.54rem, 1vw, 0.65rem);
+  }
+
+  .access-note {
+    color: var(--visual-code);
+  }
+
+  .worker-zone {
+    gap: 0.25rem;
+  }
+
+  .worker-zone small {
+    color: var(--visual-soft);
+  }
+
+  footer {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    border-top: 1px solid var(--visual-border-soft);
+    padding-top: 0.75rem;
+    color: var(--visual-muted);
+  }
+
+  footer span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  footer i {
+    width: 0.75rem;
+    height: 2px;
+  }
+
+  footer i.control {
+    background: var(--visual-success);
+  }
+
+  footer i.data {
+    background: var(--visual-accent);
+  }
+
+  footer strong {
+    margin-left: auto;
+    color: var(--visual-soft);
+    font-weight: 560;
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    :global([data-reveal].is-revealed) .workflow-connector i {
-      animation: visual-flow-inline var(--motion-flow) linear infinite;
-      will-change: transform, opacity;
+    :global([data-reveal].is-revealed) .route-data,
+    :global([data-reveal].is-revealed) .route-input {
+      animation: route-dash 1.5s linear infinite;
+      stroke-dasharray: 5 7;
     }
 
-    :global([data-reveal].is-revealed) li:nth-child(2) .workflow-connector i {
-      animation-delay: var(--motion-flow-quarter);
-    }
-
-    :global([data-reveal].is-revealed) li:nth-child(3) .workflow-connector i {
-      animation-delay: var(--motion-flow-half);
-    }
-
-    :global([data-reveal].is-revealed) li:nth-child(4) .workflow-connector i {
-      animation-delay: calc(var(--motion-flow-half) + var(--motion-flow-quarter));
-    }
-  }
-
-  @media (max-width: 40rem) {
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-track {
-      --stage-gap: 0.85rem;
-
-      grid-template-columns: 1fr;
-      gap: var(--stage-gap);
-      padding-block: 1.25rem;
-    }
-
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-track li {
-      display: grid;
-      grid-template-columns: 2rem minmax(0, 1fr);
-      gap: 0.1rem 0.65rem;
-    }
-
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-connector {
-      top: calc(100% - 1px);
-      left: 50%;
-      width: 1rem;
-      height: calc(var(--stage-gap) + 2px);
-      transform: translateX(-50%);
-    }
-
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-connector::before {
-      top: 0;
-      right: auto;
-      bottom: 0.15rem;
-      left: calc(50% - 1px);
-      width: 2px;
-      height: auto;
-      background: linear-gradient(var(--visual-accent-strong), var(--visual-accent));
-    }
-
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-connector::after {
-      top: auto;
-      right: auto;
-      bottom: 0.08rem;
-      left: 50%;
-      transform: translateX(-50%) rotate(45deg);
-      border-top: 0;
-      border-right: 2px solid var(--visual-accent);
-      border-bottom: 2px solid var(--visual-accent);
-    }
-
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-connector i {
-      --visual-flow-distance: 0.45rem;
-
-      top: 20%;
-      left: calc(50% - 0.14rem);
-    }
-
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-number {
-      grid-row: 1 / 4;
-      margin: 0;
-    }
-
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-track small,
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-track strong,
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-track p {
-      grid-column: 2;
-    }
-
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-operations {
-      grid-template-columns: 1fr;
-      gap: 0.6rem;
-    }
-
-    .lakehouse-visual:not(.visual-thumbnail) .workflow-operations > div {
-      flex-wrap: wrap;
-      justify-content: flex-start;
-    }
-  }
-
-  @media (max-width: 40rem) and (prefers-reduced-motion: no-preference) {
-    :global([data-reveal].is-revealed)
-      .lakehouse-visual:not(.visual-thumbnail)
-      .workflow-connector
-      i {
-      animation-name: visual-flow-block;
+    @keyframes route-dash {
+      to {
+        stroke-dashoffset: -24;
+      }
     }
   }
 </style>

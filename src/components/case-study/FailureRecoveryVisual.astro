@@ -1,0 +1,218 @@
+---
+import CaseStudyFigure from "./CaseStudyFigure.astro";
+
+interface Props {
+  variant: "lakehouse" | "market-pulse";
+}
+
+const { variant } = Astro.props;
+
+const visuals = {
+  lakehouse: {
+    eyebrow: "Failure and recovery",
+    title: "Retries return to a known boundary",
+    status: "Explicit recovery",
+    number: "02 / RECOVERY MAP",
+    caption:
+      "A retry never depends on Airflow remembering business state. Each producer rejects incomplete work and resumes from a bounded, verifiable boundary.",
+    baseline: ["Resolve window", "Produce data", "Validate output", "Commit boundary"],
+    branches: [
+      { trigger: "Broken source object", action: "Reject before publish", proof: "gzip + SHA-256" },
+      {
+        trigger: "Interrupted Spark run",
+        action: "Replay the same window",
+        proof: "overwrite + MERGE",
+      },
+      {
+        trigger: "Partial EMR upload",
+        action: "Keep previous pointer",
+        proof: "complete checksum set",
+      },
+    ],
+  },
+  "market-pulse": {
+    eyebrow: "Failure and recovery",
+    title: "The pipeline stops before it invents certainty",
+    status: "Fail closed",
+    number: "03 / FAILURE MAP",
+    caption:
+      "Provider and model failures are bounded and observable. When grounding disappears or references cannot be validated, the application returns a typed failure instead of a plausible post.",
+    baseline: ["Plan", "Retrieve", "Ground", "Validate"],
+    branches: [
+      {
+        trigger: "One search provider fails",
+        action: "Keep other results",
+        proof: "finite retry budget",
+      },
+      {
+        trigger: "No usable source packet",
+        action: "Return no_sources",
+        proof: "writer never runs",
+      },
+      {
+        trigger: "Unknown source reference",
+        action: "Repair or reject",
+        proof: "typed validation",
+      },
+    ],
+  },
+} as const;
+
+const visual = visuals[variant];
+---
+
+<CaseStudyFigure
+  eyebrow={visual.eyebrow}
+  title={visual.title}
+  status={visual.status}
+  caption={visual.caption}
+  number={visual.number}
+>
+  <div class="recovery-map">
+    <ol class="baseline" aria-label="Successful path">
+      {
+        visual.baseline.map((stage, index) => (
+          <li>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{stage}</strong>
+          </li>
+        ))
+      }
+    </ol>
+    <div class="branches">
+      {
+        visual.branches.map((branch, index) => (
+          <article>
+            <div class="branch-line" aria-hidden="true">
+              <i />
+            </div>
+            <span>Failure {String(index + 1).padStart(2, "0")}</span>
+            <strong>{branch.trigger}</strong>
+            <p>{branch.action}</p>
+            <small>{branch.proof}</small>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</CaseStudyFigure>
+
+<style>
+  .recovery-map {
+    display: grid;
+    height: 100%;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .baseline {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+    padding: 0 0 0.8rem;
+    list-style: none;
+  }
+
+  .baseline::before {
+    position: absolute;
+    right: 7%;
+    bottom: 0;
+    left: 7%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--visual-accent-strong), var(--visual-success));
+    content: "";
+  }
+
+  .baseline li {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--visual-text);
+  }
+
+  .baseline span,
+  .branches article > span,
+  .branches small {
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .baseline span {
+    color: var(--visual-accent);
+  }
+
+  .baseline strong {
+    color: var(--visual-text);
+    font-size: clamp(0.64rem, 1.2vw, 0.78rem);
+    font-weight: 590;
+  }
+
+  .branches {
+    display: grid;
+    min-height: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+  }
+
+  .branches article {
+    position: relative;
+    min-width: 0;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel-soft);
+    padding: clamp(0.7rem, 1.6vw, 1rem);
+  }
+
+  .branch-line {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    width: 1px;
+    height: 1rem;
+    background: var(--visual-border);
+  }
+
+  .branch-line i {
+    position: absolute;
+    bottom: -0.15rem;
+    left: -0.14rem;
+    width: 0.3rem;
+    height: 0.3rem;
+    border-radius: 50%;
+    background: var(--visual-accent);
+    box-shadow: 0 0 0 0.16rem var(--visual-accent-glow);
+  }
+
+  .branches article > span {
+    color: var(--visual-muted);
+  }
+
+  .branches strong {
+    display: block;
+    margin-top: clamp(0.45rem, 1vw, 0.8rem);
+    color: var(--visual-text);
+    font-size: clamp(0.7rem, 1.25vw, 0.86rem);
+    font-weight: 600;
+  }
+
+  .branches p {
+    margin: 0.35rem 0 0;
+    color: var(--visual-code);
+    font-size: clamp(0.58rem, 1.05vw, 0.7rem);
+  }
+
+  .branches small {
+    display: inline-flex;
+    margin-top: clamp(0.7rem, 1.6vw, 1rem);
+    border: 1px solid var(--visual-border);
+    border-radius: 999px;
+    padding: 0.22rem 0.45rem;
+    color: var(--visual-soft);
+  }
+</style>

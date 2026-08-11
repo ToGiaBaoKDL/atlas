@@ -1,3 +1,4 @@
+import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import { satteri } from "@astrojs/markdown-satteri";
 import { defineConfig } from "astro/config";
@@ -9,11 +10,14 @@ export default defineConfig({
   site,
   output: "static",
   trailingSlash: "always",
+  build: {
+    inlineStylesheets: "never",
+  },
   markdown: {
     syntaxHighlight: "prism",
     processor: satteri({ hastPlugins: [focusableOverflowPlugin] }),
   },
-  integrations: site ? [sitemap()] : [],
+  integrations: [mdx(), ...(site ? [sitemap()] : [])],
   security: {
     csp: {
       directives: [
