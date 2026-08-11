@@ -238,11 +238,11 @@ const stages = [
     }
 
     :global([data-reveal].is-revealed) li:nth-child(2) .research-connector::before {
-      animation-delay: -1.05s;
+      animation-delay: -0.87s;
     }
 
     :global([data-reveal].is-revealed) li:nth-child(3) .research-connector::before {
-      animation-delay: -2.1s;
+      animation-delay: -1.73s;
     }
   }
 
@@ -261,10 +261,10 @@ const stages = [
 
     .research-connector {
       top: calc(100% - 1px);
-      left: 1.35rem;
+      left: 50%;
       width: 2px;
       height: calc(var(--stage-gap) + 2px);
-      transform: none;
+      transform: translateX(-50%);
       background: linear-gradient(var(--visual-accent-strong), var(--visual-accent));
     }
 

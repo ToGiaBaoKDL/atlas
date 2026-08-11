@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { experiences } from "../data/experience";
+import { education, experiences } from "../data/experience";
 import { site } from "../data/site";
 import PageHero from "./PageHero.astro";
 ---
@@ -37,10 +37,6 @@ import PageHero from "./PageHero.astro";
           <p>Data platforms · Lakehouse · Cloud infrastructure · Applied AI</p>
         </section>
         <section>
-          <h2>Education</h2>
-          <p>B.Sc. Data Science · University of Science, VNU-HCM</p>
-        </section>
-        <section>
           <h2>Email</h2>
           <p><a href={`mailto:${site.email}`}>{site.email}</a></p>
         </section>
@@ -48,31 +44,52 @@ import PageHero from "./PageHero.astro";
     </div>
 
     <div class="experience-grid">
-      <section class="experience" aria-labelledby="experience-heading" data-reveal>
-        <p class="section-kicker">Experience</p>
-        <h2 id="experience-heading">Professional experience</h2>
-        {
-          experiences.map((experience) => (
-            <article class="experience-role">
-              <header>
-                <div>
-                  <h3>{experience.company}</h3>
-                  <p>{experience.role}</p>
-                </div>
-                <p class="experience-period">
-                  <time datetime={experience.startDate}>{experience.startLabel}</time> — Present
-                </p>
-              </header>
-              <p class="experience-summary">{experience.summary}</p>
-              <ul>
-                {experience.highlights.map((highlight) => (
-                  <li>{highlight}</li>
-                ))}
-              </ul>
-            </article>
-          ))
-        }
-      </section>
+      <div class="career-column">
+        <section class="experience" aria-labelledby="experience-heading" data-reveal>
+          <p class="section-kicker">Experience</p>
+          <h2 id="experience-heading">Professional experience</h2>
+          {
+            experiences.map((experience) => (
+              <article class="experience-role">
+                <header>
+                  <div>
+                    <h3>{experience.company}</h3>
+                    <p>{experience.role}</p>
+                  </div>
+                  <p class="experience-period">
+                    <time datetime={experience.startDate}>{experience.startLabel}</time> — Present
+                  </p>
+                </header>
+                <p class="experience-summary">{experience.summary}</p>
+                <ul>
+                  {experience.highlights.map((highlight) => (
+                    <li>{highlight}</li>
+                  ))}
+                </ul>
+              </article>
+            ))
+          }
+        </section>
+
+        <section class="education" aria-labelledby="education-heading" data-reveal>
+          <p class="section-kicker">Education</p>
+          <h2 id="education-heading">Academic foundation</h2>
+          <article class="education-entry">
+            <header>
+              <div>
+                <h3>{education.institution}</h3>
+                <p>{education.location}</p>
+              </div>
+              <p class="education-period">
+                <time datetime={education.startDate}>{education.startDate}</time> —
+                <time datetime={education.endDate}>{education.endDate}</time>
+              </p>
+            </header>
+            <p class="education-degree">{education.degree}</p>
+            <p class="education-gpa">GPA {education.gpa}</p>
+          </article>
+        </section>
+      </div>
 
       <aside class="resume-column" aria-label="Resume" data-reveal data-reveal-delay="1">
         <div class="resume-sticky">
@@ -218,9 +235,18 @@ import PageHero from "./PageHero.astro";
     font-size: 0.92rem;
   }
 
-  .experience {
+  .career-column {
+    min-width: 0;
+  }
+
+  .experience,
+  .education {
     border-top: 1px solid var(--border);
     padding-top: 1.5rem;
+  }
+
+  .education {
+    margin-top: clamp(3.5rem, 7vw, 5.5rem);
   }
 
   .resume-column {
@@ -234,7 +260,8 @@ import PageHero from "./PageHero.astro";
     top: calc(var(--header-height) + 1.5rem);
   }
 
-  .experience > h2 {
+  .experience > h2,
+  .education > h2 {
     margin: 0;
     font-size: clamp(1.7rem, 4vw, 2.5rem);
     font-weight: 630;
@@ -242,11 +269,13 @@ import PageHero from "./PageHero.astro";
     line-height: 1.08;
   }
 
-  .experience-role {
+  .experience-role,
+  .education-entry {
     margin-top: 2rem;
   }
 
-  .experience-role header {
+  .experience-role header,
+  .education-entry header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -254,23 +283,29 @@ import PageHero from "./PageHero.astro";
   }
 
   .experience-role h3,
-  .experience-role header p {
+  .experience-role header p,
+  .education-entry h3,
+  .education-entry header p {
     margin: 0;
   }
 
-  .experience-role h3 {
+  .experience-role h3,
+  .education-entry h3 {
     font-size: 1.08rem;
     font-weight: 630;
   }
 
   .experience-role header div > p,
-  .experience-period {
+  .experience-period,
+  .education-entry header div > p,
+  .education-period {
     color: var(--text-faint);
     font-family: var(--font-mono);
     font-size: 0.68rem;
   }
 
-  .experience-period {
+  .experience-period,
+  .education-period {
     flex: 0 0 auto;
     text-align: right;
   }
@@ -298,6 +333,19 @@ import PageHero from "./PageHero.astro";
     color: var(--accent);
   }
 
+  .education-degree {
+    margin: 1.25rem 0 0;
+    font-size: 1rem;
+    font-weight: 610;
+  }
+
+  .education-gpa {
+    margin: 0.35rem 0 0;
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+
   @media (max-width: 56rem) {
     .about-intro-grid,
     .experience-grid {
@@ -314,12 +362,14 @@ import PageHero from "./PageHero.astro";
   }
 
   @media (max-width: 40rem) {
-    .experience-role header {
+    .experience-role header,
+    .education-entry header {
       display: grid;
       gap: 0.55rem;
     }
 
-    .experience-period {
+    .experience-period,
+    .education-period {
       text-align: left;
     }
   }

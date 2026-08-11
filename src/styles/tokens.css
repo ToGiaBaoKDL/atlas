@@ -29,7 +29,7 @@
   --motion-fast: 160ms;
   --motion-base: 240ms;
   --motion-slow: 420ms;
-  --motion-flow: 3.2s;
+  --motion-flow: 2.6s;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Stable palette for architecture visuals in both site themes. */

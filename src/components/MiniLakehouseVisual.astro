@@ -199,15 +199,15 @@ const stages = [
     }
 
     :global([data-reveal].is-revealed) li:nth-child(2) .workflow-connector i {
-      animation-delay: -0.8s;
+      animation-delay: -0.65s;
     }
 
     :global([data-reveal].is-revealed) li:nth-child(3) .workflow-connector i {
-      animation-delay: -1.6s;
+      animation-delay: -1.3s;
     }
 
     :global([data-reveal].is-revealed) li:nth-child(4) .workflow-connector i {
-      animation-delay: -2.4s;
+      animation-delay: -1.95s;
     }
   }
 
@@ -228,10 +228,10 @@ const stages = [
 
     .workflow-connector {
       top: calc(100% - 1px);
-      left: 1.45rem;
+      left: 50%;
       width: 1rem;
       height: calc(var(--stage-gap) + 2px);
-      transform: none;
+      transform: translateX(-50%);
     }
 
     .workflow-connector::before {

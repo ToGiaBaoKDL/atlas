@@ -74,6 +74,49 @@ test("mobile navigation opens, links and closes", async ({ page }) => {
   await expect(dialog).not.toBeVisible();
 });
 
+test("mobile hero previews the platform visual", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
+
+  await page.goto("/");
+  const visual = await page.locator(".platform-visual").boundingBox();
+  const viewportHeight = page.viewportSize()?.height ?? 0;
+
+  expect(visual).not.toBeNull();
+  const visualTop = visual?.y ?? 0;
+  const visualBottom = visualTop + (visual?.height ?? 0);
+  const visibleHeight = Math.max(
+    0,
+    Math.min(visualBottom, viewportHeight) - Math.max(visualTop, 0),
+  );
+  expect(visibleHeight).toBeGreaterThanOrEqual(120);
+});
+
+test("mobile workflow connectors stay centered", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
+
+  for (const [route, selector] of [
+    ["/projects/mini-lakehouse/", ".workflow-connector"],
+    ["/projects/vn-market-pulse/", ".research-connector"],
+  ] as const) {
+    await page.goto(route);
+    const connector = page.locator(selector).first();
+    await connector.scrollIntoViewIfNeeded();
+    await expect(connector).toBeVisible();
+
+    const offset = await connector.evaluate((element) => {
+      const connectorBox = element.getBoundingClientRect();
+      const stageBox = element.closest("li")?.getBoundingClientRect();
+      if (!stageBox) return Number.POSITIVE_INFINITY;
+
+      const connectorCenter = connectorBox.left + connectorBox.width / 2;
+      const stageCenter = stageBox.left + stageBox.width / 2;
+      return Math.abs(connectorCenter - stageCenter);
+    });
+
+    expect(offset).toBeLessThanOrEqual(1);
+  }
+});
+
 test("RSS endpoint is valid XML", async ({ request }) => {
   const response = await request.get("/rss.xml");
   expect(response.ok()).toBe(true);

@@ -17,3 +17,12 @@ export const experiences = [
     ],
   },
 ] as const;
+
+export const education = {
+  institution: "University of Science, VNU-HCM",
+  degree: "B.Sc. in Data Science",
+  location: "Ho Chi Minh City, Vietnam",
+  startDate: "2022",
+  endDate: "2026",
+  gpa: "3.78/4.00",
+} as const;
