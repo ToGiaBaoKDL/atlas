@@ -7,7 +7,13 @@ interface Props {
 const { aspect = "standard", presentation = "detail" } = Astro.props;
 ---
 
-<div class:list={["visual-frame", `visual-frame-${aspect}`, `visual-frame-${presentation}`]}>
+<div
+  class:list={[
+    "visual-frame",
+    `visual-frame-${aspect}`,
+    { "visual-frame-thumbnail": presentation === "thumbnail" },
+  ]}
+>
   <slot />
 </div>
 

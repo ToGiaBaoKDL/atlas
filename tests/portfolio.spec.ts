@@ -88,17 +88,26 @@ test("mobile navigation opens, links and closes", async ({ page }) => {
 });
 
 test("homepage showcases every project visual", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
 
-  await expect(page.locator(".project-showcase")).toHaveCount(2);
-  await expect(page.locator(".project-showcase .lakehouse-map")).toHaveCount(1);
-  await expect(page.locator(".project-showcase .market-map")).toHaveCount(1);
+  await expect(page.locator(".project-card-showcase")).toHaveCount(2);
+  await expect(page.locator(".project-card-showcase .lakehouse-map")).toHaveCount(1);
+  await expect(page.locator(".project-card-showcase .market-map")).toHaveCount(1);
   await expect(page.locator(".hero-visual .product-node li")).toHaveText([
     /Landing/,
     /Curated/,
     /Analytics/,
   ]);
   await expect(page.locator(".hero-visual .platform-capabilities li")).toHaveCount(5);
+  await expect(page.locator(".hero-visual .flow-arrow").first()).toHaveCSS(
+    "animation-name",
+    "visual-flow-pulse",
+  );
+  await expect(page.locator(".hero-visual .flow-arrow span").first()).toHaveCSS(
+    "animation-name",
+    "visual-flow-inline",
+  );
 });
 
 test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
@@ -106,7 +115,7 @@ test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  const cards = page.locator(".project-showcase");
+  const cards = page.locator(".project-card-showcase");
   const sectionHeading = page.locator(".projects-band .section-heading");
 
   await expect(cards).toHaveCount(2);
@@ -179,13 +188,13 @@ test("project stack keeps normal flow when sticky motion is unsuitable", async (
   test.skip((page.viewportSize()?.width ?? 0) <= 896, "Desktop-only layout");
 
   await page.goto("/");
-  await expect(page.locator(".project-showcase").first()).toHaveCSS("position", "static");
+  await expect(page.locator(".project-card-showcase").first()).toHaveCSS("position", "static");
   await expect(page.locator(".projects-band .section-heading")).toHaveCSS("position", "static");
 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 1024, height: 650 });
   await page.reload();
-  await expect(page.locator(".project-showcase").first()).toHaveCSS("position", "static");
+  await expect(page.locator(".project-card-showcase").first()).toHaveCSS("position", "static");
 });
 
 test("tablet project cards keep a consistent content order", async ({ page }) => {
@@ -386,7 +395,7 @@ test("mobile homepage uses a motion-safe project cover stack", async ({ page }) 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 402, height: 874 });
   await page.goto("/");
-  const cards = page.locator(".project-showcase");
+  const cards = page.locator(".project-card-showcase");
   const sectionHeading = page.locator(".projects-band .section-heading");
   const stickyTop = Number.parseFloat(
     await cards.first().evaluate((element) => getComputedStyle(element).top),

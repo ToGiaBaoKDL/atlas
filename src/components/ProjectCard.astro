@@ -20,7 +20,6 @@ const status = getProjectStatusLabel(project.data.status);
     "project-card",
     `project-card-${variant}`,
     {
-      "project-showcase": variant === "showcase",
       "project-card-reverse": variant === "showcase" && index % 2 === 1,
     },
   ]}
@@ -411,7 +410,6 @@ const status = getProjectStatusLabel(project.data.status);
   @media (min-width: 56.001rem) and (min-height: 44rem) and (prefers-reduced-motion: no-preference) {
     .project-card-showcase {
       --stack-card-height: 37rem;
-      --stack-inset: 0rem;
 
       position: sticky;
       top: max(
@@ -420,7 +418,6 @@ const status = getProjectStatusLabel(project.data.status);
       );
       min-height: var(--stack-card-height);
       align-self: start;
-      margin-inline: var(--stack-inset);
       border: 1px solid var(--dark-border);
       border-radius: calc(var(--radius-md) + 0.2rem);
       background: color-mix(in srgb, var(--dark) 96%, var(--dark-text));
@@ -434,13 +431,8 @@ const status = getProjectStatusLabel(project.data.status);
     }
 
     .project-card-showcase + .project-card-showcase {
-      --stack-inset: 0.75rem;
-
+      margin-inline: 0.75rem;
       padding-top: 0;
-    }
-
-    .project-card-showcase + .project-card-showcase + .project-card-showcase {
-      --stack-inset: 1.5rem;
     }
   }
 </style>

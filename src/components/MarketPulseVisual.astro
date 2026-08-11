@@ -1,4 +1,5 @@
 ---
+import FlowArrow from "./FlowArrow.astro";
 import VisualHeader from "./VisualHeader.astro";
 
 const stages = [
@@ -22,7 +23,7 @@ const stages = [
       <strong>Request</strong>
       <small>topic · depth · style</small>
     </article>
-    <i class="flow-arrow" aria-hidden="true"></i>
+    <FlowArrow />
 
     <section class="run-boundary">
       <span class="run-label">Bounded run</span>
@@ -38,14 +39,14 @@ const stages = [
                 <strong>{stage.title}</strong>
                 <p>{stage.detail}</p>
               </article>
-              {index < stages.length - 1 && <i class="flow-arrow" aria-hidden="true" />}
+              {index < stages.length - 1 && <FlowArrow />}
             </>
           ))
         }
       </div>
     </section>
 
-    <i class="flow-arrow" aria-hidden="true"></i>
+    <FlowArrow />
 
     <article class="endpoint">
       <span>Output</span>
@@ -201,29 +202,6 @@ const stages = [
     line-height: 1.3;
   }
 
-  .flow-arrow {
-    position: relative;
-    display: block;
-    height: 2px;
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--visual-accent) 22%, transparent),
-      var(--visual-accent-strong)
-    );
-  }
-
-  .flow-arrow::after {
-    position: absolute;
-    top: 50%;
-    right: 0;
-    width: 0.32rem;
-    height: 0.32rem;
-    transform: translateY(-50%) rotate(45deg);
-    border-top: 2px solid var(--visual-accent);
-    border-right: 2px solid var(--visual-accent);
-    content: "";
-  }
-
   .guardrail {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -255,23 +233,5 @@ const stages = [
     text-align: right;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    :global([data-reveal].is-revealed) .flow-arrow,
-    :global([data-enter]) .flow-arrow {
-      animation: flow-pulse 1.1s ease-in-out infinite alternate;
-    }
-
-    @keyframes flow-pulse {
-      from {
-        opacity: 0.22;
-      }
-
-      to {
-        opacity: 1;
-        filter: drop-shadow(0 0 0.28rem var(--visual-accent-glow));
-      }
-    }
   }
 </style>

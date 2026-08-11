@@ -1,16 +1,12 @@
 ---
+import FlowArrow from "./FlowArrow.astro";
 import VisualHeader from "./VisualHeader.astro";
 
-interface Props {
-  thumbnail?: boolean;
-}
-
-const { thumbnail = false } = Astro.props;
 const products = ["Landing", "Curated", "Analytics"];
 const capabilities = ["Orchestrate", "Test", "Catalog", "Observe", "Secure"];
 ---
 
-<figure class:list={["signature-figure", { "visual-thumbnail": thumbnail }]}>
+<figure class="signature-figure">
   <div
     class="platform-visual"
     role="img"
@@ -35,7 +31,7 @@ const capabilities = ["Orchestrate", "Test", "Catalog", "Observe", "Secure"];
           <small>batch · events · APIs</small>
         </section>
 
-        <i class="flow-arrow" aria-hidden="true"><span></span></i>
+        <FlowArrow particle />
 
         <section class="compute-node">
           <span>Execution</span>
@@ -43,7 +39,7 @@ const capabilities = ["Orchestrate", "Test", "Catalog", "Observe", "Secure"];
           <small>replaceable compute</small>
         </section>
 
-        <i class="flow-arrow" aria-hidden="true"><span></span></i>
+        <FlowArrow particle delayed />
 
         <section class="product-node">
           <span>Owned data products</span>
@@ -59,7 +55,7 @@ const capabilities = ["Orchestrate", "Test", "Catalog", "Observe", "Secure"];
           </ol>
         </section>
 
-        <i class="flow-arrow" aria-hidden="true"><span></span></i>
+        <FlowArrow particle />
 
         <section class="edge-node">
           <span>Serving</span>
@@ -209,37 +205,6 @@ const capabilities = ["Orchestrate", "Test", "Catalog", "Observe", "Secure"];
     font-size: clamp(0.5rem, 1vw, 0.62rem);
   }
 
-  .flow-arrow {
-    position: relative;
-    align-self: center;
-    height: 2px;
-    background: var(--visual-accent-strong);
-  }
-
-  .flow-arrow::after {
-    position: absolute;
-    top: 50%;
-    right: 0;
-    width: 0.32rem;
-    height: 0.32rem;
-    transform: translateY(-50%) rotate(45deg);
-    border-top: 2px solid var(--visual-accent);
-    border-right: 2px solid var(--visual-accent);
-    content: "";
-  }
-
-  .flow-arrow span {
-    --visual-flow-distance: 0.7rem;
-
-    position: absolute;
-    top: -1.5px;
-    left: 8%;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--visual-accent);
-  }
-
   .platform-capabilities {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -275,32 +240,6 @@ const capabilities = ["Orchestrate", "Test", "Catalog", "Observe", "Secure"];
   @media (max-width: 40rem) {
     figcaption {
       color: var(--visual-soft);
-    }
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    :global([data-enter]) .flow-arrow {
-      animation: flow-pulse 1.1s ease-in-out infinite alternate;
-    }
-
-    :global([data-enter]) .flow-arrow span {
-      animation: visual-flow-inline var(--motion-flow) linear infinite;
-      will-change: transform, opacity;
-    }
-
-    :global([data-enter]) .flow-arrow:nth-of-type(2) span {
-      animation-delay: var(--motion-flow-half);
-    }
-
-    @keyframes flow-pulse {
-      from {
-        opacity: 0.22;
-      }
-
-      to {
-        opacity: 1;
-        filter: drop-shadow(0 0 0.28rem var(--visual-accent-glow));
-      }
     }
   }
 </style>

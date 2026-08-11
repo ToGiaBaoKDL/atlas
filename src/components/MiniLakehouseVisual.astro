@@ -1,4 +1,5 @@
 ---
+import FlowArrow from "./FlowArrow.astro";
 import VisualHeader from "./VisualHeader.astro";
 
 const foundation = [
@@ -56,7 +57,7 @@ const dataStages = [
                 <strong>{stage.title}</strong>
                 <small>{stage.detail}</small>
               </article>
-              {index < dataStages.length - 1 && <i class="flow-arrow" aria-hidden="true" />}
+              {index < dataStages.length - 1 && <FlowArrow />}
             </>
           ))
         }
@@ -252,29 +253,6 @@ const dataStages = [
     line-height: 1.2;
   }
 
-  .flow-arrow {
-    position: relative;
-    display: block;
-    height: 2px;
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--visual-accent) 22%, transparent),
-      var(--visual-accent-strong)
-    );
-  }
-
-  .flow-arrow::after {
-    position: absolute;
-    top: 50%;
-    right: 0;
-    width: 0.32rem;
-    height: 0.32rem;
-    transform: translateY(-50%) rotate(45deg);
-    border-top: 2px solid var(--visual-accent);
-    border-right: 2px solid var(--visual-accent);
-    content: "";
-  }
-
   .serving-lane {
     display: grid;
     grid-template-columns: minmax(7.5rem, 0.62fr) repeat(2, minmax(0, 1fr));
@@ -299,23 +277,5 @@ const dataStages = [
     border-radius: 0.35rem;
     background: var(--visual-panel-soft);
     padding: 0.32rem 0.48rem;
-  }
-
-  @media (prefers-reduced-motion: no-preference) {
-    :global([data-reveal].is-revealed) .flow-arrow,
-    :global([data-enter]) .flow-arrow {
-      animation: flow-pulse 1.1s ease-in-out infinite alternate;
-    }
-
-    @keyframes flow-pulse {
-      from {
-        opacity: 0.22;
-      }
-
-      to {
-        opacity: 1;
-        filter: drop-shadow(0 0 0.28rem var(--visual-accent-glow));
-      }
-    }
   }
 </style>
