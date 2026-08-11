@@ -13,7 +13,7 @@ import PageHero from "./PageHero.astro";
   <div class="container">
     <PageHero kicker="About" title="Engineer, builder, lifelong learner." />
 
-    <div class="about-grid" data-reveal>
+    <div class="about-intro-grid" data-reveal>
       <div class="about-copy">
         <p>
           I'm {site.name}, a {site.role} at {site.employer}. I build cloud data pipelines,
@@ -25,53 +25,6 @@ import PageHero from "./PageHero.astro";
           understandable as they grow. My current interests include lakehouse architecture,
           infrastructure as code and AI-native data tooling.
         </p>
-
-        <section class="experience" aria-labelledby="experience-heading">
-          <p class="section-kicker">Experience</p>
-          <h2 id="experience-heading">Professional experience</h2>
-          {
-            experiences.map((experience) => (
-              <article class="experience-role">
-                <header>
-                  <div>
-                    <h3>{experience.company}</h3>
-                    <p>{experience.role}</p>
-                  </div>
-                  <p class="experience-period">
-                    <time datetime={experience.startDate}>{experience.startLabel}</time> — Present
-                  </p>
-                </header>
-                <p class="experience-summary">{experience.summary}</p>
-                <ul>
-                  {experience.highlights.map((highlight) => (
-                    <li>{highlight}</li>
-                  ))}
-                </ul>
-              </article>
-            ))
-          }
-        </section>
-
-        <a
-          class="resume-preview"
-          href={site.resume}
-          target="_blank"
-          rel="noopener"
-          aria-label="View Tô Gia Bảo's full resume in a new tab"
-        >
-          <img
-            src="/resume/togia-bao-resume-preview.png"
-            alt="Preview of Tô Gia Bảo's resume"
-            loading="lazy"
-            width="708"
-            height="1000"
-          />
-          <span>
-            <small>RESUME · PDF</small>
-            <strong>View full resume</strong>
-            <i aria-hidden="true">↗</i>
-          </span>
-        </a>
       </div>
 
       <aside class="about-details" aria-label="Profile details">
@@ -93,14 +46,76 @@ import PageHero from "./PageHero.astro";
         </section>
       </aside>
     </div>
+
+    <div class="experience-grid">
+      <section class="experience" aria-labelledby="experience-heading" data-reveal>
+        <p class="section-kicker">Experience</p>
+        <h2 id="experience-heading">Professional experience</h2>
+        {
+          experiences.map((experience) => (
+            <article class="experience-role">
+              <header>
+                <div>
+                  <h3>{experience.company}</h3>
+                  <p>{experience.role}</p>
+                </div>
+                <p class="experience-period">
+                  <time datetime={experience.startDate}>{experience.startLabel}</time> — Present
+                </p>
+              </header>
+              <p class="experience-summary">{experience.summary}</p>
+              <ul>
+                {experience.highlights.map((highlight) => (
+                  <li>{highlight}</li>
+                ))}
+              </ul>
+            </article>
+          ))
+        }
+      </section>
+
+      <aside class="resume-column" aria-label="Resume" data-reveal data-reveal-delay="1">
+        <div class="resume-sticky">
+          <a
+            class="resume-preview"
+            href={site.resume}
+            target="_blank"
+            rel="noopener"
+            aria-label="View Tô Gia Bảo's full resume in a new tab"
+          >
+            <img
+              src="/resume/togia-bao-resume-preview.png"
+              alt="Preview of Tô Gia Bảo's resume"
+              loading="lazy"
+              width="708"
+              height="1000"
+            />
+            <span>
+              <small>RESUME · PDF</small>
+              <strong>View full resume</strong>
+              <i aria-hidden="true">↗</i>
+            </span>
+          </a>
+        </div>
+      </aside>
+    </div>
   </div>
 </BaseLayout>
 
 <style>
-  .about-grid {
+  .about-intro-grid,
+  .experience-grid {
     display: grid;
     grid-template-columns: minmax(0, 0.9fr) minmax(18rem, 0.55fr);
     gap: clamp(3rem, 9vw, 8rem);
+  }
+
+  .about-intro-grid {
+    padding-bottom: clamp(4rem, 8vw, 6rem);
+  }
+
+  .experience-grid {
+    align-items: stretch;
     padding-bottom: clamp(5rem, 10vw, 9rem);
   }
 
@@ -122,8 +137,8 @@ import PageHero from "./PageHero.astro";
 
   .resume-preview {
     display: block;
-    max-width: 28rem;
-    margin-top: 3.5rem;
+    width: 100%;
+    max-width: 24rem;
     overflow: hidden;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
@@ -203,9 +218,19 @@ import PageHero from "./PageHero.astro";
   }
 
   .experience {
-    margin-top: clamp(3rem, 7vw, 5rem);
     border-top: 1px solid var(--border);
     padding-top: 1.5rem;
+  }
+
+  .resume-column {
+    min-width: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+  }
+
+  .resume-sticky {
+    position: sticky;
+    top: calc(var(--header-height) + 1.5rem);
   }
 
   .experience > h2 {
@@ -249,7 +274,7 @@ import PageHero from "./PageHero.astro";
     text-align: right;
   }
 
-  .about-copy .experience-summary {
+  .experience-summary {
     margin: 1.25rem 0 0;
     color: var(--text);
     font-size: 1rem;
@@ -273,8 +298,17 @@ import PageHero from "./PageHero.astro";
   }
 
   @media (max-width: 56rem) {
-    .about-grid {
+    .about-intro-grid,
+    .experience-grid {
       grid-template-columns: 1fr;
+    }
+
+    .resume-column {
+      max-width: 28rem;
+    }
+
+    .resume-sticky {
+      position: static;
     }
   }
 

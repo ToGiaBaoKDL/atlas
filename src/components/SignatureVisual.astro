@@ -247,7 +247,12 @@ import VisualHeader from "./VisualHeader.astro";
 
   @media (prefers-reduced-motion: no-preference) {
     :global([data-enter]) .platform-connector i {
-      animation: visual-flow-inline 2.6s var(--ease-out) 450ms 2;
+      animation: visual-flow-inline var(--motion-flow) linear infinite;
+      will-change: transform, opacity;
+    }
+
+    :global([data-enter]) .platform-connector:nth-child(4) i {
+      animation-delay: -1.6s;
     }
   }
 

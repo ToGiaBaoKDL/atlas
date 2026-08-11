@@ -233,7 +233,16 @@ const stages = [
 
   @media (prefers-reduced-motion: no-preference) {
     :global([data-reveal].is-revealed) .research-connector::before {
-      animation: visual-flow-inline 2.6s var(--ease-out) 450ms 2;
+      animation: visual-flow-inline var(--motion-flow) linear infinite;
+      will-change: transform, opacity;
+    }
+
+    :global([data-reveal].is-revealed) li:nth-child(2) .research-connector::before {
+      animation-delay: -1.05s;
+    }
+
+    :global([data-reveal].is-revealed) li:nth-child(3) .research-connector::before {
+      animation-delay: -2.1s;
     }
   }
 

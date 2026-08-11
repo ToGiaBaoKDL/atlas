@@ -222,6 +222,17 @@ if (!featured) throw new Error("Missing featured project");
     color: var(--dark-soft);
   }
 
+  .projects-band .section-heading .text-link:hover,
+  .projects-band .section-heading .text-link:focus-visible,
+  .featured-project .text-link:hover,
+  .featured-project .text-link:focus-visible {
+    color: var(--dark-accent);
+  }
+
+  .projects-band :focus-visible {
+    outline-color: var(--dark-accent);
+  }
+
   .featured-project {
     display: grid;
     grid-template-columns: minmax(15rem, 0.76fr) minmax(0, 1.24fr);
@@ -297,7 +308,7 @@ if (!featured) throw new Error("Missing featured project");
   .secondary-project:hover .project-arrow,
   .secondary-project:focus-visible h3,
   .secondary-project:focus-visible .project-arrow {
-    color: var(--visual-accent);
+    color: var(--dark-accent);
   }
 
   .secondary-project > span:first-child {

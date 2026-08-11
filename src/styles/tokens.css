@@ -10,14 +10,16 @@
   --text-faint: #6d7069;
   --border: #d9d8d2;
   --border-strong: #b9bbb4;
-  --accent: #3157d5;
-  --accent-soft: #e8edff;
-  --accent-ink: #17338d;
+  --accent: #4d7c0f;
+  --accent-hover: #3f6212;
+  --accent-soft: #ecfccb;
+  --accent-ink: #3f6212;
   --on-accent: #ffffff;
   --dark: #101310;
   --dark-text: #f4f5ef;
   --dark-soft: #aeb4aa;
   --dark-border: #2b312b;
+  --dark-accent: #a3e635;
   --max-width: 72rem;
   --article-width: 46rem;
   --radius-sm: 0.45rem;
@@ -27,6 +29,7 @@
   --motion-fast: 160ms;
   --motion-base: 240ms;
   --motion-slow: 420ms;
+  --motion-flow: 3.2s;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Stable palette for architecture visuals in both site themes. */
@@ -60,9 +63,10 @@
   --text-faint: #91978d;
   --border: #30352f;
   --border-strong: #4a5148;
-  --accent: #8ba2ff;
-  --accent-soft: #202c59;
-  --accent-ink: #cbd5ff;
+  --accent: #a3e635;
+  --accent-hover: #bef264;
+  --accent-soft: #26320f;
+  --accent-ink: #bef264;
   --on-accent: #111310;
   --dark: #0b0e0b;
   --dark-border: #343a33;

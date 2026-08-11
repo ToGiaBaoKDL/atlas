@@ -194,7 +194,20 @@ const stages = [
 
   @media (prefers-reduced-motion: no-preference) {
     :global([data-reveal].is-revealed) .workflow-connector i {
-      animation: visual-flow-inline 2.6s var(--ease-out) 450ms 2;
+      animation: visual-flow-inline var(--motion-flow) linear infinite;
+      will-change: transform, opacity;
+    }
+
+    :global([data-reveal].is-revealed) li:nth-child(2) .workflow-connector i {
+      animation-delay: -0.8s;
+    }
+
+    :global([data-reveal].is-revealed) li:nth-child(3) .workflow-connector i {
+      animation-delay: -1.6s;
+    }
+
+    :global([data-reveal].is-revealed) li:nth-child(4) .workflow-connector i {
+      animation-delay: -2.4s;
     }
   }
 
