@@ -138,20 +138,23 @@ test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
   await page.waitForTimeout(500);
   const lastCardTop = await cards.last().evaluate((element) => element.getBoundingClientRect().top);
   expect(Math.abs(lastCardTop - stickyOffsets[0])).toBeLessThanOrEqual(1);
-  await expect(sectionHeading).toHaveAttribute("data-sticky-released", "");
-  await expect(sectionHeading).toHaveCSS("position", "static");
-  expect(
-    await sectionHeading.evaluate((element) => element.getBoundingClientRect().bottom),
-  ).toBeLessThan(0);
+  await expect(sectionHeading).not.toHaveAttribute("data-sticky-hidden", "");
+  await expect(sectionHeading).toHaveCSS("position", "sticky");
+  await expect(sectionHeading).toHaveCSS("opacity", "1");
 
-  await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), writingTop);
-  await page.waitForTimeout(100);
-  const exitedCardTop = await cards
+  await page.evaluate(
+    (top) => window.scrollTo({ top, behavior: "instant" }),
+    writingTop - (page.viewportSize()?.height ?? 0) + 2,
+  );
+  await page.waitForTimeout(300);
+  const boundaryCardTop = await cards
     .last()
     .evaluate((element) => element.getBoundingClientRect().top);
-  expect(exitedCardTop).toBeLessThanOrEqual(lastCardTop);
-  await expect(sectionHeading).toHaveAttribute("data-sticky-released", "");
-  await expect(sectionHeading).toHaveCSS("position", "static");
+  expect(boundaryCardTop).toBeLessThanOrEqual(lastCardTop);
+  await expect(sectionHeading).toHaveAttribute("data-sticky-hidden", "");
+  await expect(sectionHeading).toHaveAttribute("inert", "");
+  await expect(sectionHeading).toHaveCSS("position", "sticky");
+  await expect(sectionHeading).toHaveCSS("opacity", "0");
 });
 
 test("project stack keeps normal flow when sticky motion is unsuitable", async ({ page }) => {

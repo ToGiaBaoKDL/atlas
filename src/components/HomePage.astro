@@ -117,29 +117,20 @@ const writing = (await getPublishedWriting()).slice(0, 3);
 
 <script>
   const projectHeading = document.querySelector<HTMLElement>("[data-project-heading]");
-  const lastProject = document.querySelector<HTMLElement>(
-    ".project-stack > .project-showcase:last-of-type",
-  );
+  const writingBoundary = document.querySelector<HTMLElement>(".writing-section");
 
-  if (projectHeading && lastProject && "IntersectionObserver" in window) {
+  if (projectHeading && writingBoundary && "IntersectionObserver" in window) {
     projectHeading.setAttribute("data-sticky-ready", "");
 
-    const releaseObserver = new IntersectionObserver(
+    const boundaryObserver = new IntersectionObserver(
       ([entry]) => {
-        if (entry.intersectionRatio >= 0.98) {
-          projectHeading.setAttribute("data-sticky-released", "");
-          return;
-        }
-
-        const viewportBottom = entry.rootBounds?.bottom ?? window.innerHeight;
-        if (entry.boundingClientRect.top >= viewportBottom) {
-          projectHeading.removeAttribute("data-sticky-released");
-        }
+        projectHeading.toggleAttribute("data-sticky-hidden", entry.isIntersecting);
+        projectHeading.toggleAttribute("inert", entry.isIntersecting);
       },
-      { threshold: [0, 0.98] },
+      { rootMargin: "0px 0px -1px 0px", threshold: 0 },
     );
 
-    releaseObserver.observe(lastProject);
+    boundaryObserver.observe(writingBoundary);
   }
 </script>
 
@@ -473,14 +464,20 @@ const writing = (await getPublishedWriting()).slice(0, 3);
 
   @media (min-width: 56.001rem) and (min-height: 44rem) and (prefers-reduced-motion: no-preference) {
     .projects-band .section-heading[data-sticky-ready] {
-      background: var(--dark);
-      padding-top: 1rem;
-    }
-
-    .projects-band .section-heading[data-sticky-ready]:not([data-sticky-released]) {
       position: sticky;
       z-index: 3;
       top: var(--header-height);
+      background: var(--dark);
+      padding-top: 1rem;
+      transition:
+        transform var(--motion-base) var(--ease-out),
+        opacity var(--motion-base) ease;
+    }
+
+    .projects-band .section-heading[data-sticky-hidden] {
+      transform: translateY(-0.75rem);
+      opacity: 0;
+      pointer-events: none;
     }
 
     .project-stack {
