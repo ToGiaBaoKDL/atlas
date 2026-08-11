@@ -10,10 +10,6 @@ import WritingList from "./WritingList.astro";
 
 const projects = await getProjects();
 const writing = (await getPublishedWriting()).slice(0, 3);
-const featured = projects.find(({ data }) => data.featured);
-const secondary = projects.filter(({ data }) => !data.featured).slice(0, 2);
-
-if (!featured) throw new Error("Missing featured project");
 ---
 
 <BaseLayout
@@ -55,38 +51,33 @@ if (!featured) throw new Error("Missing featured project");
         <a class="text-link" href="/projects/">View all projects →</a>
       </div>
 
-      <article class="featured-project" data-reveal>
-        <div>
-          <span class="project-index">
-            01 · {featured.data.role} · {getProjectStatusLabel(featured.data.status)}
-          </span>
-          <h3>{featured.data.title}</h3>
-          <p>{featured.data.outcome}</p>
-          <ul class="tag-list" aria-label="Technology stack">
-            {featured.data.stack.slice(0, 5).map((item) => <li>{item}</li>)}
-          </ul>
-          <a class="text-link" href={`/projects/${featured.id}/`}>
-            Read case study <span aria-hidden="true">→</span>
-          </a>
-        </div>
-        <ProjectVisual projectId={featured.id} />
-      </article>
-
       {
-        secondary.map((project, index) => (
-          <a
-            class="secondary-project"
-            href={`/projects/${project.id}/`}
+        projects.map((project, index) => (
+          <article
+            class:list={["project-showcase", { "project-showcase-reverse": index % 2 === 1 }]}
             data-reveal
-            data-reveal-delay={String(Math.min(index + 1, 2))}
+            data-reveal-delay={String(Math.min(index, 2))}
           >
-            <span>{String(index + 2).padStart(2, "0")}</span>
-            <h3>{project.data.title}</h3>
-            <p>{project.data.outcome}</p>
-            <span class="project-arrow" aria-hidden="true">
-              →
-            </span>
-          </a>
+            <div class="project-copy">
+              <span class="project-index">
+                {String(index + 1).padStart(2, "0")} · {project.data.role} ·{" "}
+                {getProjectStatusLabel(project.data.status)}
+              </span>
+              <h3>{project.data.title}</h3>
+              <p>{project.data.outcome}</p>
+              <ul class="tag-list" aria-label="Technology stack">
+                {project.data.stack.slice(0, 5).map((item) => (
+                  <li>{item}</li>
+                ))}
+              </ul>
+              <a class="text-link" href={`/projects/${project.id}/`}>
+                Read case study <span aria-hidden="true">→</span>
+              </a>
+            </div>
+            <div class="project-showcase-visual">
+              <ProjectVisual projectId={project.id} />
+            </div>
+          </article>
         ))
       }
     </div>
@@ -230,8 +221,8 @@ if (!featured) throw new Error("Missing featured project");
 
   .projects-band .section-heading .text-link:hover,
   .projects-band .section-heading .text-link:focus-visible,
-  .featured-project .text-link:hover,
-  .featured-project .text-link:focus-visible {
+  .project-showcase .text-link:hover,
+  .project-showcase .text-link:focus-visible {
     color: var(--dark-accent);
   }
 
@@ -239,12 +230,29 @@ if (!featured) throw new Error("Missing featured project");
     outline-color: var(--dark-accent);
   }
 
-  .featured-project {
+  .project-showcase {
     display: grid;
     grid-template-columns: minmax(15rem, 0.76fr) minmax(0, 1.24fr);
     gap: clamp(2rem, 5vw, 5rem);
     align-items: center;
     padding-bottom: clamp(3rem, 6vw, 5rem);
+  }
+
+  .project-showcase + .project-showcase {
+    border-top: 1px solid var(--dark-border);
+    padding-top: clamp(3rem, 6vw, 5rem);
+  }
+
+  .project-showcase:last-child {
+    padding-bottom: 0;
+  }
+
+  .project-showcase-reverse {
+    grid-template-columns: minmax(0, 1.24fr) minmax(15rem, 0.76fr);
+  }
+
+  .project-showcase-reverse .project-copy {
+    order: 2;
   }
 
   .project-index {
@@ -255,7 +263,7 @@ if (!featured) throw new Error("Missing featured project");
     font-size: 0.72rem;
   }
 
-  .featured-project h3 {
+  .project-showcase h3 {
     max-width: 13ch;
     margin: 0;
     font-size: clamp(2rem, 4vw, 3.7rem);
@@ -264,7 +272,7 @@ if (!featured) throw new Error("Missing featured project");
     line-height: 1.02;
   }
 
-  .featured-project p {
+  .project-showcase p {
     max-width: 34rem;
     margin: 1.25rem 0;
     color: var(--dark-soft);
@@ -288,63 +296,12 @@ if (!featured) throw new Error("Missing featured project");
     font-size: 0.67rem;
   }
 
-  .featured-project .text-link {
+  .project-showcase .text-link {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
     margin-top: 1.5rem;
     color: var(--dark-text);
-  }
-
-  .secondary-project {
-    display: grid;
-    grid-template-columns: 3rem minmax(14rem, 0.9fr) minmax(14rem, 1fr) auto;
-    align-items: center;
-    gap: 1.25rem;
-    border-top: 1px solid var(--dark-border);
-    padding-block: 1.5rem;
-    text-decoration: none;
-  }
-
-  .secondary-project:last-child {
-    border-bottom: 1px solid var(--dark-border);
-  }
-
-  .secondary-project:hover h3,
-  .secondary-project:hover .project-arrow,
-  .secondary-project:focus-visible h3,
-  .secondary-project:focus-visible .project-arrow {
-    color: var(--dark-accent);
-  }
-
-  .secondary-project > span:first-child {
-    color: var(--dark-soft);
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-  }
-
-  .secondary-project h3 {
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 580;
-    transition: color var(--motion-fast) ease;
-  }
-
-  .secondary-project p {
-    margin: 0;
-    color: var(--dark-soft);
-    font-size: 0.86rem;
-  }
-
-  .project-arrow {
-    transition:
-      transform var(--motion-fast) var(--ease-out),
-      color var(--motion-fast) ease;
-  }
-
-  .secondary-project:hover .project-arrow,
-  .secondary-project:focus-visible .project-arrow {
-    transform: translateX(0.25rem);
   }
 
   .writing-grid {
@@ -407,21 +364,18 @@ if (!featured) throw new Error("Missing featured project");
       max-width: 13ch;
     }
 
-    .featured-project,
+    .project-showcase,
+    .project-showcase-reverse,
     .writing-grid {
       grid-template-columns: 1fr;
     }
 
-    .featured-project h3 {
+    .project-showcase-reverse .project-copy {
+      order: initial;
+    }
+
+    .project-showcase h3 {
       max-width: 18ch;
-    }
-
-    .secondary-project {
-      grid-template-columns: 2.5rem minmax(0, 1fr) auto;
-    }
-
-    .secondary-project p {
-      display: none;
     }
   }
 
@@ -446,11 +400,6 @@ if (!featured) throw new Error("Missing featured project");
 
     .section-heading {
       align-items: flex-end;
-    }
-
-    .secondary-project {
-      grid-template-columns: 2rem minmax(0, 1fr) auto;
-      gap: 0.75rem;
     }
 
     .topic-list li {

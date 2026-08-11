@@ -64,14 +64,30 @@ test("mobile navigation opens, links and closes", async ({ page }) => {
 
   await page.goto("/");
   const openButton = page.getByRole("button", { name: "Open menu" });
+  const buttonBox = await openButton.boundingBox();
+  expect(buttonBox?.width).toBeLessThanOrEqual(40);
+  expect(buttonBox?.height).toBeLessThanOrEqual(40);
   await openButton.click();
 
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(openButton).toHaveAttribute("aria-expanded", "true");
-  await dialog.getByRole("link", { name: "Projects" }).click();
+  const projectsLink = dialog.getByRole("link", { name: "Projects" });
+  const linkFontSize = await projectsLink.evaluate((element) =>
+    Number.parseFloat(getComputedStyle(element).fontSize),
+  );
+  expect(linkFontSize).toBeLessThanOrEqual(25);
+  await projectsLink.click();
   await expect(page).toHaveURL(/\/projects\/$/);
   await expect(dialog).not.toBeVisible();
+});
+
+test("homepage showcases every project visual", async ({ page }) => {
+  await page.goto("/");
+
+  await expect(page.locator(".project-showcase")).toHaveCount(2);
+  await expect(page.locator(".project-showcase .lakehouse-visual")).toHaveCount(1);
+  await expect(page.locator(".project-showcase .research-visual")).toHaveCount(1);
 });
 
 test("mobile hero previews the platform visual", async ({ page }) => {
