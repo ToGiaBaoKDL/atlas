@@ -238,11 +238,11 @@ const stages = [
     }
 
     :global([data-reveal].is-revealed) li:nth-child(2) .research-connector::before {
-      animation-delay: -0.87s;
+      animation-delay: var(--motion-flow-third);
     }
 
     :global([data-reveal].is-revealed) li:nth-child(3) .research-connector::before {
-      animation-delay: -1.73s;
+      animation-delay: calc(var(--motion-flow-third) + var(--motion-flow-third));
     }
   }
 

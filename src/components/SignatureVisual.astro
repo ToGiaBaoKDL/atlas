@@ -178,7 +178,7 @@ import VisualHeader from "./VisualHeader.astro";
   .platform-connector {
     position: relative;
     display: block;
-    height: 1px;
+    height: 2px;
     background: var(--visual-accent-strong);
   }
 
@@ -189,8 +189,8 @@ import VisualHeader from "./VisualHeader.astro";
     width: 0.35rem;
     height: 0.35rem;
     transform: translateY(-50%) rotate(45deg);
-    border-top: 1px solid var(--visual-accent);
-    border-right: 1px solid var(--visual-accent);
+    border-top: 2px solid var(--visual-accent);
+    border-right: 2px solid var(--visual-accent);
     content: "";
   }
 
@@ -198,7 +198,7 @@ import VisualHeader from "./VisualHeader.astro";
     --visual-flow-distance: 0.75rem;
 
     position: absolute;
-    top: -2px;
+    top: -1.5px;
     left: 15%;
     width: 5px;
     height: 5px;
@@ -252,7 +252,7 @@ import VisualHeader from "./VisualHeader.astro";
     }
 
     :global([data-enter]) .platform-connector:nth-child(4) i {
-      animation-delay: -1.3s;
+      animation-delay: var(--motion-flow-half);
     }
   }
 
@@ -281,7 +281,7 @@ import VisualHeader from "./VisualHeader.astro";
     }
 
     .platform-connector {
-      width: 1px;
+      width: 2px;
       height: 1.2rem;
       margin-inline: auto;
     }
@@ -297,7 +297,7 @@ import VisualHeader from "./VisualHeader.astro";
       --visual-flow-distance: 0.55rem;
 
       top: 15%;
-      left: -2px;
+      left: -1.5px;
     }
 
     .control-plane {
