@@ -1,5 +1,6 @@
 ---
 import { site, ui } from "../data/site";
+import ThemeToggle from "./ThemeToggle.astro";
 
 interface Props {
   section?: "projects" | "writing" | "about";
@@ -27,40 +28,7 @@ const navItems = [
           ))
         }
       </nav>
-      <button
-        class="icon-button"
-        type="button"
-        data-theme-toggle
-        aria-label={ui.themeToggle}
-        aria-pressed="false"
-      >
-        <svg
-          class="theme-icon-sun"
-          aria-hidden="true"
-          width="17"
-          height="17"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-        >
-          <circle cx="12" cy="12" r="3.5"></circle><path
-            d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"
-          ></path>
-        </svg>
-        <svg
-          class="theme-icon-moon"
-          aria-hidden="true"
-          width="17"
-          height="17"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.8"
-        >
-          <path d="M20.5 15.4A8.6 8.6 0 0 1 8.6 3.5 8.7 8.7 0 1 0 20.5 15.4Z"></path>
-        </svg>
-      </button>
+      <ThemeToggle />
     </div>
 
     <div class="mobile-controls">
@@ -116,40 +84,7 @@ const navItems = [
       </nav>
       <div class="mobile-menu-utilities">
         <span>Appearance</span>
-        <button
-          class="icon-button"
-          type="button"
-          data-theme-toggle
-          aria-label={ui.themeToggle}
-          aria-pressed="false"
-        >
-          <svg
-            class="theme-icon-sun"
-            aria-hidden="true"
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <circle cx="12" cy="12" r="3.5"></circle><path
-              d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"
-            ></path>
-          </svg>
-          <svg
-            class="theme-icon-moon"
-            aria-hidden="true"
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-          >
-            <path d="M20.5 15.4A8.6 8.6 0 0 1 8.6 3.5 8.7 8.7 0 1 0 20.5 15.4Z"></path>
-          </svg>
-        </button>
+        <ThemeToggle />
       </div>
     </div>
   </dialog>
@@ -170,31 +105,6 @@ const navItems = [
     if (event.target === menu) menu.close();
   });
   menu?.querySelectorAll("a").forEach((link) => link.addEventListener("click", () => menu.close()));
-
-  const themeButtons = document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]");
-
-  const syncThemeControls = () => {
-    const isDark = document.documentElement.dataset.theme === "dark";
-    themeButtons.forEach((button) => button.setAttribute("aria-pressed", String(isDark)));
-    document
-      .querySelector("[data-theme-color]")
-      ?.setAttribute("content", isDark ? "#111310" : "#f7f6f2");
-  };
-
-  syncThemeControls();
-
-  themeButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-      document.documentElement.dataset.theme = next;
-      syncThemeControls();
-      try {
-        localStorage.setItem("theme", next);
-      } catch {
-        // The selected theme still applies when storage is unavailable.
-      }
-    });
-  });
 </script>
 
 <style>
@@ -285,15 +195,6 @@ const navItems = [
     border-color: var(--border-strong);
     background: var(--surface);
     color: var(--text);
-  }
-
-  .theme-icon-moon,
-  :global(:root[data-theme="dark"]) .theme-icon-sun {
-    display: none;
-  }
-
-  :global(:root[data-theme="dark"]) .theme-icon-moon {
-    display: block;
   }
 
   .mobile-controls {

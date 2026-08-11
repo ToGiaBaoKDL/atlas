@@ -1,0 +1,140 @@
+---
+import { ui } from "../data/site";
+---
+
+<button
+  class="theme-toggle"
+  type="button"
+  role="switch"
+  aria-checked="false"
+  aria-label={ui.themeToggle}
+  data-theme-toggle
+>
+  <span class="track" aria-hidden="true">
+    <span class="thumb">
+      <svg
+        class="sun"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <circle cx="12" cy="12" r="3.5"></circle>
+        <path
+          d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"
+        ></path>
+      </svg>
+      <svg
+        class="moon"
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        <path d="M20.5 15.4A8.6 8.6 0 0 1 8.6 3.5 8.7 8.7 0 1 0 20.5 15.4Z"></path>
+      </svg>
+    </span>
+  </span>
+</button>
+
+<script>
+  const themeToggles = document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]");
+
+  const syncThemeControls = () => {
+    const isDark = document.documentElement.dataset.theme === "dark";
+    themeToggles.forEach((toggle) => toggle.setAttribute("aria-checked", String(isDark)));
+    document
+      .querySelector("[data-theme-color]")
+      ?.setAttribute("content", isDark ? "#111310" : "#f7f6f2");
+  };
+
+  syncThemeControls();
+
+  themeToggles.forEach((toggle) => {
+    toggle.addEventListener("click", () => {
+      const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = nextTheme;
+      syncThemeControls();
+
+      try {
+        localStorage.setItem("theme", nextTheme);
+      } catch {
+        // The selected theme still applies when storage is unavailable.
+      }
+    });
+  });
+</script>
+
+<style>
+  .theme-toggle {
+    display: inline-grid;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: var(--text-soft);
+    cursor: pointer;
+  }
+
+  .track {
+    position: relative;
+    width: 2.65rem;
+    height: 1.45rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--surface);
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .thumb {
+    position: absolute;
+    top: 0.15rem;
+    left: 0.15rem;
+    display: grid;
+    width: 1.05rem;
+    height: 1.05rem;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--bg-elevated);
+    box-shadow: 0 0.12rem 0.35rem rgba(15, 18, 14, 0.2);
+    color: var(--text);
+    transition:
+      transform 180ms ease,
+      background-color 160ms ease;
+  }
+
+  .sun,
+  .moon {
+    grid-area: 1 / 1;
+  }
+
+  .moon,
+  :global(:root[data-theme="dark"]) .sun {
+    display: none;
+  }
+
+  .theme-toggle:hover .track,
+  :global(:root[data-theme="dark"]) .track {
+    border-color: var(--accent);
+  }
+
+  :global(:root[data-theme="dark"]) .track {
+    background: var(--accent-soft);
+  }
+
+  :global(:root[data-theme="dark"]) .thumb {
+    transform: translateX(1.2rem);
+  }
+
+  :global(:root[data-theme="dark"]) .moon {
+    display: block;
+  }
+</style>
