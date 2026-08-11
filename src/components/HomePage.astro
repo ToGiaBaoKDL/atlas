@@ -44,7 +44,7 @@ const writing = (await getPublishedWriting()).slice(0, 3);
 
   <section class="projects-band section" id="selected-projects">
     <div class="container">
-      <div class="section-heading">
+      <div class="section-heading" data-project-heading>
         <div>
           <p class="section-kicker">I / Projects</p>
           <h2>Selected projects</h2>
@@ -114,6 +114,34 @@ const writing = (await getPublishedWriting()).slice(0, 3);
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  const projectHeading = document.querySelector<HTMLElement>("[data-project-heading]");
+  const lastProject = document.querySelector<HTMLElement>(
+    ".project-stack > .project-showcase:last-of-type",
+  );
+
+  if (projectHeading && lastProject && "IntersectionObserver" in window) {
+    projectHeading.setAttribute("data-sticky-ready", "");
+
+    const releaseObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.intersectionRatio >= 0.98) {
+          projectHeading.setAttribute("data-sticky-released", "");
+          return;
+        }
+
+        const viewportBottom = entry.rootBounds?.bottom ?? window.innerHeight;
+        if (entry.boundingClientRect.top >= viewportBottom) {
+          projectHeading.removeAttribute("data-sticky-released");
+        }
+      },
+      { threshold: [0, 0.98] },
+    );
+
+    releaseObserver.observe(lastProject);
+  }
+</script>
 
 <style>
   .hero {
@@ -444,6 +472,17 @@ const writing = (await getPublishedWriting()).slice(0, 3);
   }
 
   @media (min-width: 56.001rem) and (min-height: 44rem) and (prefers-reduced-motion: no-preference) {
+    .projects-band .section-heading[data-sticky-ready] {
+      background: var(--dark);
+      padding-top: 1rem;
+    }
+
+    .projects-band .section-heading[data-sticky-ready]:not([data-sticky-released]) {
+      position: sticky;
+      z-index: 3;
+      top: var(--header-height);
+    }
+
     .project-stack {
       --stack-card-height: 37rem;
 

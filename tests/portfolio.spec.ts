@@ -96,8 +96,10 @@ test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   const cards = page.locator(".project-showcase");
+  const sectionHeading = page.locator(".projects-band .section-heading");
 
   await expect(cards).toHaveCount(2);
+  await expect(sectionHeading).toHaveCSS("position", "sticky");
   expect(await cards.first().evaluate((element) => getComputedStyle(element).position)).toBe(
     "sticky",
   );
@@ -121,6 +123,11 @@ test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
   expect(Math.abs(cardCenter - availableCenter)).toBeLessThanOrEqual(1);
 
   await cards.first().scrollIntoViewIfNeeded();
+  const headingTop = await sectionHeading.evaluate(
+    (element) => element.getBoundingClientRect().top,
+  );
+  expect(Math.abs(headingTop - headerHeight)).toBeLessThanOrEqual(1);
+
   const writingTop = await page
     .locator(".writing-section")
     .evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
@@ -131,6 +138,20 @@ test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
   await page.waitForTimeout(500);
   const lastCardTop = await cards.last().evaluate((element) => element.getBoundingClientRect().top);
   expect(Math.abs(lastCardTop - stickyOffsets[0])).toBeLessThanOrEqual(1);
+  await expect(sectionHeading).toHaveAttribute("data-sticky-released", "");
+  await expect(sectionHeading).toHaveCSS("position", "static");
+  expect(
+    await sectionHeading.evaluate((element) => element.getBoundingClientRect().bottom),
+  ).toBeLessThan(0);
+
+  await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), writingTop);
+  await page.waitForTimeout(100);
+  const exitedCardTop = await cards
+    .last()
+    .evaluate((element) => element.getBoundingClientRect().top);
+  expect(exitedCardTop).toBeLessThanOrEqual(lastCardTop);
+  await expect(sectionHeading).toHaveAttribute("data-sticky-released", "");
+  await expect(sectionHeading).toHaveCSS("position", "static");
 });
 
 test("project stack keeps normal flow when sticky motion is unsuitable", async ({ page }) => {
@@ -138,6 +159,7 @@ test("project stack keeps normal flow when sticky motion is unsuitable", async (
 
   await page.goto("/");
   await expect(page.locator(".project-showcase").first()).toHaveCSS("position", "static");
+  await expect(page.locator(".projects-band .section-heading")).toHaveCSS("position", "static");
 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width: 1024, height: 650 });
