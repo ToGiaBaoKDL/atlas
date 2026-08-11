@@ -2,7 +2,7 @@ import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 import { projectStatuses } from "./data/projects";
-import { topicSlugs } from "./data/topics";
+import { topicSlugs, writingMaturities, writingTopics } from "./data/topics";
 
 const projectSchema = z.object({
   title: z.string(),
@@ -29,4 +29,22 @@ const projects = defineCollection({
   schema: projectSchema,
 });
 
-export const collections = { projects };
+const writingTopicSlugs = writingTopics.map(({ slug }) => slug);
+
+const writing = defineCollection({
+  loader: glob({
+    base: "./src/content/writing",
+    pattern: "**/*.{md,mdx}",
+  }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    publishedAt: z.coerce.date(),
+    updatedAt: z.coerce.date().optional(),
+    draft: z.boolean().default(false),
+    topics: z.array(z.enum(writingTopicSlugs)).min(1),
+    maturity: z.enum(writingMaturities),
+  }),
+});
+
+export const collections = { projects, writing };

@@ -1,0 +1,127 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+  mode: "desktop" | "mobile";
+}
+
+const { headings, mode } = Astro.props;
+const items = headings.filter(({ depth }) => depth === 2 || depth === 3);
+---
+
+{
+  items.length > 1 && mode === "desktop" && (
+    <aside class="toc toc-desktop">
+      <h2>On this page</h2>
+      <nav aria-label="Table of contents">
+        <ol>
+          {items.map((heading) => (
+            <li class:list={{ nested: heading.depth === 3 }}>
+              <a href={`#${heading.slug}`}>{heading.text}</a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+    </aside>
+  )
+}
+
+{
+  items.length > 1 && mode === "mobile" && (
+    <details class="toc toc-mobile">
+      <summary>On this page</summary>
+      <nav aria-label="Table of contents">
+        <ol>
+          {items.map((heading) => (
+            <li class:list={{ nested: heading.depth === 3 }}>
+              <a href={`#${heading.slug}`}>{heading.text}</a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+    </details>
+  )
+}
+
+<style>
+  .toc-desktop {
+    position: sticky;
+    top: calc(var(--header-height) + 2rem);
+  }
+
+  .toc h2,
+  .toc summary {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .toc h2 {
+    margin: 0 0 0.8rem;
+  }
+
+  .toc ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .toc li {
+    border-top: 1px solid var(--border);
+  }
+
+  .toc li:last-child {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toc li.nested a {
+    padding-left: 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .toc a {
+    display: block;
+    padding-block: 0.65rem;
+    color: var(--text-soft);
+    font-size: 0.8rem;
+    line-height: 1.35;
+    text-decoration: none;
+  }
+
+  .toc a:hover,
+  .toc a:focus-visible {
+    color: var(--accent);
+  }
+
+  .toc-mobile {
+    display: none;
+    border-block: 1px solid var(--border);
+    padding-block: 0.9rem;
+  }
+
+  .toc-mobile summary {
+    cursor: pointer;
+    color: var(--text);
+  }
+
+  .toc-mobile nav {
+    margin-top: 0.9rem;
+  }
+
+  @media (max-width: 56rem) {
+    .toc-desktop {
+      display: none;
+    }
+
+    .toc-mobile {
+      display: block;
+    }
+  }
+</style>

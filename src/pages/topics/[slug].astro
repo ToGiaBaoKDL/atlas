@@ -1,0 +1,53 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import PageHero from "../../components/PageHero.astro";
+import WritingList from "../../components/WritingList.astro";
+import { getWritingTopicLabel, type WritingTopicSlug } from "../../data/topics";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("writing", ({ data }) => !data.draft);
+  const topics = [...new Set(entries.flatMap(({ data }) => data.topics))];
+
+  return topics.map((topic) => ({
+    params: { slug: topic },
+    props: {
+      topic,
+      entries: entries
+        .filter(({ data }) => data.topics.includes(topic))
+        .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf()),
+    },
+  }));
+}
+
+interface Props {
+  topic: WritingTopicSlug;
+  entries: CollectionEntry<"writing">[];
+}
+
+const { topic, entries } = Astro.props;
+const label = getWritingTopicLabel(topic);
+const description = `Technical writing by Tô Gia Bảo on ${label.toLowerCase()}.`;
+---
+
+<BaseLayout title={label} description={description} section="writing">
+  <div class="container">
+    <PageHero kicker="Writing topic" title={label} description={description}>
+      <a class="text-link topic-back" href="/writing/">← All writing</a>
+    </PageHero>
+    <section class="topic-entries" aria-label={`${label} writing`}>
+      <WritingList entries={entries} />
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .topic-back {
+    display: inline-block;
+    margin-top: 1.5rem;
+  }
+
+  .topic-entries {
+    margin-bottom: clamp(5rem, 10vw, 9rem);
+  }
+</style>

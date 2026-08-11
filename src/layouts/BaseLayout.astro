@@ -7,27 +7,51 @@ import SiteHeader from "../components/SiteHeader.astro";
 import { site } from "../data/site";
 import "../styles/tokens.css";
 import "../styles/global.css";
+import "../styles/prose.css";
 
 interface Props {
   title: string;
   description: string;
   section?: "projects" | "writing" | "about";
   noindex?: boolean;
+  image?: string;
+  ogType?: "website" | "article";
+  publishedAt?: Date;
+  updatedAt?: Date;
+  schema?: Record<string, unknown> | Record<string, unknown>[];
 }
 
-const { title, description, section, noindex = false } = Astro.props;
+const {
+  title,
+  description,
+  section,
+  noindex = false,
+  image = "/social-card.png",
+  ogType = "website",
+  publishedAt,
+  updatedAt,
+  schema,
+} = Astro.props;
 const pageTitle = title === site.name ? title : `${title} — ${site.name}`;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefined;
+const socialImage = Astro.site ? new URL(image, Astro.site) : undefined;
 const themeColors = { light: "#f7f6f2", dark: "#111310" } as const;
+const homeUrl = Astro.site ? new URL("/", Astro.site).href : undefined;
+const personId = homeUrl ? `${homeUrl}#person` : undefined;
 const personSchema = {
-  "@context": "https://schema.org",
   "@type": "Person",
+  ...(personId ? { "@id": personId } : {}),
   name: site.name,
   jobTitle: site.role,
   worksFor: { "@type": "Organization", name: site.employer },
   email: `mailto:${site.email}`,
   sameAs: [site.github, site.linkedin],
-  ...(canonical ? { url: canonical.href } : {}),
+  ...(homeUrl ? { url: homeUrl } : {}),
+};
+const pageSchemas = schema ? (Array.isArray(schema) ? schema : [schema]) : [];
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [personSchema, ...pageSchemas],
 };
 ---
 
@@ -44,16 +68,43 @@ const personSchema = {
       data-dark={themeColors.dark}
     />
     <meta name="description" content={description} />
+    <meta name="author" content={site.name} />
     <meta name="generator" content={Astro.generator} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     {canonical && <link rel="canonical" href={canonical} />}
+    {
+      Astro.site && (
+        <link
+          rel="alternate"
+          type="application/rss+xml"
+          title={`${site.name} — Writing`}
+          href={new URL("/rss.xml", Astro.site)}
+        />
+      )
+    }
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
+    <meta property="og:site_name" content={site.name} />
     <meta property="og:locale" content="en_US" />
     {canonical && <meta property="og:url" content={canonical} />}
-    <meta name="twitter:card" content="summary" />
+    {
+      socialImage && (
+        <>
+          <meta property="og:image" content={socialImage} />
+          <meta property="og:image:width" content="1200" />
+          <meta property="og:image:height" content="630" />
+          <meta property="og:image:alt" content={`${site.name} — ${site.role}`} />
+        </>
+      )
+    }
+    {publishedAt && <meta property="article:published_time" content={publishedAt.toISOString()} />}
+    {updatedAt && <meta property="article:modified_time" content={updatedAt.toISOString()} />}
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    {socialImage && <meta name="twitter:image" content={socialImage} />}
     <title>{pageTitle}</title>
     <script is:inline>
       (() => {
@@ -74,7 +125,7 @@ const personSchema = {
         if (color) themeColor?.setAttribute("content", color);
       })();
     </script>
-    <script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(structuredData)} />
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>

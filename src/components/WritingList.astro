@@ -1,0 +1,151 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { getWritingMaturityLabel, getWritingTopicLabel } from "../data/topics";
+
+interface Props {
+  entries: CollectionEntry<"writing">[];
+  headingLevel?: "h2" | "h3";
+}
+
+const { entries, headingLevel = "h2" } = Astro.props;
+const Heading = headingLevel;
+const dateFormatter = new Intl.DateTimeFormat("en", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+});
+---
+
+<ol class="writing-list">
+  {
+    entries.map((entry) => (
+      <li>
+        <a href={`/writing/${entry.id}/`}>
+          <div class="writing-meta">
+            <time datetime={entry.data.publishedAt.toISOString()}>
+              {dateFormatter.format(entry.data.publishedAt)}
+            </time>
+            <span>{getWritingMaturityLabel(entry.data.maturity)}</span>
+          </div>
+          <div>
+            <Heading>{entry.data.title}</Heading>
+            <p>{entry.data.description}</p>
+            <ul class="writing-tags" aria-label="Topics">
+              {entry.data.topics.map((topic) => (
+                <li>{getWritingTopicLabel(topic)}</li>
+              ))}
+            </ul>
+          </div>
+          <span class="writing-arrow" aria-hidden="true">
+            →
+          </span>
+        </a>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .writing-list {
+    margin: 0;
+    border-top: 1px solid var(--border);
+    padding: 0;
+    list-style: none;
+  }
+
+  .writing-list > li {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .writing-list > li > a {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.32fr) minmax(0, 1fr) auto;
+    gap: clamp(1.25rem, 4vw, 3rem);
+    padding-block: clamp(1.5rem, 4vw, 2.5rem);
+    text-decoration: none;
+  }
+
+  .writing-meta {
+    display: grid;
+    align-content: start;
+    gap: 0.35rem;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+  }
+
+  .writing-meta span {
+    color: var(--accent);
+  }
+
+  .writing-list h2,
+  .writing-list h3 {
+    margin: 0;
+    font-size: clamp(1.35rem, 3vw, 2rem);
+    font-weight: 620;
+    letter-spacing: -0.035em;
+    line-height: 1.12;
+    transition: color var(--motion-fast) ease;
+  }
+
+  .writing-list p {
+    max-width: 48rem;
+    margin: 0.7rem 0 0;
+    color: var(--text-soft);
+  }
+
+  .writing-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .writing-tags li {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.22rem 0.5rem;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+  }
+
+  .writing-arrow {
+    color: var(--accent);
+    transition: transform var(--motion-fast) var(--ease-out);
+  }
+
+  .writing-list a:hover h2,
+  .writing-list a:hover h3,
+  .writing-list a:focus-visible h2,
+  .writing-list a:focus-visible h3 {
+    color: var(--accent);
+  }
+
+  .writing-list a:hover .writing-arrow,
+  .writing-list a:focus-visible .writing-arrow {
+    transform: translateX(0.25rem);
+  }
+
+  @media (max-width: 40rem) {
+    .writing-list > li > a {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.75rem;
+    }
+
+    .writing-meta {
+      grid-column: 1 / -1;
+      grid-auto-flow: column;
+      justify-content: start;
+      gap: 0.8rem;
+    }
+
+    .writing-list p {
+      font-size: 0.9rem;
+    }
+  }
+</style>

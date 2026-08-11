@@ -6,8 +6,12 @@ import { site } from "../data/site";
 import { writingTopics } from "../data/topics";
 import ProjectVisual from "./ProjectVisual.astro";
 import SignatureVisual from "./SignatureVisual.astro";
+import WritingList from "./WritingList.astro";
 
 const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
+const writing = (await getCollection("writing", ({ data }) => !data.draft))
+  .sort((a, b) => b.data.publishedAt.valueOf() - a.data.publishedAt.valueOf())
+  .slice(0, 3);
 const featured = projects.find(({ data }) => data.featured);
 const secondary = projects.filter(({ data }) => !data.featured).slice(0, 2);
 
@@ -101,16 +105,20 @@ if (!featured) throw new Error("Missing featured project");
         </p>
         <a class="text-link" href="/writing/">Explore writing →</a>
       </div>
-      <ul class="topic-list">
-        {
-          writingTopics.map((topic) => (
-            <li>
-              <span>{topic.label}</span>
-              <code>{topic.slug}</code>
-            </li>
-          ))
-        }
-      </ul>
+      {
+        writing.length > 0 ? (
+          <WritingList entries={writing} headingLevel="h3" />
+        ) : (
+          <ul class="topic-list">
+            {writingTopics.map((topic) => (
+              <li>
+                <span>{topic.label}</span>
+                <code>{topic.slug}</code>
+              </li>
+            ))}
+          </ul>
+        )
+      }
     </div>
   </section>
 </BaseLayout>

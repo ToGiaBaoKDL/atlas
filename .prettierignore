@@ -1,6 +1,8 @@
 .astro/
 dist/
 node_modules/
+playwright-report/
+test-results/
 portfolio-homepage-concept.png
 portfolio-knowledge-site-final-blueprint.md
 portfolio-phase-0-content-identity.md

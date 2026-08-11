@@ -4,6 +4,7 @@ import { getProjectStatusLabel } from "../data/projects";
 import { getTopicLabel } from "../data/topics";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ProjectVisual from "./ProjectVisual.astro";
+import TableOfContents from "./TableOfContents.astro";
 
 interface Props {
   project: CollectionEntry<"projects">;
@@ -14,9 +15,23 @@ const { Content, headings } = await render(project);
 const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
 const currentIndex = projects.findIndex(({ id }) => id === project.id);
 const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
+const projectSchema = {
+  "@type": "SoftwareSourceCode",
+  name: project.data.title,
+  description: project.data.description,
+  author: { "@type": "Person", name: "Tô Gia Bảo" },
+  keywords: project.data.stack,
+  ...(project.data.links.repository ? { codeRepository: project.data.links.repository } : {}),
+  ...(Astro.site ? { url: new URL(Astro.url.pathname, Astro.site).href } : {}),
+};
 ---
 
-<BaseLayout title={project.data.title} description={project.data.description} section="projects">
+<BaseLayout
+  title={project.data.title}
+  description={project.data.description}
+  section="projects"
+  schema={projectSchema}
+>
   <article>
     <header class="project-hero container" data-enter>
       <a class="text-link" href="/projects/">← All projects</a>
@@ -66,25 +81,11 @@ const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
     <ProjectVisual projectId={project.id} contained />
 
     <div class="container case-study section">
+      <TableOfContents headings={headings} mode="mobile" />
       <div class="prose">
         <Content />
       </div>
-      {
-        headings.filter(({ depth }) => depth === 2).length > 1 && (
-          <aside class="case-study-aside">
-            <h2>On this page</h2>
-            <ul>
-              {headings
-                .filter(({ depth }) => depth === 2)
-                .map((heading) => (
-                  <li>
-                    <a href={`#${heading.slug}`}>{heading.text}</a>
-                  </li>
-                ))}
-            </ul>
-          </aside>
-        )
-      }
+      <TableOfContents headings={headings} mode="desktop" />
     </div>
 
     <footer class="project-continuation container" id="project-continuation" data-reveal>
@@ -174,137 +175,6 @@ const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
     padding-bottom: clamp(5rem, 10vw, 9rem);
   }
 
-  .prose {
-    min-width: 0;
-    max-width: var(--article-width);
-  }
-
-  .prose > :global(:first-child) {
-    margin-top: 0;
-  }
-
-  .prose :global(h2) {
-    margin: 4rem 0 1.1rem;
-    font-size: clamp(1.8rem, 4vw, 2.7rem);
-    font-weight: 630;
-    letter-spacing: -0.045em;
-    line-height: 1.1;
-  }
-
-  .prose :global(h3) {
-    margin: 2.5rem 0 0.75rem;
-    font-size: 1.25rem;
-    font-weight: 620;
-    letter-spacing: -0.025em;
-  }
-
-  .prose :global(p),
-  .prose :global(li) {
-    color: var(--text-soft);
-  }
-
-  .prose :global(strong) {
-    color: var(--text);
-    font-weight: 620;
-  }
-
-  .prose :global(a) {
-    color: var(--accent-ink);
-  }
-
-  .prose :global(ul),
-  .prose :global(ol) {
-    padding-left: 1.3rem;
-  }
-
-  .prose :global(li + li) {
-    margin-top: 0.45rem;
-  }
-
-  .prose :global(blockquote) {
-    margin: 2rem 0;
-    border-left: 3px solid var(--accent);
-    padding: 0.2rem 0 0.2rem 1.25rem;
-  }
-
-  .prose :global(code) {
-    border-radius: 0.25rem;
-    background: var(--surface);
-    padding: 0.12rem 0.3rem;
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 0.88em;
-  }
-
-  .prose :global(pre) {
-    max-width: 100%;
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    background: var(--dark) !important;
-    padding: 1.2rem;
-  }
-
-  .prose :global(pre code) {
-    background: transparent;
-    padding: 0;
-    color: var(--dark-text);
-  }
-
-  .prose :global(table) {
-    display: block;
-    width: max-content;
-    max-width: 100%;
-    overflow-x: auto;
-    border-collapse: collapse;
-  }
-
-  .prose :global(th),
-  .prose :global(td) {
-    border-bottom: 1px solid var(--border);
-    padding: 0.7rem 1rem 0.7rem 0;
-    text-align: left;
-  }
-
-  .case-study-aside {
-    position: sticky;
-    top: calc(var(--header-height) + 2rem);
-  }
-
-  .case-study-aside h2 {
-    margin: 0 0 0.8rem;
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  .case-study-aside ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .case-study-aside li {
-    border-top: 1px solid var(--border);
-  }
-
-  .case-study-aside li:last-child {
-    border-bottom: 1px solid var(--border);
-  }
-
-  .case-study-aside a {
-    display: block;
-    padding-block: 0.65rem;
-    color: var(--text-soft);
-    font-size: 0.8rem;
-    text-decoration: none;
-  }
-
-  .case-study-aside a:hover {
-    color: var(--accent);
-  }
-
   .project-continuation {
     border-top: 1px solid var(--border);
     padding-block: clamp(2.5rem, 6vw, 4.5rem) clamp(5rem, 10vw, 9rem);
@@ -357,10 +227,6 @@ const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
     .project-hero-grid,
     .case-study {
       grid-template-columns: 1fr;
-    }
-
-    .case-study-aside {
-      display: none;
     }
   }
 

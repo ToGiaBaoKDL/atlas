@@ -1,0 +1,33 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#111310"/>
+  <g opacity="0.42" stroke="#30352F">
+    <path d="M0 105.5H1200M0 210.5H1200M0 315.5H1200M0 420.5H1200M0 525.5H1200"/>
+    <path d="M100.5 0V630M300.5 0V630M500.5 0V630M700.5 0V630M900.5 0V630M1100.5 0V630"/>
+  </g>
+
+  <g transform="translate(76 68)">
+    <circle cx="7" cy="7" r="7" fill="#A3E635"/>
+    <text x="28" y="13" fill="#B8BCB3" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="2.4">DATA ENGINEER · DATA PLATFORMS</text>
+  </g>
+
+  <text x="76" y="190" fill="#F1F2ED" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700" letter-spacing="-1.5">Tô Gia Bảo</text>
+  <text x="76" y="302" fill="#F1F2ED" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" letter-spacing="-4">Reliable data platforms,</text>
+  <text x="76" y="385" fill="#F1F2ED" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" letter-spacing="-4">end to end.</text>
+
+  <g transform="translate(76 494)">
+    <rect width="164" height="48" rx="8" fill="#A3E635"/>
+    <text x="82" y="31" text-anchor="middle" fill="#111310" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Portfolio</text>
+    <text x="190" y="30" fill="#91978D" font-family="Arial, Helvetica, sans-serif" font-size="16">Systems · Decisions · Technical writing</text>
+  </g>
+
+  <g transform="translate(835 135)">
+    <rect x="0.5" y="0.5" width="287" height="287" rx="18" fill="#171A16" stroke="#30352F"/>
+    <path d="M48 80H105M125 80H182M202 80H240" stroke="#4A5148" stroke-width="2"/>
+    <path d="M76 80V143H144V205H212" stroke="#A3E635" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="76" cy="80" r="14" fill="#26320F" stroke="#A3E635" stroke-width="2"/>
+    <circle cx="144" cy="143" r="14" fill="#26320F" stroke="#A3E635" stroke-width="2"/>
+    <circle cx="212" cy="205" r="14" fill="#26320F" stroke="#A3E635" stroke-width="2"/>
+    <rect x="39" y="234" width="210" height="18" rx="9" fill="#1D211C"/>
+    <rect x="39" y="234" width="137" height="18" rx="9" fill="#3F6212"/>
+  </g>
+</svg>

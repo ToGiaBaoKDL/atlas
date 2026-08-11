@@ -12,6 +12,7 @@ const year = new Date().getFullYear();
       <a href={site.linkedin} target="_blank" rel="me noopener">LinkedIn ↗</a>
       <a href={`mailto:${site.email}`}>Email</a>
       <a href={site.resume} target="_blank" rel="noopener">Resume ↗</a>
+      {Astro.site && <a href="/rss.xml">RSS</a>}
     </nav>
   </div>
 </footer>

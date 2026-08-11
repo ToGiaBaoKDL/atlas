@@ -279,7 +279,7 @@ svg {
   .site-header,
   .site-footer,
   .button-row,
-  .case-study-aside {
+  .toc {
     display: none !important;
   }
 
