@@ -1,0 +1,40 @@
+---
+interface Props {
+  mobileShape: "wide" | "tall";
+}
+
+const { mobileShape } = Astro.props;
+---
+
+<div class:list={["visual-frame", `visual-frame-${mobileShape}`]}>
+  <slot />
+</div>
+
+<style>
+  .visual-frame {
+    min-width: 0;
+  }
+
+  @media (max-width: 40rem) {
+    .visual-frame {
+      --visual-frame-scale: 0.64;
+
+      overflow: hidden;
+    }
+
+    .visual-frame-wide {
+      aspect-ratio: 1.59;
+    }
+
+    .visual-frame-tall {
+      aspect-ratio: 1.23;
+    }
+
+    .visual-frame > :global(*) {
+      width: calc(100% / var(--visual-frame-scale));
+      max-width: none;
+      transform: scale(var(--visual-frame-scale));
+      transform-origin: top left;
+    }
+  }
+</style>

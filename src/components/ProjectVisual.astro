@@ -1,6 +1,6 @@
 ---
-import MarketPulseVisual from "./MarketPulseVisual.astro";
-import MiniLakehouseVisual from "./MiniLakehouseVisual.astro";
+import VisualFrame from "./VisualFrame.astro";
+import { getProjectVisual } from "./projectVisuals";
 
 interface Props {
   projectId: string;
@@ -9,17 +9,7 @@ interface Props {
 }
 
 const { projectId, contained = false, thumbnail = false } = Astro.props;
-const visuals = {
-  "mini-lakehouse": {
-    component: MiniLakehouseVisual,
-    label: "Mini Lakehouse delivery workflow",
-  },
-  "vn-market-pulse": {
-    component: MarketPulseVisual,
-    label: "VN Market Pulse research pipeline",
-  },
-} as const;
-const visual = visuals[projectId as keyof typeof visuals];
+const visual = getProjectVisual(projectId);
 const Visual = visual?.component;
 ---
 
@@ -29,7 +19,11 @@ const Visual = visual?.component;
       <section class="container" aria-label={visual.label} data-reveal>
         <Visual />
       </section>
+    ) : thumbnail ? (
+      <VisualFrame mobileShape={visual.mobileShape}>
+        <Visual thumbnail />
+      </VisualFrame>
     ) : (
-      <Visual thumbnail={thumbnail} />
+      <Visual />
     ))
 }

@@ -186,23 +186,32 @@ test("mobile project cards show complete visual thumbnails", async ({ page }) =>
     await expect(previews).toHaveCount(2);
 
     for (const preview of await previews.all()) {
+      // Project lists use content-visibility to skip off-screen work. Bring each
+      // card into the viewport before asserting its responsive presentation.
+      await preview.scrollIntoViewIfNeeded();
       const layout = await preview.evaluate((element) => {
-        const frame = element.getBoundingClientRect();
-        const content = element.firstElementChild?.getBoundingClientRect();
+        const frameElement = element.querySelector(".visual-frame");
+        const contentElement = frameElement?.firstElementChild;
+        const frame = frameElement?.getBoundingClientRect();
+        const content = contentElement?.getBoundingClientRect();
         return {
+          aspectRatio: frameElement ? getComputedStyle(frameElement).aspectRatio : "auto",
           bottom: content?.bottom ?? 0,
           className: element.className,
-          frameBottom: frame.bottom,
-          frameLeft: frame.left,
-          frameRight: frame.right,
-          height: frame.height,
+          frameBottom: frame?.bottom ?? 0,
+          frameLeft: frame?.left ?? 0,
+          frameRight: frame?.right ?? 0,
+          height: frame?.height ?? 0,
           left: content?.left ?? 0,
           overflow: getComputedStyle(element).overflow,
           right: content?.right ?? 0,
+          transform: contentElement ? getComputedStyle(contentElement).transform : "none",
         };
       });
       expect(layout.overflow).toBe("hidden");
-      expect(layout.height).toBeLessThanOrEqual(300);
+      expect(layout.aspectRatio, `${route} ${JSON.stringify(layout)}`).not.toBe("auto");
+      expect(layout.height, `${route} ${JSON.stringify(layout)}`).toBeLessThanOrEqual(300);
+      expect(layout.transform).not.toBe("none");
       expect(layout.left).toBeGreaterThanOrEqual(layout.frameLeft - 1);
       expect(layout.right).toBeLessThanOrEqual(layout.frameRight + 1);
       expect(layout.bottom, `${route} ${layout.className}`).toBeLessThanOrEqual(
@@ -210,6 +219,20 @@ test("mobile project cards show complete visual thumbnails", async ({ page }) =>
       );
     }
   }
+});
+
+test("project visuals keep their full layout outside mobile cards", async ({ page }) => {
+  await page.goto("/");
+  const cardVisual = page.locator(".project-card-media .visual-frame").first();
+  const cardContent = cardVisual.locator(":scope > *");
+
+  if ((page.viewportSize()?.width ?? 0) > 640) {
+    await expect(cardContent).toHaveCSS("transform", "none");
+  }
+
+  await page.goto("/projects/mini-lakehouse/");
+  await expect(page.locator(".visual-frame")).toHaveCount(0);
+  await expect(page.locator(".lakehouse-visual")).toBeVisible();
 });
 
 test("mobile homepage uses a motion-safe project cover stack", async ({ page }) => {
