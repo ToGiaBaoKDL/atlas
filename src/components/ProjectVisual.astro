@@ -5,9 +5,10 @@ import MiniLakehouseVisual from "./MiniLakehouseVisual.astro";
 interface Props {
   projectId: string;
   contained?: boolean;
+  thumbnail?: boolean;
 }
 
-const { projectId, contained = false } = Astro.props;
+const { projectId, contained = false, thumbnail = false } = Astro.props;
 const visuals = {
   "mini-lakehouse": {
     component: MiniLakehouseVisual,
@@ -29,6 +30,6 @@ const Visual = visual?.component;
         <Visual />
       </section>
     ) : (
-      <Visual />
+      <Visual thumbnail={thumbnail} />
     ))
 }

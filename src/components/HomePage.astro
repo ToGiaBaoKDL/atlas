@@ -1,10 +1,9 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getProjects, getPublishedWriting } from "../data/content";
-import { getProjectStatusLabel } from "../data/projects";
 import { site } from "../data/site";
 import { writingTopics } from "../data/topics";
-import ProjectVisual from "./ProjectVisual.astro";
+import ProjectCard from "./ProjectCard.astro";
 import SignatureVisual from "./SignatureVisual.astro";
 import WritingList from "./WritingList.astro";
 
@@ -55,31 +54,7 @@ const writing = (await getPublishedWriting()).slice(0, 3);
       <div class="project-stack">
         {
           homepageProjects.map((project, index) => (
-            <article
-              class:list={["project-showcase", { "project-showcase-reverse": index % 2 === 1 }]}
-              data-reveal
-              data-reveal-delay={String(Math.min(index, 2))}
-            >
-              <div class="project-copy">
-                <span class="project-index">
-                  {String(index + 1).padStart(2, "0")} · {project.data.role} ·{" "}
-                  {getProjectStatusLabel(project.data.status)}
-                </span>
-                <h3>{project.data.title}</h3>
-                <p>{project.data.outcome}</p>
-                <ul class="tag-list" aria-label="Technology stack">
-                  {project.data.stack.slice(0, 5).map((item) => (
-                    <li>{item}</li>
-                  ))}
-                </ul>
-                <a class="text-link" href={`/projects/${project.id}/`}>
-                  Read case study <span aria-hidden="true">→</span>
-                </a>
-              </div>
-              <div class="project-showcase-visual">
-                <ProjectVisual projectId={project.id} />
-              </div>
-            </article>
+            <ProjectCard project={project} index={index} variant="showcase" />
           ))
         }
       </div>
@@ -243,9 +218,7 @@ const writing = (await getPublishedWriting()).slice(0, 3);
   }
 
   .projects-band .section-heading .text-link:hover,
-  .projects-band .section-heading .text-link:focus-visible,
-  .project-showcase .text-link:hover,
-  .project-showcase .text-link:focus-visible {
+  .projects-band .section-heading .text-link:focus-visible {
     color: var(--dark-accent);
   }
 
@@ -255,84 +228,6 @@ const writing = (await getPublishedWriting()).slice(0, 3);
 
   .project-stack {
     display: grid;
-  }
-
-  .project-showcase {
-    display: grid;
-    grid-template-columns: minmax(15rem, 0.76fr) minmax(0, 1.24fr);
-    gap: clamp(2rem, 5vw, 5rem);
-    align-items: center;
-    padding-bottom: clamp(3rem, 6vw, 5rem);
-  }
-
-  .project-showcase + .project-showcase {
-    border-top: 1px solid var(--dark-border);
-    padding-top: clamp(3rem, 6vw, 5rem);
-  }
-
-  .project-showcase:last-child {
-    padding-bottom: 0;
-  }
-
-  .project-showcase-reverse {
-    grid-template-columns: minmax(0, 1.24fr) minmax(15rem, 0.76fr);
-  }
-
-  .project-showcase-reverse .project-copy {
-    order: 2;
-  }
-
-  .project-index {
-    display: block;
-    margin-bottom: 2rem;
-    color: var(--dark-soft);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-  }
-
-  .project-showcase h3 {
-    max-width: 13ch;
-    margin: 0;
-    font-size: clamp(2rem, 4vw, 3.7rem);
-    font-weight: 610;
-    letter-spacing: -0.052em;
-    line-height: 1.02;
-  }
-
-  .project-showcase p {
-    max-width: 34rem;
-    margin: 1.25rem 0;
-    color: var(--dark-soft);
-  }
-
-  .tag-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .tag-list li {
-    border: 1px solid var(--dark-border);
-    border-radius: 999px;
-    padding: 0.25rem 0.55rem;
-    color: var(--dark-soft);
-    font-family: var(--font-mono);
-    font-size: 0.67rem;
-  }
-
-  .project-showcase .text-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-top: 1.5rem;
-    color: var(--dark-text);
-  }
-
-  .project-showcase-visual {
-    min-width: 0;
   }
 
   .writing-grid {
@@ -395,18 +290,8 @@ const writing = (await getPublishedWriting()).slice(0, 3);
       max-width: 13ch;
     }
 
-    .project-showcase,
-    .project-showcase-reverse,
     .writing-grid {
       grid-template-columns: 1fr;
-    }
-
-    .project-showcase-reverse .project-copy {
-      order: initial;
-    }
-
-    .project-showcase h3 {
-      max-width: 18ch;
     }
   }
 
@@ -433,28 +318,25 @@ const writing = (await getPublishedWriting()).slice(0, 3);
       align-items: flex-end;
     }
 
-    .project-showcase-visual {
-      position: relative;
-      overflow: hidden;
-      max-height: 28rem;
-      border-radius: var(--radius-md);
-    }
-
-    .project-showcase-visual::after {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      height: 5rem;
-      background: linear-gradient(transparent, var(--dark));
-      content: "";
-      pointer-events: none;
+    .project-stack {
+      gap: 1rem;
     }
 
     .topic-list li {
       align-items: flex-start;
       flex-direction: column;
       gap: 0.2rem;
+    }
+  }
+
+  @media (max-width: 40rem) and (min-height: 46rem) and (prefers-reduced-motion: no-preference) {
+    .project-stack {
+      gap: 2rem;
+    }
+
+    .project-stack::after {
+      height: clamp(7rem, 20svh, 10rem);
+      content: "";
     }
   }
 
@@ -477,37 +359,12 @@ const writing = (await getPublishedWriting()).slice(0, 3);
     }
 
     .project-stack {
-      --stack-card-height: 37rem;
-
       gap: clamp(3rem, 8vh, 5rem);
     }
 
     .project-stack::after {
       height: clamp(9rem, 32svh, 18rem);
       content: "";
-    }
-
-    .project-stack > .project-showcase {
-      --stack-inset: 0rem;
-
-      position: sticky;
-      top: calc((100svh + var(--header-height) - var(--stack-card-height)) / 2);
-      min-height: var(--stack-card-height);
-      align-self: start;
-      margin-inline: var(--stack-inset);
-      border: 1px solid var(--dark-border);
-      border-radius: calc(var(--radius-md) + 0.2rem);
-      background: color-mix(in srgb, var(--dark) 96%, var(--dark-text));
-      box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.3);
-      padding: clamp(1.75rem, 3vw, 2.5rem);
-    }
-
-    .project-showcase + .project-showcase {
-      --stack-inset: 0.75rem;
-    }
-
-    .project-showcase + .project-showcase + .project-showcase {
-      --stack-inset: 1.5rem;
     }
   }
 </style>

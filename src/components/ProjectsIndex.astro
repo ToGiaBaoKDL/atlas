@@ -1,8 +1,8 @@
 ---
 import { getProjects } from "../data/content";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getProjectStatusLabel } from "../data/projects";
 import PageHero from "./PageHero.astro";
+import ProjectCard from "./ProjectCard.astro";
 
 const projects = await getProjects();
 ---
@@ -22,27 +22,7 @@ const projects = await getProjects();
     <section class="projects-list" aria-label="Projects">
       {
         projects.map((project, index) => (
-          <a
-            class="project-list-item"
-            href={`/projects/${project.id}/`}
-            data-reveal
-            data-reveal-delay={String(Math.min(index, 2))}
-          >
-            <span class="project-list-number">{String(index + 1).padStart(2, "0")}</span>
-            <div>
-              <h2>{project.data.title}</h2>
-              <p class="project-list-meta">
-                {project.data.role} · {getProjectStatusLabel(project.data.status)}
-              </p>
-              <p>{project.data.outcome}</p>
-            </div>
-            <span class="project-list-stack" aria-label="Technology stack">
-              {project.data.stack.join(" · ")}
-            </span>
-            <span class="project-list-arrow" aria-hidden="true">
-              →
-            </span>
-          </a>
+          <ProjectCard project={project} index={index} variant="list" />
         ))
       }
     </section>
@@ -55,88 +35,11 @@ const projects = await getProjects();
     border-top: 1px solid var(--border);
   }
 
-  .project-list-item {
-    display: grid;
-    grid-template-columns: 3.5rem minmax(0, 1fr) minmax(12rem, 0.65fr) auto;
-    gap: 1.5rem;
-    align-items: start;
-    border-bottom: 1px solid var(--border);
-    padding-block: clamp(1.5rem, 4vw, 2.5rem);
-    text-decoration: none;
-  }
-
-  .project-list-item:hover h2,
-  .project-list-item:focus-visible h2 {
-    color: var(--accent);
-  }
-
-  .project-list-arrow {
-    transition:
-      transform var(--motion-fast) var(--ease-out),
-      color var(--motion-fast) ease;
-  }
-
-  .project-list-item:hover .project-list-arrow,
-  .project-list-item:focus-visible .project-list-arrow {
-    transform: translateX(0.25rem);
-    color: var(--accent);
-  }
-
-  .project-list-number {
-    color: var(--text-faint);
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-  }
-
-  .project-list-item h2 {
-    margin: 0 0 0.55rem;
-    font-size: clamp(1.35rem, 3vw, 2rem);
-    font-weight: 610;
-    letter-spacing: -0.035em;
-    line-height: 1.1;
-    transition: color var(--motion-fast) ease;
-  }
-
-  .project-list-item p {
-    margin: 0;
-    color: var(--text-soft);
-  }
-
-  .project-list-item .project-list-meta {
-    margin-bottom: 0.55rem;
-    color: var(--text-faint);
-    font-family: var(--font-mono);
-    font-size: 0.68rem;
-    font-weight: 560;
-    letter-spacing: 0.035em;
-    text-transform: uppercase;
-  }
-
-  .project-list-stack {
-    color: var(--text-faint);
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    line-height: 1.8;
-  }
-
-  @media (max-width: 56rem) {
-    .project-list-item {
-      grid-template-columns: 2.5rem minmax(0, 1fr) auto;
-    }
-
-    .project-list-stack {
-      display: none;
-    }
-  }
-
   @media (max-width: 40rem) {
-    .project-list-item {
-      grid-template-columns: 2rem minmax(0, 1fr) auto;
-      gap: 0.75rem;
-    }
-
-    .project-list-item p {
-      font-size: 0.88rem;
+    .projects-list {
+      display: grid;
+      gap: 1rem;
+      border-top: 0;
     }
   }
 </style>

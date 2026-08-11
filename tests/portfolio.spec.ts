@@ -67,6 +67,11 @@ test("mobile navigation opens, links and closes", async ({ page }) => {
   const buttonBox = await openButton.boundingBox();
   expect(buttonBox?.width).toBeLessThanOrEqual(36);
   expect(buttonBox?.height).toBeLessThanOrEqual(36);
+  const menuIcon = openButton.locator("svg");
+  await expect(menuIcon).toBeVisible();
+  expect(
+    await menuIcon.evaluate((element) => Number.parseFloat(getComputedStyle(element).strokeWidth)),
+  ).toBeGreaterThanOrEqual(2);
   await openButton.click();
 
   const dialog = page.getByRole("dialog");
@@ -170,23 +175,71 @@ test("project stack keeps normal flow when sticky motion is unsuitable", async (
   await expect(page.locator(".project-showcase").first()).toHaveCSS("position", "static");
 });
 
-test("mobile project visuals stay compact", async ({ page }) => {
+test("mobile project cards show complete visual thumbnails", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
 
-  await page.goto("/");
-  const previews = page.locator(".project-showcase-visual");
-  await expect(previews).toHaveCount(2);
+  for (const route of ["/", "/projects/"]) {
+    await page.goto(route);
+    const cards = page.locator(".project-card");
+    const previews = cards.locator(".project-card-media");
+    await expect(cards).toHaveCount(2);
+    await expect(previews).toHaveCount(2);
 
-  for (const preview of await previews.all()) {
-    const layout = await preview.evaluate((element) => ({
-      height: element.getBoundingClientRect().height,
-      contentHeight: element.firstElementChild?.getBoundingClientRect().height ?? 0,
-      overflow: getComputedStyle(element).overflow,
-    }));
-    expect(layout.overflow).toBe("hidden");
-    expect(layout.height).toBeLessThanOrEqual(448);
-    expect(layout.contentHeight).toBeGreaterThan(layout.height);
+    for (const preview of await previews.all()) {
+      const layout = await preview.evaluate((element) => {
+        const frame = element.getBoundingClientRect();
+        const content = element.firstElementChild?.getBoundingClientRect();
+        return {
+          bottom: content?.bottom ?? 0,
+          className: element.className,
+          frameBottom: frame.bottom,
+          frameLeft: frame.left,
+          frameRight: frame.right,
+          height: frame.height,
+          left: content?.left ?? 0,
+          overflow: getComputedStyle(element).overflow,
+          right: content?.right ?? 0,
+        };
+      });
+      expect(layout.overflow).toBe("hidden");
+      expect(layout.height).toBeLessThanOrEqual(300);
+      expect(layout.left).toBeGreaterThanOrEqual(layout.frameLeft - 1);
+      expect(layout.right).toBeLessThanOrEqual(layout.frameRight + 1);
+      expect(layout.bottom, `${route} ${layout.className}`).toBeLessThanOrEqual(
+        layout.frameBottom + 1,
+      );
+    }
   }
+});
+
+test("mobile homepage uses a motion-safe project cover stack", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
+
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  const cards = page.locator(".project-showcase");
+  const stickyTop = Number.parseFloat(
+    await cards.first().evaluate((element) => getComputedStyle(element).top),
+  );
+  const viewportHeight = page.viewportSize()?.height ?? 0;
+
+  await expect(cards).toHaveCount(2);
+  await expect(cards.first()).toHaveCSS("position", "sticky");
+  for (const card of await cards.all()) {
+    expect((await card.boundingBox())?.height ?? viewportHeight).toBeLessThan(
+      viewportHeight - stickyTop,
+    );
+  }
+
+  const lastCardDocumentTop = await cards
+    .last()
+    .evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
+  await page.evaluate(({ top }) => window.scrollTo({ top, behavior: "instant" }), {
+    top: lastCardDocumentTop - stickyTop,
+  });
+  await page.waitForTimeout(500);
+  const lastCardTop = await cards.last().evaluate((element) => element.getBoundingClientRect().top);
+  expect(Math.abs(lastCardTop - stickyTop)).toBeLessThanOrEqual(1);
 });
 
 test("mobile hero previews the platform visual", async ({ page }) => {

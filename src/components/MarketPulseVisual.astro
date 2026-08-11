@@ -1,6 +1,12 @@
 ---
 import VisualHeader from "./VisualHeader.astro";
 
+interface Props {
+  thumbnail?: boolean;
+}
+
+const { thumbnail = false } = Astro.props;
+
 const stages = [
   { number: "01", owner: "Model", title: "Plan searches", detail: "Focused query set" },
   { number: "02", owner: "Code", title: "Gather pool", detail: "Bounded metadata" },
@@ -19,7 +25,7 @@ const stages = [
 ];
 ---
 
-<figure class="research-visual">
+<figure class:list={["research-visual", { "visual-thumbnail": thumbnail }]}>
   <VisualHeader
     eyebrow="Bounded research pipeline"
     title="Topic to source-backed post"
@@ -247,7 +253,7 @@ const stages = [
   }
 
   @media (max-width: 48rem) {
-    .research-track {
+    .research-visual:not(.visual-thumbnail) .research-track {
       --stage-gap: 0.85rem;
 
       grid-template-columns: 1fr;
@@ -255,11 +261,11 @@ const stages = [
       padding-block: 1.25rem;
     }
 
-    .stage-meta {
+    .research-visual:not(.visual-thumbnail) .stage-meta {
       margin-bottom: 1.15rem;
     }
 
-    .research-connector {
+    .research-visual:not(.visual-thumbnail) .research-connector {
       top: calc(100% - 1px);
       left: 50%;
       width: 2px;
@@ -268,14 +274,14 @@ const stages = [
       background: linear-gradient(var(--visual-accent-strong), var(--visual-accent));
     }
 
-    .research-connector::before {
+    .research-visual:not(.visual-thumbnail) .research-connector::before {
       --visual-flow-distance: 0.45rem;
 
       top: 20%;
       left: -0.13rem;
     }
 
-    .research-connector::after {
+    .research-visual:not(.visual-thumbnail) .research-connector::after {
       top: auto;
       right: auto;
       bottom: 0;
@@ -286,20 +292,20 @@ const stages = [
       border-bottom: 2px solid var(--visual-accent);
     }
 
-    .responsibility-map {
+    .research-visual:not(.visual-thumbnail) .responsibility-map {
       grid-template-columns: 1fr;
       gap: 0.65rem;
     }
 
-    .boundary {
+    .research-visual:not(.visual-thumbnail) .boundary {
       display: flex;
       align-items: center;
       gap: 0.6rem;
       writing-mode: initial;
     }
 
-    .boundary::before,
-    .boundary::after {
+    .research-visual:not(.visual-thumbnail) .boundary::before,
+    .research-visual:not(.visual-thumbnail) .boundary::after {
       height: 1px;
       flex: 1;
       background: var(--visual-border);
@@ -308,7 +314,9 @@ const stages = [
   }
 
   @media (max-width: 48rem) and (prefers-reduced-motion: no-preference) {
-    :global([data-reveal].is-revealed) .research-connector::before {
+    :global([data-reveal].is-revealed)
+      .research-visual:not(.visual-thumbnail)
+      .research-connector::before {
       animation-name: visual-flow-block;
     }
   }

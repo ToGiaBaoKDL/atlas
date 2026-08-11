@@ -1,6 +1,12 @@
 ---
 import VisualHeader from "./VisualHeader.astro";
 
+interface Props {
+  thumbnail?: boolean;
+}
+
+const { thumbnail = false } = Astro.props;
+
 const stages = [
   { number: "01", label: "Define", title: "Data contracts", detail: "Schemas and ownership" },
   { number: "02", label: "Land", title: "Ingest safely", detail: "Idempotent publication" },
@@ -10,7 +16,7 @@ const stages = [
 ];
 ---
 
-<figure class="lakehouse-visual">
+<figure class:list={["lakehouse-visual", { "visual-thumbnail": thumbnail }]}>
   <VisualHeader
     eyebrow="Delivery workflow"
     title="Contract to trusted data product"
@@ -212,7 +218,7 @@ const stages = [
   }
 
   @media (max-width: 40rem) {
-    .workflow-track {
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-track {
       --stage-gap: 0.85rem;
 
       grid-template-columns: 1fr;
@@ -220,13 +226,13 @@ const stages = [
       padding-block: 1.25rem;
     }
 
-    .workflow-track li {
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-track li {
       display: grid;
       grid-template-columns: 2rem minmax(0, 1fr);
       gap: 0.1rem 0.65rem;
     }
 
-    .workflow-connector {
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-connector {
       top: calc(100% - 1px);
       left: 50%;
       width: 1rem;
@@ -234,7 +240,7 @@ const stages = [
       transform: translateX(-50%);
     }
 
-    .workflow-connector::before {
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-connector::before {
       top: 0;
       right: auto;
       bottom: 0.15rem;
@@ -244,7 +250,7 @@ const stages = [
       background: linear-gradient(var(--visual-accent-strong), var(--visual-accent));
     }
 
-    .workflow-connector::after {
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-connector::after {
       top: auto;
       right: auto;
       bottom: 0.08rem;
@@ -255,37 +261,40 @@ const stages = [
       border-bottom: 2px solid var(--visual-accent);
     }
 
-    .workflow-connector i {
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-connector i {
       --visual-flow-distance: 0.45rem;
 
       top: 20%;
       left: calc(50% - 0.14rem);
     }
 
-    .workflow-number {
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-number {
       grid-row: 1 / 4;
       margin: 0;
     }
 
-    .workflow-track small,
-    .workflow-track strong,
-    .workflow-track p {
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-track small,
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-track strong,
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-track p {
       grid-column: 2;
     }
 
-    .workflow-operations {
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-operations {
       grid-template-columns: 1fr;
       gap: 0.6rem;
     }
 
-    .workflow-operations > div {
+    .lakehouse-visual:not(.visual-thumbnail) .workflow-operations > div {
       flex-wrap: wrap;
       justify-content: flex-start;
     }
   }
 
   @media (max-width: 40rem) and (prefers-reduced-motion: no-preference) {
-    :global([data-reveal].is-revealed) .workflow-connector i {
+    :global([data-reveal].is-revealed)
+      .lakehouse-visual:not(.visual-thumbnail)
+      .workflow-connector
+      i {
       animation-name: visual-flow-block;
     }
   }
