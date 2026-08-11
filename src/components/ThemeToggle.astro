@@ -43,6 +43,17 @@ import { ui } from "../data/site";
 
 <script>
   const themeToggles = document.querySelectorAll<HTMLButtonElement>("[data-theme-toggle]");
+  const systemTheme = matchMedia("(prefers-color-scheme: dark)");
+  let hasSessionSelection = false;
+
+  const hasSavedTheme = () => {
+    try {
+      const savedTheme = localStorage.getItem("theme");
+      return savedTheme === "light" || savedTheme === "dark";
+    } catch {
+      return false;
+    }
+  };
 
   const syncThemeControls = () => {
     const isDark = document.documentElement.dataset.theme === "dark";
@@ -57,6 +68,7 @@ import { ui } from "../data/site";
   themeToggles.forEach((toggle) => {
     toggle.addEventListener("click", () => {
       const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      hasSessionSelection = true;
       document.documentElement.dataset.theme = nextTheme;
       syncThemeControls();
 
@@ -66,6 +78,12 @@ import { ui } from "../data/site";
         // The selected theme still applies when storage is unavailable.
       }
     });
+  });
+
+  systemTheme.addEventListener("change", (event) => {
+    if (hasSessionSelection || hasSavedTheme()) return;
+    document.documentElement.dataset.theme = event.matches ? "dark" : "light";
+    syncThemeControls();
   });
 </script>
 
@@ -91,7 +109,8 @@ import { ui } from "../data/site";
     background: var(--surface);
     transition:
       border-color var(--motion-fast) ease,
-      background-color var(--motion-fast) ease;
+      background-color var(--motion-fast) ease,
+      box-shadow var(--motion-fast) ease;
   }
 
   .thumb {
@@ -108,7 +127,9 @@ import { ui } from "../data/site";
     color: var(--text);
     transition:
       transform var(--motion-base) var(--ease-out),
-      background-color var(--motion-fast) ease;
+      background-color var(--motion-fast) ease,
+      box-shadow var(--motion-fast) ease,
+      color var(--motion-fast) ease;
   }
 
   .sun,
@@ -117,24 +138,34 @@ import { ui } from "../data/site";
   }
 
   .moon,
-  :global(:root[data-theme="dark"]) .sun {
+  .theme-toggle[aria-checked="true"] .sun {
     display: none;
   }
 
   .theme-toggle:hover .track,
-  :global(:root[data-theme="dark"]) .track {
+  .theme-toggle[aria-checked="true"] .track {
     border-color: var(--accent);
   }
 
-  :global(:root[data-theme="dark"]) .track {
-    background: var(--accent-soft);
+  .theme-toggle[aria-checked="true"] .track {
+    background: color-mix(in srgb, var(--accent) 30%, var(--surface));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
   }
 
-  :global(:root[data-theme="dark"]) .thumb {
+  .theme-toggle[aria-checked="true"] .thumb {
     transform: translateX(1.2rem);
+    background: var(--accent);
+    box-shadow:
+      0 0 0 0.16rem color-mix(in srgb, var(--accent) 22%, transparent),
+      0 0.16rem 0.45rem rgba(0, 0, 0, 0.28);
+    color: var(--on-accent);
   }
 
-  :global(:root[data-theme="dark"]) .moon {
+  .theme-toggle[aria-checked="true"] .moon {
     display: block;
+  }
+
+  .theme-toggle[aria-checked="true"]:hover .thumb {
+    background: var(--accent-hover);
   }
 </style>
