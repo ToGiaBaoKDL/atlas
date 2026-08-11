@@ -208,33 +208,30 @@ const status = getProjectStatusLabel(project.data.status);
 
   .project-card-list {
     border-bottom: 1px solid var(--border);
-    contain-intrinsic-size: auto 12rem;
+    contain-intrinsic-size: auto 22rem;
     content-visibility: auto;
   }
 
-  .project-card-list .project-card-media {
-    display: none;
-  }
-
   .project-card-list .project-card-link {
-    display: block;
-    padding-block: clamp(1.5rem, 4vw, 2.5rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(24rem, 0.85fr);
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: center;
+    padding-block: clamp(2.5rem, 5vw, 4rem);
   }
 
   .project-card-list .project-card-body {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.65fr) auto;
-    gap: 0.55rem 1.5rem;
-    align-items: start;
-  }
-
-  .project-card-list .project-card-meta,
-  .project-card-list h2,
-  .project-card-list .project-card-outcome {
+    grid-row: 1;
     grid-column: 1;
   }
 
+  .project-card-list .project-card-media {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
   .project-card-list .project-card-meta {
+    margin-bottom: 1.25rem;
     text-transform: uppercase;
   }
 
@@ -247,18 +244,16 @@ const status = getProjectStatusLabel(project.data.status);
   }
 
   .project-card-list .project-card-outcome {
-    margin: 0;
+    max-width: 36rem;
+    margin: 1rem 0 0;
   }
 
   .project-card-list .project-card-tags {
-    grid-row: 1 / 4;
-    grid-column: 2;
-    align-content: start;
+    margin-top: 1.25rem;
   }
 
   .project-card-list .project-card-cta {
-    grid-row: 1 / 4;
-    grid-column: 3;
+    margin-top: 1.5rem;
   }
 
   @media (max-width: 56rem) {
@@ -281,16 +276,14 @@ const status = getProjectStatusLabel(project.data.status);
       max-width: 18ch;
     }
 
-    .project-card-list .project-card-body {
-      grid-template-columns: minmax(0, 1fr) auto;
+    .project-card-list .project-card-link {
+      grid-template-columns: 1fr;
+      gap: 2rem;
     }
 
-    .project-card-list .project-card-tags {
-      display: none;
-    }
-
-    .project-card-list .project-card-cta {
-      grid-column: 2;
+    .project-card-list .project-card-media {
+      grid-row: 2;
+      grid-column: 1;
     }
   }
 
@@ -335,7 +328,8 @@ const status = getProjectStatusLabel(project.data.status);
       outline-offset: -0.25rem;
     }
 
-    .project-card .project-card-media {
+    .project-card .project-card-media,
+    .project-card-showcase.project-card-reverse .project-card-media {
       position: relative;
       order: 1;
       display: block;
@@ -360,7 +354,8 @@ const status = getProjectStatusLabel(project.data.status);
       pointer-events: none;
     }
 
-    .project-card .project-card-body {
+    .project-card .project-card-body,
+    .project-card-showcase.project-card-reverse .project-card-body {
       order: 2;
       display: block;
     }

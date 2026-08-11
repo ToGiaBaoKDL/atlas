@@ -187,6 +187,28 @@ test("tablet project cards keep a consistent content order", async ({ page }) =>
   }
 });
 
+test("desktop project index pairs content with full visuals", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 0) <= 896, "Desktop-only layout");
+
+  await page.goto("/projects/");
+  const cards = page.locator(".project-card-list");
+  await expect(cards).toHaveCount(2);
+
+  for (const card of await cards.all()) {
+    await card.scrollIntoViewIfNeeded();
+    const body = card.locator(".project-card-body");
+    const media = card.locator(".project-card-media");
+    const visual = media.locator(".visual-frame > *");
+    const [bodyBox, mediaBox] = await Promise.all([body.boundingBox(), media.boundingBox()]);
+
+    await expect(media).toBeVisible();
+    await expect(visual).toHaveCSS("transform", "none");
+    expect((bodyBox?.x ?? Number.POSITIVE_INFINITY) + (bodyBox?.width ?? 0)).toBeLessThan(
+      mediaBox?.x ?? 0,
+    );
+  }
+});
+
 test("mobile project cards show complete visual thumbnails", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
 
@@ -196,6 +218,12 @@ test("mobile project cards show complete visual thumbnails", async ({ page }) =>
     const previews = cards.locator(".project-card-media");
     await expect(cards).toHaveCount(2);
     await expect(previews).toHaveCount(2);
+
+    for (const card of await cards.all()) {
+      await card.scrollIntoViewIfNeeded();
+      await expect(card.locator(".project-card-media")).toHaveCSS("order", "1");
+      await expect(card.locator(".project-card-body")).toHaveCSS("order", "2");
+    }
 
     for (const preview of await previews.all()) {
       // Project lists use content-visibility to skip off-screen work. Bring each
