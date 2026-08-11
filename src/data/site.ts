@@ -1,5 +1,7 @@
 export const site = {
   name: "Tô Gia Bảo",
+  role: "Data Engineer",
+  employer: "Timo Digital Bank by BVBank",
   email: "baokdl2226@gmail.com",
   github: "https://github.com/ToGiaBaoKDL",
   linkedin: "https://www.linkedin.com/in/togiabao",

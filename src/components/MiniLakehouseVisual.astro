@@ -51,19 +51,20 @@ const stages = [
     overflow: hidden;
     min-width: 0;
     margin: 0;
-    border: 1px solid var(--dark-border);
+    border: 1px solid var(--visual-border);
     border-radius: var(--radius-md);
     background:
       linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-      radial-gradient(circle at 80% 15%, rgba(82, 105, 217, 0.17), transparent 32%), #111611;
+      radial-gradient(circle at 80% 15%, rgba(82, 105, 217, 0.17), transparent 32%),
+      var(--visual-bg);
     background-size:
       1.35rem 1.35rem,
       1.35rem 1.35rem,
       auto,
       auto;
     padding: clamp(1rem, 3vw, 1.6rem);
-    color: var(--dark-text);
+    color: var(--visual-text);
   }
 
   .workflow-track {
@@ -80,9 +81,9 @@ const stages = [
   .workflow-track li {
     position: relative;
     min-width: 0;
-    border: 1px solid var(--dark-border);
+    border: 1px solid var(--visual-border);
     border-radius: var(--radius-sm);
-    background: rgba(22, 28, 22, 0.94);
+    background: color-mix(in srgb, var(--visual-panel) 94%, transparent);
     padding: clamp(0.7rem, 1.5vw, 1rem);
   }
 
@@ -103,7 +104,7 @@ const stages = [
     right: 0.15rem;
     left: 0;
     height: 2px;
-    background: linear-gradient(90deg, #5369c4, #8da2ff);
+    background: linear-gradient(90deg, var(--visual-accent-strong), var(--visual-accent));
     content: "";
   }
 
@@ -114,27 +115,29 @@ const stages = [
     width: 0.38rem;
     height: 0.38rem;
     transform: translateY(-50%) rotate(45deg);
-    border-top: 2px solid #9aafff;
-    border-right: 2px solid #9aafff;
+    border-top: 2px solid var(--visual-accent);
+    border-right: 2px solid var(--visual-accent);
     content: "";
   }
 
   .workflow-connector i {
+    --visual-flow-distance: 0.55rem;
+
     position: absolute;
     z-index: 1;
     top: calc(50% - 0.14rem);
-    left: 38%;
+    left: 20%;
     width: 0.28rem;
     height: 0.28rem;
     border-radius: 50%;
-    background: #9aafff;
-    box-shadow: 0 0 0 0.18rem rgba(141, 162, 255, 0.12);
+    background: var(--visual-accent);
+    box-shadow: 0 0 0 0.18rem var(--visual-accent-glow);
   }
 
   .workflow-number {
     display: block;
     margin-bottom: 1.8rem;
-    color: #718bf1;
+    color: var(--visual-accent);
     font-family: var(--font-mono);
     font-size: 0.62rem;
   }
@@ -142,7 +145,7 @@ const stages = [
   .workflow-track small,
   .workflow-operations > span {
     display: block;
-    color: #7f877b;
+    color: var(--visual-muted);
     font-family: var(--font-mono);
     font-size: 0.55rem;
     font-weight: 640;
@@ -153,14 +156,14 @@ const stages = [
   .workflow-track strong {
     display: block;
     margin-top: 0.3rem;
-    color: #f1f3ec;
+    color: var(--visual-text);
     font-size: clamp(0.72rem, 1.3vw, 0.88rem);
     font-weight: 580;
   }
 
   .workflow-track p {
     margin: 0.35rem 0 0;
-    color: var(--dark-soft);
+    color: var(--visual-soft);
     font-size: clamp(0.58rem, 1.1vw, 0.7rem);
     line-height: 1.4;
   }
@@ -170,7 +173,7 @@ const stages = [
     grid-template-columns: auto 1fr;
     gap: 1rem;
     align-items: center;
-    border-top: 1px solid var(--dark-border);
+    border-top: 1px solid var(--visual-border);
     padding-top: 1rem;
   }
 
@@ -181,12 +184,18 @@ const stages = [
   }
 
   .workflow-operations > div span {
-    border: 1px solid #303930;
+    border: 1px solid var(--visual-border);
     border-radius: 999px;
     padding: 0.25rem 0.55rem;
-    color: #9da59a;
+    color: var(--visual-soft);
     font-family: var(--font-mono);
     font-size: 0.55rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global([data-reveal].is-revealed) .workflow-connector i {
+      animation: visual-flow-inline 2.6s var(--ease-out) 450ms 2;
+    }
   }
 
   @media (max-width: 40rem) {
@@ -219,7 +228,7 @@ const stages = [
       left: calc(50% - 1px);
       width: 2px;
       height: auto;
-      background: linear-gradient(#5369c4, #8da2ff);
+      background: linear-gradient(var(--visual-accent-strong), var(--visual-accent));
     }
 
     .workflow-connector::after {
@@ -229,12 +238,14 @@ const stages = [
       left: 50%;
       transform: translateX(-50%) rotate(45deg);
       border-top: 0;
-      border-right: 2px solid #9aafff;
-      border-bottom: 2px solid #9aafff;
+      border-right: 2px solid var(--visual-accent);
+      border-bottom: 2px solid var(--visual-accent);
     }
 
     .workflow-connector i {
-      top: 38%;
+      --visual-flow-distance: 0.45rem;
+
+      top: 20%;
       left: calc(50% - 0.14rem);
     }
 
@@ -257,6 +268,12 @@ const stages = [
     .workflow-operations > div {
       flex-wrap: wrap;
       justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 40rem) and (prefers-reduced-motion: no-preference) {
+    :global([data-reveal].is-revealed) .workflow-connector i {
+      animation-name: visual-flow-block;
     }
   }
 </style>

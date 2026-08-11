@@ -1,6 +1,7 @@
 ---
 import "@fontsource-variable/geist";
 import "@fontsource-variable/geist-mono";
+import MotionController from "../components/MotionController.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
 import { site } from "../data/site";
@@ -17,11 +18,13 @@ interface Props {
 const { title, description, section, noindex = false } = Astro.props;
 const pageTitle = title === site.name ? title : `${title} — ${site.name}`;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : undefined;
+const themeColors = { light: "#f7f6f2", dark: "#111310" } as const;
 const personSchema = {
   "@context": "https://schema.org",
   "@type": "Person",
   name: site.name,
-  jobTitle: "Data Engineer",
+  jobTitle: site.role,
+  worksFor: { "@type": "Organization", name: site.employer },
   email: `mailto:${site.email}`,
   sameAs: [site.github, site.linkedin],
   ...(canonical ? { url: canonical.href } : {}),
@@ -33,7 +36,13 @@ const personSchema = {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#f7f6f2" data-theme-color />
+    <meta
+      name="theme-color"
+      content={themeColors.light}
+      data-theme-color
+      data-light={themeColors.light}
+      data-dark={themeColors.dark}
+    />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
@@ -54,9 +63,9 @@ const personSchema = {
           const theme =
             saved === "light" || saved === "dark" ? saved : systemDark ? "dark" : "light";
           document.documentElement.dataset.theme = theme;
-          document
-            .querySelector("[data-theme-color]")
-            ?.setAttribute("content", theme === "dark" ? "#111310" : "#f7f6f2");
+          const themeColor = document.querySelector("[data-theme-color]");
+          const color = themeColor?.getAttribute(theme === "dark" ? "data-dark" : "data-light");
+          if (color) themeColor?.setAttribute("content", color);
         } catch {
           document.documentElement.dataset.theme = "light";
         }
@@ -71,5 +80,6 @@ const personSchema = {
       <slot />
     </main>
     <SiteFooter />
+    <MotionController />
   </body>
 </html>

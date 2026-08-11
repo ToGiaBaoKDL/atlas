@@ -47,9 +47,9 @@ import { ui } from "../data/site";
   const syncThemeControls = () => {
     const isDark = document.documentElement.dataset.theme === "dark";
     themeToggles.forEach((toggle) => toggle.setAttribute("aria-checked", String(isDark)));
-    document
-      .querySelector("[data-theme-color]")
-      ?.setAttribute("content", isDark ? "#111310" : "#f7f6f2");
+    const themeColor = document.querySelector<HTMLMetaElement>("[data-theme-color]");
+    const color = isDark ? themeColor?.dataset.dark : themeColor?.dataset.light;
+    if (themeColor && color) themeColor.content = color;
   };
 
   syncThemeControls();
@@ -90,8 +90,8 @@ import { ui } from "../data/site";
     border-radius: 999px;
     background: var(--surface);
     transition:
-      border-color 160ms ease,
-      background-color 160ms ease;
+      border-color var(--motion-fast) ease,
+      background-color var(--motion-fast) ease;
   }
 
   .thumb {
@@ -107,8 +107,8 @@ import { ui } from "../data/site";
     box-shadow: 0 0.12rem 0.35rem rgba(15, 18, 14, 0.2);
     color: var(--text);
     transition:
-      transform 180ms ease,
-      background-color 160ms ease;
+      transform var(--motion-base) var(--ease-out),
+      background-color var(--motion-fast) ease;
   }
 
   .sun,

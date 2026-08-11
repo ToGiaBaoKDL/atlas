@@ -7,12 +7,13 @@
   --surface: #efeee9;
   --text: #111210;
   --text-soft: #555851;
-  --text-faint: #73766f;
+  --text-faint: #6d7069;
   --border: #d9d8d2;
   --border-strong: #b9bbb4;
   --accent: #3157d5;
   --accent-soft: #e8edff;
   --accent-ink: #17338d;
+  --on-accent: #ffffff;
   --dark: #101310;
   --dark-text: #f4f5ef;
   --dark-soft: #aeb4aa;
@@ -23,6 +24,30 @@
   --radius-md: 0.75rem;
   --shadow: 0 1rem 3rem rgba(26, 28, 24, 0.08);
   --header-height: 4.5rem;
+  --motion-fast: 160ms;
+  --motion-base: 240ms;
+  --motion-slow: 420ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Stable palette for architecture visuals in both site themes. */
+  --visual-bg: #111611;
+  --visual-panel: #161c16;
+  --visual-panel-soft: rgba(20, 26, 21, 0.78);
+  --visual-border: #303831;
+  --visual-border-soft: #2a322b;
+  --visual-text: #f1f3ed;
+  --visual-text-strong: #f4f5ef;
+  --visual-soft: #aeb4aa;
+  --visual-muted: #7f877b;
+  --visual-faint: #788177;
+  --visual-accent: #8da2ff;
+  --visual-accent-strong: #5369c4;
+  --visual-accent-glow: rgba(141, 162, 255, 0.12);
+  --visual-model: #aab9f7;
+  --visual-code: #9cc9ad;
+  --visual-copy: #9fa69c;
+  --visual-success: #78cf91;
+  --visual-success-glow: rgba(120, 207, 145, 0.12);
 }
 
 :root[data-theme="dark"] {
@@ -38,5 +63,8 @@
   --accent: #8ba2ff;
   --accent-soft: #202c59;
   --accent-ink: #cbd5ff;
+  --on-accent: #111310;
+  --dark: #0b0e0b;
+  --dark-border: #343a33;
   --shadow: 0 1rem 3rem rgba(0, 0, 0, 0.22);
 }

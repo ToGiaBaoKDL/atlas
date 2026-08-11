@@ -19,12 +19,12 @@ if (!featured) throw new Error("Missing featured project");
   description="Tô Gia Bảo is a Data Engineer building reliable data platforms, lakehouse systems and AI-powered data products."
 >
   <div class="container hero">
-    <div class="hero-copy">
+    <div class="hero-copy" data-enter>
       <p class="eyebrow">Data Engineer · Data Platforms</p>
       <h1>I build reliable data platforms, end to end.</h1>
       <p class="hero-lead">
-        I'm Tô Gia Bảo, a Data Engineer at Timo Digital Bank. I work across ingestion,
-        orchestration, lakehouse architecture, analytics engineering and AI-powered data products.
+        I'm {site.name}, a {site.role} at {site.employer}. I work across ingestion, orchestration,
+        lakehouse architecture, analytics engineering and AI-powered data products.
       </p>
       <div class="button-row">
         <a class="button" href="#selected-projects"
@@ -38,7 +38,9 @@ if (!featured) throw new Error("Missing featured project");
         <li>Cloud Infrastructure</li>
       </ul>
     </div>
-    <SignatureVisual />
+    <div class="hero-visual" data-enter="delayed">
+      <SignatureVisual />
+    </div>
   </div>
 
   <section class="projects-band section" id="selected-projects">
@@ -51,7 +53,7 @@ if (!featured) throw new Error("Missing featured project");
         <a class="text-link" href="/projects/">View all projects →</a>
       </div>
 
-      <article class="featured-project">
+      <article class="featured-project" data-reveal>
         <div>
           <span class="project-index">
             01 · {featured.data.role} · {getProjectStatusLabel(featured.data.status)}
@@ -70,7 +72,12 @@ if (!featured) throw new Error("Missing featured project");
 
       {
         secondary.map((project, index) => (
-          <a class="secondary-project" href={`/projects/${project.id}/`}>
+          <a
+            class="secondary-project"
+            href={`/projects/${project.id}/`}
+            data-reveal
+            data-reveal-delay={String(Math.min(index + 1, 2))}
+          >
             <span>{String(index + 2).padStart(2, "0")}</span>
             <h3>{project.data.title}</h3>
             <p>{project.data.outcome}</p>
@@ -84,7 +91,7 @@ if (!featured) throw new Error("Missing featured project");
   </section>
 
   <section class="section">
-    <div class="container writing-grid">
+    <div class="container writing-grid" data-reveal>
       <div class="writing-intro">
         <p class="section-kicker">02 / Writing</p>
         <h2>Ideas worth unpacking.</h2>
@@ -119,6 +126,10 @@ if (!featured) throw new Error("Missing featured project");
   }
 
   .hero-copy {
+    min-width: 0;
+  }
+
+  .hero-visual {
     min-width: 0;
   }
 
@@ -283,8 +294,10 @@ if (!featured) throw new Error("Missing featured project");
   }
 
   .secondary-project:hover h3,
-  .secondary-project:hover .project-arrow {
-    color: #9eafff;
+  .secondary-project:hover .project-arrow,
+  .secondary-project:focus-visible h3,
+  .secondary-project:focus-visible .project-arrow {
+    color: var(--visual-accent);
   }
 
   .secondary-project > span:first-child {
@@ -297,7 +310,7 @@ if (!featured) throw new Error("Missing featured project");
     margin: 0;
     font-size: 1.05rem;
     font-weight: 580;
-    transition: color 160ms ease;
+    transition: color var(--motion-fast) ease;
   }
 
   .secondary-project p {
@@ -307,7 +320,14 @@ if (!featured) throw new Error("Missing featured project");
   }
 
   .project-arrow {
-    transition: color 160ms ease;
+    transition:
+      transform var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) ease;
+  }
+
+  .secondary-project:hover .project-arrow,
+  .secondary-project:focus-visible .project-arrow {
+    transform: translateX(0.25rem);
   }
 
   .writing-grid {

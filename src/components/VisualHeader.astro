@@ -24,7 +24,7 @@ const { eyebrow, title, status } = Astro.props;
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    border-bottom: 1px solid #2a322b;
+    border-bottom: 1px solid var(--visual-border-soft);
     padding-bottom: 1rem;
   }
 
@@ -34,7 +34,7 @@ const { eyebrow, title, status } = Astro.props;
   }
 
   span {
-    color: #7f897d;
+    color: var(--visual-muted);
     font-family: var(--font-mono);
     font-size: 0.58rem;
     font-weight: 640;
@@ -43,7 +43,7 @@ const { eyebrow, title, status } = Astro.props;
   }
 
   strong {
-    color: #f4f5ef;
+    color: var(--visual-text-strong);
     font-size: 0.92rem;
     font-weight: 590;
   }
@@ -59,7 +59,14 @@ const { eyebrow, title, status } = Astro.props;
     width: 0.38rem;
     height: 0.38rem;
     border-radius: 50%;
-    background: #78cf91;
-    box-shadow: 0 0 0 0.22rem rgba(120, 207, 145, 0.12);
+    background: var(--visual-success);
+    box-shadow: 0 0 0 0.22rem var(--visual-success-glow);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global([data-enter]) i,
+    :global([data-reveal].is-revealed) i {
+      animation: visual-status-pulse 2.8s ease-out 500ms 2;
+    }
   }
 </style>

@@ -139,6 +139,7 @@ const navItems = [
     font-weight: 720;
     letter-spacing: -0.04em;
     text-decoration: none;
+    transition: color var(--motion-fast) ease;
   }
 
   .wordmark:hover {
@@ -160,6 +161,7 @@ const navItems = [
     font-size: 0.91rem;
     font-weight: 540;
     text-decoration: none;
+    transition: color var(--motion-fast) ease;
   }
 
   .desktop-nav a:hover,
@@ -188,6 +190,10 @@ const navItems = [
     background: transparent;
     color: var(--text-soft);
     cursor: pointer;
+    transition:
+      border-color var(--motion-fast) ease,
+      background-color var(--motion-fast) ease,
+      color var(--motion-fast) ease;
   }
 
   .icon-button:hover,
@@ -246,6 +252,7 @@ const navItems = [
     font-weight: 610;
     letter-spacing: -0.035em;
     text-decoration: none;
+    transition: color var(--motion-fast) ease;
   }
 
   .mobile-menu-nav a[aria-current="page"] {

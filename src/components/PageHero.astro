@@ -8,7 +8,7 @@ interface Props {
 const { kicker, title, description } = Astro.props;
 ---
 
-<header class="page-hero">
+<header class="page-hero" data-enter>
   <p class="section-kicker">{kicker}</p>
   <h1>{title}</h1>
   {description && <p>{description}</p>}

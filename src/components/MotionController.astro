@@ -1,0 +1,24 @@
+<script>
+  const targets = document.querySelectorAll<HTMLElement>("[data-reveal]");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (reduceMotion || !("IntersectionObserver" in window)) {
+    targets.forEach((target) => target.classList.add("is-revealed"));
+  } else {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-revealed");
+          observer.unobserve(entry.target);
+        });
+      },
+      { rootMargin: "0px 0px -8%", threshold: 0.08 },
+    );
+
+    targets.forEach((target) => {
+      target.classList.add("reveal-ready");
+      observer.observe(target);
+    });
+  }
+</script>

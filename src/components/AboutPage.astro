@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import { experiences } from "../data/experience";
 import { site } from "../data/site";
 import PageHero from "./PageHero.astro";
 ---
@@ -12,19 +13,44 @@ import PageHero from "./PageHero.astro";
   <div class="container">
     <PageHero kicker="About" title="Engineer, builder, lifelong learner." />
 
-    <div class="about-grid">
+    <div class="about-grid" data-reveal>
       <div class="about-copy">
         <p>
-          I'm Tô Gia Bảo, a Data Engineer at Timo Digital Bank by BVBank. I build cloud data
-          pipelines, orchestration workflows, analytics systems and AI-assisted tools using Python,
-          SQL, AWS, Airflow and dbt.
+          I'm {site.name}, a {site.role} at {site.employer}. I build cloud data pipelines,
+          orchestration workflows, analytics systems and AI-assisted tools using Python, SQL, AWS,
+          Airflow and dbt.
         </p>
         <p>
           I care about explicit system boundaries, observable operations and designs that remain
           understandable as they grow. My current interests include lakehouse architecture,
           infrastructure as code and AI-native data tooling.
         </p>
-        <p>I hold a B.Sc. in Data Science from the University of Science, VNU-HCM.</p>
+
+        <section class="experience" aria-labelledby="experience-heading">
+          <p class="section-kicker">Experience</p>
+          <h2 id="experience-heading">Professional experience</h2>
+          {
+            experiences.map((experience) => (
+              <article class="experience-role">
+                <header>
+                  <div>
+                    <h3>{experience.company}</h3>
+                    <p>{experience.role}</p>
+                  </div>
+                  <p class="experience-period">
+                    <time datetime={experience.startDate}>{experience.startLabel}</time> — Present
+                  </p>
+                </header>
+                <p class="experience-summary">{experience.summary}</p>
+                <ul>
+                  {experience.highlights.map((highlight) => (
+                    <li>{highlight}</li>
+                  ))}
+                </ul>
+              </article>
+            ))
+          }
+        </section>
 
         <a
           class="resume-preview"
@@ -50,16 +76,16 @@ import PageHero from "./PageHero.astro";
 
       <aside class="about-details" aria-label="Profile details">
         <section>
-          <h2>Current role</h2>
-          <p>Data Engineer · Timo Digital Bank by BVBank</p>
-        </section>
-        <section>
           <h2>Location</h2>
           <p>Ho Chi Minh City, Vietnam</p>
         </section>
         <section>
           <h2>Current focus</h2>
           <p>Data platforms · Lakehouse · Cloud infrastructure · Applied AI</p>
+        </section>
+        <section>
+          <h2>Education</h2>
+          <p>B.Sc. Data Science · University of Science, VNU-HCM</p>
         </section>
         <section>
           <h2>Email</h2>
@@ -82,13 +108,13 @@ import PageHero from "./PageHero.astro";
     max-width: var(--article-width);
   }
 
-  .about-copy p {
+  .about-copy > p {
     margin: 0 0 1.35rem;
     color: var(--text-soft);
     font-size: clamp(1.05rem, 2vw, 1.2rem);
   }
 
-  .about-copy p:first-child {
+  .about-copy > p:first-child {
     color: var(--text);
     font-size: clamp(1.3rem, 2.5vw, 1.65rem);
     letter-spacing: -0.025em;
@@ -97,7 +123,7 @@ import PageHero from "./PageHero.astro";
   .resume-preview {
     display: block;
     max-width: 28rem;
-    margin-top: 2.5rem;
+    margin-top: 3.5rem;
     overflow: hidden;
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
@@ -105,8 +131,8 @@ import PageHero from "./PageHero.astro";
     box-shadow: var(--shadow);
     text-decoration: none;
     transition:
-      transform 180ms ease,
-      border-color 180ms ease;
+      transform var(--motion-base) var(--ease-out),
+      border-color var(--motion-fast) ease;
   }
 
   .resume-preview:hover {
@@ -176,9 +202,90 @@ import PageHero from "./PageHero.astro";
     font-size: 0.92rem;
   }
 
+  .experience {
+    margin-top: clamp(3rem, 7vw, 5rem);
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+  }
+
+  .experience > h2 {
+    margin: 0;
+    font-size: clamp(1.7rem, 4vw, 2.5rem);
+    font-weight: 630;
+    letter-spacing: -0.045em;
+    line-height: 1.08;
+  }
+
+  .experience-role {
+    margin-top: 2rem;
+  }
+
+  .experience-role header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+  }
+
+  .experience-role h3,
+  .experience-role header p {
+    margin: 0;
+  }
+
+  .experience-role h3 {
+    font-size: 1.08rem;
+    font-weight: 630;
+  }
+
+  .experience-role header div > p,
+  .experience-period {
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+  }
+
+  .experience-period {
+    flex: 0 0 auto;
+    text-align: right;
+  }
+
+  .about-copy .experience-summary {
+    margin: 1.25rem 0 0;
+    color: var(--text);
+    font-size: 1rem;
+  }
+
+  .experience-role ul {
+    margin: 1.25rem 0 0;
+    padding-left: 1.15rem;
+  }
+
+  .experience-role li {
+    color: var(--text-soft);
+  }
+
+  .experience-role li + li {
+    margin-top: 0.75rem;
+  }
+
+  .experience-role li::marker {
+    color: var(--accent);
+  }
+
   @media (max-width: 56rem) {
     .about-grid {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .experience-role header {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .experience-period {
+      text-align: left;
     }
   }
 </style>

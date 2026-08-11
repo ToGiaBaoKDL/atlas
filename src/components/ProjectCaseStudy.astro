@@ -18,7 +18,7 @@ const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
 
 <BaseLayout title={project.data.title} description={project.data.description} section="projects">
   <article>
-    <header class="project-hero container">
+    <header class="project-hero container" data-enter>
       <a class="text-link" href="/projects/">← All projects</a>
       <div class="project-hero-grid">
         <div>
@@ -87,7 +87,7 @@ const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
       }
     </div>
 
-    <footer class="project-continuation container" id="project-continuation">
+    <footer class="project-continuation container" id="project-continuation" data-reveal>
       <p class="section-kicker">{nextProject ? "Next project" : "Continue exploring"}</p>
       <a href={nextProject ? `/projects/${nextProject.id}/` : "/projects/"}>
         <span>
@@ -329,7 +329,7 @@ const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
     font-weight: 630;
     letter-spacing: -0.052em;
     line-height: 1;
-    transition: color 160ms ease;
+    transition: color var(--motion-fast) ease;
   }
 
   .project-continuation small {
@@ -342,7 +342,7 @@ const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
     color: var(--accent);
     font-size: clamp(1.5rem, 4vw, 2.5rem);
     font-style: normal;
-    transition: transform 160ms ease;
+    transition: transform var(--motion-fast) var(--ease-out);
   }
 
   .project-continuation > a:hover strong {
