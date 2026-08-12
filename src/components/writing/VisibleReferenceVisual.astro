@@ -1,0 +1,156 @@
+---
+import FlowArrow from "../FlowArrow.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const lanes = [
+  {
+    label: "Reader visibility",
+    tone: "visible",
+    stages: [
+      { eyebrow: "Certified candidate", title: "repair-07", detail: "Built from snapshot N" },
+      { eyebrow: "Atomic catalog commit", title: "Compare + swap", detail: "Expect N · set main" },
+      { eyebrow: "Reader reference", title: "main → repair-07", detail: "One visible snapshot" },
+    ],
+  },
+  {
+    label: "Worker knowledge",
+    tone: "unknown",
+    stages: [
+      { eyebrow: "Commit response", title: "Lost", detail: "Outcome is unknown" },
+      { eyebrow: "Status check", title: "Reconcile", detail: "Current + recent history" },
+      { eyebrow: "Candidate found", title: "Mark success", detail: "Do not commit again" },
+    ],
+  },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Commit knowledge"
+  title="Reconcile the pointer, not the timeout"
+  status="One visible state"
+  caption="A timeout changes what the worker knows, not necessarily what readers can see. Resolve the candidate against the current reference and its history before retrying or deleting files."
+  number="02 / VISIBLE REFERENCE"
+>
+  <ol class="reference-lanes" aria-label="Publication visibility and commit reconciliation">
+    {
+      lanes.map((lane) => (
+        <li class={lane.tone}>
+          <span class="lane-label">{lane.label}</span>
+          <div class="lane-path">
+            {lane.stages.map((stage, index) => (
+              <>
+                <article>
+                  <span>{stage.eyebrow}</span>
+                  <strong>{stage.title}</strong>
+                  <small>{stage.detail}</small>
+                </article>
+                {index < lane.stages.length - 1 && <FlowArrow />}
+              </>
+            ))}
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+</TechnicalFigure>
+
+<style>
+  .reference-lanes {
+    display: grid;
+    height: 100%;
+    gap: 0.65rem;
+    align-content: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .reference-lanes > li {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 6.4rem minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: stretch;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel-soft) 94%, transparent);
+    padding: 0.55rem;
+  }
+
+  .reference-lanes > .visible {
+    border-color: color-mix(in srgb, var(--visual-accent) 55%, var(--visual-border));
+  }
+
+  .lane-label {
+    display: grid;
+    align-content: center;
+    color: var(--visual-muted);
+    font-family: var(--font-mono);
+    font-size: 0.47rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .lane-path {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) 1.3rem minmax(0, 1fr) 1.3rem minmax(0, 1fr);
+    gap: 0.4rem;
+    align-items: stretch;
+  }
+
+  .lane-path article {
+    display: grid;
+    min-width: 0;
+    min-height: 4.7rem;
+    align-content: center;
+    gap: 0.3rem;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel);
+    padding: 0.55rem 0.65rem;
+  }
+
+  .lane-path span,
+  .lane-path small {
+    color: var(--visual-muted);
+    font-family: var(--font-mono);
+    font-size: 0.44rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .lane-path strong {
+    color: var(--visual-text);
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  .lane-path small {
+    color: var(--visual-soft);
+  }
+
+  .visible article:nth-of-type(2),
+  .visible article:nth-of-type(3),
+  .unknown article:nth-of-type(3) {
+    border-color: var(--visual-accent-strong);
+    background: color-mix(in srgb, var(--visual-panel) 88%, var(--visual-accent-glow));
+  }
+
+  .visible article:nth-of-type(2) span,
+  .visible article:nth-of-type(3) span,
+  .visible article:nth-of-type(3) strong,
+  .unknown article:nth-of-type(3) span,
+  .unknown article:nth-of-type(3) strong {
+    color: var(--visual-accent);
+  }
+
+  .unknown article:first-of-type {
+    border-style: dashed;
+  }
+
+  .unknown article:first-of-type strong {
+    color: #dfc282;
+  }
+</style>

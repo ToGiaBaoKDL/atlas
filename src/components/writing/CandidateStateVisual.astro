@@ -1,0 +1,254 @@
+---
+import FlowArrow from "../FlowArrow.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const exceptions = [
+  {
+    condition: "Evidence fails",
+    detail: "Candidate is not certified",
+    response: "Quarantine",
+    responseDetail: "Keep candidate + report",
+    tone: "failed",
+  },
+  {
+    condition: "Base moved",
+    detail: "Commit assumption changed",
+    response: "Rebuild + validate",
+    responseDetail: "Create a new candidate ID",
+    tone: "changed",
+  },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Candidate protocol"
+  title="Validation certifies one candidate, not “the table”"
+  status="Identity bound"
+  caption="Evidence remains valid only while its candidate and commit assumptions remain unchanged. Failed checks quarantine the candidate; a changed base creates a new candidate and new evidence."
+  number="01 / CANDIDATE STATE"
+>
+  <div class="candidate-protocol">
+    <div class="main-path" aria-label="Certified publication path">
+      <article>
+        <span>Immutable candidate</span>
+        <strong>repair-07</strong>
+        <dl>
+          <div><dt>Base</dt><dd>snapshot N</dd></div>
+          <div><dt>Scope</dt><dd>orders · 09 Aug</dd></div>
+        </dl>
+      </article>
+
+      <FlowArrow />
+
+      <article class="evidence">
+        <span>Bound evidence</span>
+        <strong>report-07</strong>
+        <ul aria-label="Passed validation checks">
+          <li>Schema</li>
+          <li>Keys</li>
+          <li>Reconcile</li>
+          <li>Scope</li>
+        </ul>
+        <small>Subject · repair-07</small>
+      </article>
+
+      <FlowArrow />
+
+      <article class="publish-gate">
+        <span>Publish gate</span>
+        <strong>Compare + swap</strong>
+        <dl>
+          <div><dt>Expect</dt><dd>snapshot N</dd></div>
+          <div><dt>Set</dt><dd>main → repair-07</dd></div>
+        </dl>
+      </article>
+    </div>
+
+    <div class="exception-label">Exception routes</div>
+
+    <ol class="exception-routes" aria-label="Candidate exception routes">
+      {
+        exceptions.map((exception) => (
+          <li class={exception.tone}>
+            <div>
+              <span>{exception.condition}</span>
+              <small>{exception.detail}</small>
+            </div>
+            <FlowArrow />
+            <article>
+              <strong>{exception.response}</strong>
+              <small>{exception.responseDetail}</small>
+            </article>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</TechnicalFigure>
+
+<style>
+  .candidate-protocol {
+    display: grid;
+    height: 100%;
+    gap: 0.55rem;
+    align-content: center;
+  }
+
+  .main-path {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) 1.45rem minmax(0, 1.25fr) 1.45rem minmax(0, 1fr);
+    gap: 0.4rem;
+    align-items: stretch;
+  }
+
+  .main-path > article,
+  .exception-routes article {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 0.3rem;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel);
+    padding: 0.55rem 0.65rem;
+  }
+
+  .main-path > article {
+    min-height: 5.5rem;
+  }
+
+  .main-path span,
+  .main-path small,
+  .exception-label,
+  .exception-routes span,
+  .exception-routes small,
+  dt,
+  dd {
+    font-family: var(--font-mono);
+    font-size: 0.45rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .main-path span,
+  .exception-label,
+  .exception-routes span,
+  dt {
+    color: var(--visual-muted);
+    font-weight: 650;
+  }
+
+  .main-path strong,
+  .exception-routes strong {
+    color: var(--visual-text);
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.4rem;
+    margin: 0.15rem 0 0;
+  }
+
+  dl div {
+    display: grid;
+    min-width: 0;
+    gap: 0.12rem;
+    border-top: 1px solid var(--visual-border-soft);
+    padding-top: 0.3rem;
+  }
+
+  dd {
+    overflow-wrap: anywhere;
+    margin: 0;
+    color: var(--visual-soft);
+  }
+
+  .evidence {
+    border-color: var(--visual-accent-strong) !important;
+    background: color-mix(in srgb, var(--visual-panel) 88%, var(--visual-accent-glow)) !important;
+  }
+
+  .evidence ul {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.25rem;
+    margin: 0.1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .evidence li {
+    border: 1px solid var(--visual-border);
+    border-radius: 0.3rem;
+    background: var(--visual-panel-soft);
+    padding: 0.25rem 0.2rem;
+    color: var(--visual-soft);
+    font-family: var(--font-mono);
+    font-size: 0.42rem;
+    text-align: center;
+  }
+
+  .evidence small,
+  .publish-gate span,
+  .publish-gate strong {
+    color: var(--visual-accent);
+  }
+
+  .exception-label {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.6rem;
+    align-items: center;
+  }
+
+  .exception-label::after {
+    height: 1px;
+    background: var(--visual-border-soft);
+    content: "";
+  }
+
+  .exception-routes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .exception-routes li {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) 0.9rem minmax(0, 1fr);
+    gap: 0.35rem;
+    align-items: stretch;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel-soft) 94%, transparent);
+    padding: 0.45rem;
+  }
+
+  .exception-routes li > div {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 0.25rem;
+    padding: 0.3rem;
+  }
+
+  .exception-routes small {
+    color: var(--visual-soft);
+  }
+
+  .failed article strong {
+    color: #df8f82;
+  }
+
+  .changed article {
+    border-style: dashed;
+  }
+</style>

@@ -21,6 +21,12 @@ const writingArticles = [
     part: 3,
     publishedAt: "2026-08-12T06:45:00.000Z",
   },
+  {
+    route: "/writing/validation-is-not-a-publish-protocol/",
+    title: "Validation Is Not a Publish Protocol",
+    part: 4,
+    publishedAt: "2026-08-12T07:25:00.000Z",
+  },
 ] as const;
 const firstWritingRoute = writingArticles[0].route;
 const replayableSeries = writingSeries.find(({ id }) => id === "replayable-by-design");
