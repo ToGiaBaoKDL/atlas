@@ -1,0 +1,177 @@
+---
+import FlowArrow from "../FlowArrow.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const lanes = [
+  {
+    label: "Attempt identity",
+    tone: "unsafe",
+    stages: [
+      { value: "Write", detail: "table converges" },
+      { value: "Emit", detail: "anonymous event" },
+      { value: "Retry", detail: "emit again" },
+      { value: "2 applied", detail: "duplicate effect" },
+    ],
+  },
+  {
+    label: "Stable effect ID",
+    tone: "safe",
+    stages: [
+      { value: "Write", detail: "table converges" },
+      { value: "Deliver", detail: "same effect ID" },
+      { value: "Dedupe", detail: "durable receipt" },
+      { value: "1 applied", detail: "one business effect" },
+    ],
+  },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Side-effect boundary"
+  title="A converged table can still repeat the effect"
+  status="One applied"
+  caption="Delivery may happen more than once. A stable effect ID lets every retry resolve to one applied business effect instead of trusting an attempt-local success flag."
+  number="02 / EFFECT GAP"
+>
+  <div class="effect-map">
+    <div class="effect-key">
+      <span>Effect intent</span>
+      <span class="effect-id">orders · 09 Aug · input-42 · rev-17 · published</span>
+    </div>
+
+    <ol class="effect-lanes" aria-label="Side-effect retry outcomes">
+      {
+        lanes.map((lane) => (
+          <li class={lane.tone}>
+            <span class="lane-label">{lane.label}</span>
+            <div class="effect-path">
+              {lane.stages.map((stage, index) => (
+                <>
+                  <article>
+                    <strong>{stage.value}</strong>
+                    <small>{stage.detail}</small>
+                  </article>
+                  {index < lane.stages.length - 1 && (
+                    <FlowArrow particle={lane.tone === "safe" && index === 1} />
+                  )}
+                </>
+              ))}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</TechnicalFigure>
+
+<style>
+  .effect-map {
+    display: grid;
+    height: 100%;
+    gap: 0.65rem;
+    align-content: center;
+  }
+
+  .effect-key {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.8rem;
+    align-items: center;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel-soft) 94%, transparent);
+    padding: 0.55rem 0.7rem;
+  }
+
+  .effect-key span,
+  .lane-label,
+  article small {
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .effect-key span,
+  .lane-label {
+    color: var(--visual-muted);
+  }
+
+  .effect-id {
+    overflow-wrap: anywhere;
+    color: var(--visual-accent);
+  }
+
+  .effect-lanes {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .effect-lanes > li {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 6.3rem minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: center;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel-soft) 94%, transparent);
+    padding: 0.6rem;
+  }
+
+  .effect-lanes > .safe {
+    border-color: color-mix(in srgb, var(--visual-accent) 65%, var(--visual-border));
+  }
+
+  .effect-path {
+    display: grid;
+    min-width: 0;
+    grid-template-columns:
+      minmax(0, 1fr) 0.8rem minmax(0, 1fr) 0.8rem minmax(0, 1fr) 0.8rem
+      minmax(0, 1fr);
+    gap: 0.3rem;
+    align-items: stretch;
+  }
+
+  article {
+    display: grid;
+    min-width: 0;
+    min-height: 3.45rem;
+    align-content: center;
+    gap: 0.3rem;
+    border: 1px solid var(--visual-border);
+    border-radius: 0.35rem;
+    background: var(--visual-panel);
+    padding: 0.45rem;
+  }
+
+  article strong {
+    color: var(--visual-text);
+    font-size: 0.65rem;
+    font-weight: 600;
+  }
+
+  article small {
+    color: var(--visual-soft);
+    font-weight: 500;
+  }
+
+  .unsafe article:last-child strong,
+  .unsafe article:last-child small {
+    color: #df8f82;
+  }
+
+  .safe article:last-child {
+    border-color: var(--visual-accent-strong);
+    background: color-mix(in srgb, var(--visual-panel) 86%, var(--visual-accent-glow));
+  }
+
+  .safe article:last-child strong,
+  .safe article:last-child small {
+    color: var(--visual-accent);
+  }
+</style>

@@ -1,0 +1,182 @@
+---
+import FlowArrow from "../FlowArrow.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const strategies = [
+  {
+    name: "Append",
+    first: { value: "+3 rows", detail: "A · B · C" },
+    replay: { value: "+3 rows", detail: "A · B · C again" },
+    result: { value: "6 rows", detail: "Accumulates" },
+    tone: "unsafe",
+  },
+  {
+    name: "Merge",
+    first: { value: "3 keyed rows", detail: "one row per key" },
+    replay: { value: "same keys", detail: "same source" },
+    result: { value: "3 rows*", detail: "Needs rules" },
+    tone: "conditional",
+  },
+  {
+    name: "Replace",
+    first: { value: "slice N", detail: "owned boundary" },
+    replay: { value: "slice N", detail: "same boundary" },
+    result: { value: "slice N", detail: "Converges" },
+    tone: "safe",
+  },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Write convergence"
+  title="The verb does not define the replay contract"
+  status="Same interval × 2"
+  caption="Append accumulates. Replace converges inside an owned boundary. MERGE converges only when identity, source rows and conflict rules are deterministic."
+  number="01 / WRITE CONTRACT"
+>
+  <div class="write-contract" role="table" aria-label="Replay outcomes by write strategy">
+    <div class="contract-header" role="row">
+      <span role="columnheader">Strategy</span>
+      <span role="columnheader">Attempt 01</span>
+      <span role="columnheader">Replay 02</span>
+      <span role="columnheader">Visible result</span>
+    </div>
+
+    <div class="strategy-list" role="rowgroup">
+      {
+        strategies.map((strategy, index) => (
+          <div class:list={["strategy-row", strategy.tone]} role="row">
+            <strong class="strategy-name" role="rowheader">
+              {strategy.name}
+            </strong>
+            <article role="cell">
+              <strong>{strategy.first.value}</strong>
+              <small>{strategy.first.detail}</small>
+            </article>
+            <FlowArrow particle={index === 0} />
+            <article role="cell">
+              <strong>{strategy.replay.value}</strong>
+              <small>{strategy.replay.detail}</small>
+            </article>
+            <FlowArrow particle={index === 2} delayed />
+            <article class="result" role="cell">
+              <strong>{strategy.result.value}</strong>
+              <small>{strategy.result.detail}</small>
+            </article>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</TechnicalFigure>
+
+<style>
+  .write-contract {
+    display: grid;
+    height: 100%;
+    gap: 0.45rem;
+    align-content: center;
+  }
+
+  .contract-header,
+  .strategy-row {
+    display: grid;
+    min-width: 0;
+    grid-template-columns:
+      5rem minmax(0, 1fr) 0.9rem minmax(0, 1fr) 0.9rem
+      minmax(0, 1.08fr);
+    gap: 0.4rem;
+  }
+
+  .contract-header {
+    align-items: end;
+    padding-inline: 0.65rem;
+    color: var(--visual-muted);
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .contract-header span:nth-child(2) {
+    grid-column: 2;
+  }
+
+  .contract-header span:nth-child(3) {
+    grid-column: 4;
+  }
+
+  .contract-header span:nth-child(4) {
+    grid-column: 6;
+  }
+
+  .strategy-list {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .strategy-row {
+    align-items: stretch;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel-soft) 94%, transparent);
+    padding: 0.5rem 0.65rem;
+  }
+
+  .strategy-name {
+    align-self: center;
+    color: var(--visual-soft);
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  article {
+    display: grid;
+    min-width: 0;
+    min-height: 3.3rem;
+    align-content: center;
+    gap: 0.25rem;
+    border: 1px solid var(--visual-border);
+    border-radius: 0.35rem;
+    background: var(--visual-panel);
+    padding: 0.45rem 0.55rem;
+  }
+
+  article strong {
+    color: var(--visual-text);
+    font-size: 0.66rem;
+    font-weight: 600;
+  }
+
+  article small {
+    color: var(--visual-soft);
+    font-family: var(--font-mono);
+    font-size: 0.47rem;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+  }
+
+  .unsafe .result strong,
+  .unsafe .result small {
+    color: #df8f82;
+  }
+
+  .conditional .result {
+    border-style: dashed;
+  }
+
+  .safe {
+    border-color: color-mix(in srgb, var(--visual-accent) 65%, var(--visual-border));
+  }
+
+  .safe .result {
+    border-color: var(--visual-accent-strong);
+    background: color-mix(in srgb, var(--visual-panel) 86%, var(--visual-accent-glow));
+  }
+
+  .safe .result strong,
+  .safe .result small {
+    color: var(--visual-accent);
+  }
+</style>

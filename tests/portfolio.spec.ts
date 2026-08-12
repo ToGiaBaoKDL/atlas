@@ -2,7 +2,21 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { writingSeries } from "../src/data/series";
 
-const firstWritingRoute = "/writing/backfills-are-a-data-model-problem/";
+const writingArticles = [
+  {
+    route: "/writing/backfills-are-a-data-model-problem/",
+    title: "Backfills Are a Data Model Problem, Not an Airflow Feature",
+    part: 1,
+    publishedAt: "2026-08-12T00:00:00.000Z",
+  },
+  {
+    route: "/writing/idempotent-writes-are-not-replay-safety/",
+    title: "Idempotent Writes Are Not Replay Safety",
+    part: 2,
+    publishedAt: "2026-08-12T05:30:00.000Z",
+  },
+] as const;
+const firstWritingRoute = writingArticles[0].route;
 const replayableSeries = writingSeries.find(({ id }) => id === "replayable-by-design");
 
 if (!replayableSeries) throw new Error("Missing replayable-by-design writing series");
@@ -13,7 +27,7 @@ const criticalRoutes = [
   "/projects/mini-lakehouse/",
   "/projects/vn-market-pulse/",
   "/writing/",
-  firstWritingRoute,
+  ...writingArticles.map(({ route }) => route),
   "/about/",
 ] as const;
 
@@ -34,7 +48,12 @@ for (const route of criticalRoutes) {
   });
 }
 
-for (const route of ["/", "/projects/mini-lakehouse/", firstWritingRoute, "/about/"] as const) {
+for (const route of [
+  "/",
+  "/projects/mini-lakehouse/",
+  ...writingArticles.map(({ route }) => route),
+  "/about/",
+] as const) {
   test(`${route} has no serious accessibility violations`, async ({ page }) => {
     await page.goto(route);
     const results = await new AxeBuilder({ page })
@@ -312,7 +331,7 @@ test("technical visual canvases do not clip their internal layouts", async ({ pa
     "/projects/",
     "/projects/mini-lakehouse/",
     "/projects/vn-market-pulse/",
-    firstWritingRoute,
+    ...writingArticles.map(({ route }) => route),
   ]) {
     await page.goto(route);
     const canvases = page.locator(".lakehouse-map, .market-map, .technical-figure-panel");
@@ -497,21 +516,8 @@ test("RSS endpoint is valid XML", async ({ request }) => {
   expect(await response.text()).toContain("<rss");
 });
 
-test("published writing exposes its date, series and article metadata", async ({ page }) => {
+test("publish boundary keeps its stages aligned", async ({ page }) => {
   await page.goto(firstWritingRoute);
-
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Backfills Are a Data Model Problem, Not an Airflow Feature",
-  );
-  await expect(page.locator(".article-hero time").first()).toHaveAttribute(
-    "datetime",
-    /^2026-08-12/,
-  );
-  await expect(page.locator(".article-hero .section-kicker")).toHaveText(
-    `${replayableSeries.name} · Part 01`,
-  );
-  expect(await page.locator(".technical-figure").count()).toBeGreaterThan(0);
-
   const attemptHeights = await page
     .locator(".attempt-path")
     .evaluateAll((paths) =>
@@ -525,22 +531,38 @@ test("published writing exposes its date, series and article metadata", async ({
   for (const heights of attemptHeights) {
     expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1);
   }
-
-  const graph = await page.locator('script[type="application/ld+json"]').textContent();
-  expect(JSON.parse(graph ?? "{}")["@graph"]).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        "@type": "BlogPosting",
-        datePublished: "2026-08-12T00:00:00.000Z",
-        isPartOf: expect.objectContaining({
-          "@type": "CreativeWorkSeries",
-          name: replayableSeries.name,
-        }),
-        position: 1,
-      }),
-    ]),
-  );
 });
+
+for (const article of writingArticles) {
+  test(`${article.route} exposes its date, series and article metadata`, async ({ page }) => {
+    await page.goto(article.route);
+
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(article.title);
+    await expect(page.locator(".article-hero time").first()).toHaveAttribute(
+      "datetime",
+      article.publishedAt,
+    );
+    await expect(page.locator(".article-hero .section-kicker")).toHaveText(
+      `${replayableSeries.name} · Part ${String(article.part).padStart(2, "0")}`,
+    );
+    expect(await page.locator(".technical-figure").count()).toBeGreaterThan(0);
+
+    const graph = await page.locator('script[type="application/ld+json"]').textContent();
+    expect(JSON.parse(graph ?? "{}")["@graph"]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          "@type": "BlogPosting",
+          datePublished: article.publishedAt,
+          isPartOf: expect.objectContaining({
+            "@type": "CreativeWorkSeries",
+            name: replayableSeries.name,
+          }),
+          position: article.part,
+        }),
+      ]),
+    );
+  });
+}
 
 test("production SEO metadata is canonical and internally consistent", async ({
   page,
