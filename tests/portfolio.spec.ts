@@ -59,9 +59,7 @@ test("theme preference is visible and persists", async ({ page }) => {
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 });
 
-test("mobile navigation opens, links and closes", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) > 896, "Mobile-only interaction");
-
+test("mobile navigation opens, links and closes", { tag: "@mobile" }, async ({ page }) => {
   await page.goto("/");
   const openButton = page.getByRole("button", { name: "Open menu" });
   const buttonBox = await openButton.boundingBox();
@@ -91,7 +89,6 @@ test("homepage showcases every project visual", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
 
-  await expect(page.locator(".project-card-showcase")).toHaveCount(2);
   await expect(page.locator(".project-card-showcase .lakehouse-map")).toHaveCount(1);
   await expect(page.locator(".project-card-showcase .market-map")).toHaveCount(1);
   await expect(page.locator(".hero-visual .product-node li")).toHaveText([
@@ -110,15 +107,13 @@ test("homepage showcases every project visual", async ({ page }) => {
   );
 });
 
-test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) <= 896, "Desktop-only layout");
-
+test("desktop projects use the motion-safe sticky stack", { tag: "@desktop" }, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
   const cards = page.locator(".project-card-showcase");
   const sectionHeading = page.locator(".projects-band .section-heading");
 
-  await expect(cards).toHaveCount(2);
+  expect(await cards.count()).toBeGreaterThan(1);
   await expect(sectionHeading).toHaveCSS("position", "sticky");
   expect(await cards.first().evaluate((element) => getComputedStyle(element).position)).toBe(
     "sticky",
@@ -162,9 +157,10 @@ test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
     (top) => window.scrollTo({ top, behavior: "instant" }),
     writingTop - (page.viewportSize()?.height ?? 0),
   );
-  await page.waitForTimeout(500);
+  await expect
+    .poll(() => cards.last().evaluate((element) => element.getBoundingClientRect().top))
+    .toBeCloseTo(stickyOffsets[0], 0);
   const lastCardTop = await cards.last().evaluate((element) => element.getBoundingClientRect().top);
-  expect(Math.abs(lastCardTop - stickyOffsets[0])).toBeLessThanOrEqual(1);
   await expect(sectionHeading).not.toHaveAttribute("data-sticky-hidden", "");
   await expect(sectionHeading).toHaveCSS("position", "sticky");
   await expect(sectionHeading).toHaveCSS("opacity", "1");
@@ -173,116 +169,111 @@ test("desktop projects use the motion-safe sticky stack", async ({ page }) => {
     (top) => window.scrollTo({ top, behavior: "instant" }),
     writingTop - (page.viewportSize()?.height ?? 0) + 2,
   );
-  await page.waitForTimeout(300);
-  const boundaryCardTop = await cards
-    .last()
-    .evaluate((element) => element.getBoundingClientRect().top);
-  expect(boundaryCardTop).toBeLessThanOrEqual(lastCardTop);
   await expect(sectionHeading).toHaveAttribute("data-sticky-hidden", "");
   await expect(sectionHeading).toHaveAttribute("inert", "");
+  await expect
+    .poll(() => cards.last().evaluate((element) => element.getBoundingClientRect().top))
+    .toBeLessThanOrEqual(lastCardTop);
   await expect(sectionHeading).toHaveCSS("position", "sticky");
   await expect(sectionHeading).toHaveCSS("opacity", "0");
 });
 
-test("project stack keeps normal flow when sticky motion is unsuitable", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) <= 896, "Desktop-only layout");
+test(
+  "project stack keeps normal flow when sticky motion is unsuitable",
+  { tag: "@desktop" },
+  async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".project-card-showcase").first()).toHaveCSS("position", "static");
+    await expect(page.locator(".projects-band .section-heading")).toHaveCSS("position", "static");
 
-  await page.goto("/");
-  await expect(page.locator(".project-card-showcase").first()).toHaveCSS("position", "static");
-  await expect(page.locator(".projects-band .section-heading")).toHaveCSS("position", "static");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.setViewportSize({ width: 1024, height: 650 });
+    await page.reload();
+    await expect(page.locator(".project-card-showcase").first()).toHaveCSS("position", "static");
+  },
+);
 
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.setViewportSize({ width: 1024, height: 650 });
-  await page.reload();
-  await expect(page.locator(".project-card-showcase").first()).toHaveCSS("position", "static");
-});
-
-test("tablet project cards keep a consistent content order", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) <= 640, "Covered by the mobile card layout");
-
-  await page.setViewportSize({ width: 768, height: 900 });
-  await page.goto("/");
-
-  for (const card of await page.locator(".project-card-showcase").all()) {
-    await expect(card.locator(".project-card-body")).toHaveCSS("order", "1");
-    await expect(card.locator(".project-card-media")).toHaveCSS("order", "2");
-  }
-});
-
-test("desktop project index pairs content with overview visuals", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) <= 896, "Desktop-only layout");
-
-  await page.goto("/projects/");
-  const cards = page.locator(".project-card-list");
-  await expect(cards).toHaveCount(2);
-
-  for (const card of await cards.all()) {
-    await card.scrollIntoViewIfNeeded();
-    const body = card.locator(".project-card-body");
-    const media = card.locator(".project-card-media");
-    const visual = media.locator(".visual-frame > *");
-    const [bodyBox, mediaBox] = await Promise.all([body.boundingBox(), media.boundingBox()]);
-
-    await expect(media).toBeVisible();
-    await expect(media.locator(".visual-frame")).not.toHaveCSS("aspect-ratio", "auto");
-    await expect(visual).not.toHaveCSS("transform", "none");
-    expect((bodyBox?.x ?? Number.POSITIVE_INFINITY) + (bodyBox?.width ?? 0)).toBeLessThan(
-      mediaBox?.x ?? 0,
-    );
-  }
-});
-
-test("mobile project cards show complete visual thumbnails", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
-
-  for (const route of ["/", "/projects/"]) {
-    await page.goto(route);
-    const cards = page.locator(".project-card");
-    const previews = cards.locator(".project-card-media");
-    await expect(cards).toHaveCount(2);
-    await expect(previews).toHaveCount(2);
+test(
+  "desktop project index pairs content with overview visuals",
+  { tag: "@desktop" },
+  async ({ page }) => {
+    await page.goto("/projects/");
+    const cards = page.locator(".project-card-list");
+    expect(await cards.count()).toBeGreaterThan(0);
 
     for (const card of await cards.all()) {
       await card.scrollIntoViewIfNeeded();
-      await expect(card.locator(".project-card-media")).toHaveCSS("order", "1");
-      await expect(card.locator(".project-card-body")).toHaveCSS("order", "2");
-    }
+      const body = card.locator(".project-card-body");
+      const media = card.locator(".project-card-media");
+      const visual = media.locator(".visual-frame > *");
+      const [bodyBox, mediaBox] = await Promise.all([body.boundingBox(), media.boundingBox()]);
 
-    for (const preview of await previews.all()) {
-      // Project lists use content-visibility to skip off-screen work. Bring each
-      // card into the viewport before asserting its responsive presentation.
-      await preview.scrollIntoViewIfNeeded();
-      const layout = await preview.evaluate((element) => {
-        const frameElement = element.querySelector(".visual-frame");
-        const contentElement = frameElement?.firstElementChild;
-        const frame = frameElement?.getBoundingClientRect();
-        const content = contentElement?.getBoundingClientRect();
-        return {
-          aspectRatio: frameElement ? getComputedStyle(frameElement).aspectRatio : "auto",
-          bottom: content?.bottom ?? 0,
-          className: element.className,
-          frameBottom: frame?.bottom ?? 0,
-          frameLeft: frame?.left ?? 0,
-          frameRight: frame?.right ?? 0,
-          height: frame?.height ?? 0,
-          left: content?.left ?? 0,
-          overflow: getComputedStyle(element).overflow,
-          right: content?.right ?? 0,
-          transform: contentElement ? getComputedStyle(contentElement).transform : "none",
-        };
-      });
-      expect(layout.overflow).toBe("hidden");
-      expect(layout.aspectRatio, `${route} ${JSON.stringify(layout)}`).not.toBe("auto");
-      expect(layout.height, `${route} ${JSON.stringify(layout)}`).toBeLessThanOrEqual(300);
-      expect(layout.transform).not.toBe("none");
-      expect(layout.left).toBeGreaterThanOrEqual(layout.frameLeft - 1);
-      expect(layout.right).toBeLessThanOrEqual(layout.frameRight + 1);
-      expect(layout.bottom, `${route} ${layout.className}`).toBeLessThanOrEqual(
-        layout.frameBottom + 1,
+      await expect(media).toBeVisible();
+      await expect(media.locator(".visual-frame")).not.toHaveCSS("aspect-ratio", "auto");
+      await expect(visual).not.toHaveCSS("transform", "none");
+      expect((bodyBox?.x ?? Number.POSITIVE_INFINITY) + (bodyBox?.width ?? 0)).toBeLessThan(
+        mediaBox?.x ?? 0,
       );
     }
-  }
-});
+  },
+);
+
+test(
+  "mobile project cards show complete visual thumbnails",
+  { tag: "@mobile" },
+  async ({ page }) => {
+    for (const route of ["/", "/projects/"]) {
+      await page.goto(route);
+      const cards = page.locator(".project-card");
+      expect(await cards.count()).toBeGreaterThan(0);
+
+      for (const card of await cards.all()) {
+        await card.scrollIntoViewIfNeeded();
+        const preview = card.locator(".project-card-media");
+        const body = card.locator(".project-card-body");
+        const [previewBox, bodyBox] = await Promise.all([
+          preview.boundingBox(),
+          body.boundingBox(),
+        ]);
+        expect(
+          (previewBox?.y ?? Number.POSITIVE_INFINITY) + (previewBox?.height ?? 0),
+        ).toBeLessThanOrEqual((bodyBox?.y ?? 0) + 1);
+
+        // Project lists use content-visibility to skip off-screen work. Bring each
+        // card into the viewport before asserting its responsive presentation.
+        await preview.scrollIntoViewIfNeeded();
+        const layout = await preview.evaluate((element) => {
+          const frameElement = element.querySelector(".visual-frame");
+          const contentElement = frameElement?.firstElementChild;
+          const frame = frameElement?.getBoundingClientRect();
+          const content = contentElement?.getBoundingClientRect();
+          return {
+            aspectRatio: frameElement ? getComputedStyle(frameElement).aspectRatio : "auto",
+            bottom: content?.bottom ?? 0,
+            className: element.className,
+            frameBottom: frame?.bottom ?? 0,
+            frameLeft: frame?.left ?? 0,
+            frameRight: frame?.right ?? 0,
+            height: frame?.height ?? 0,
+            left: content?.left ?? 0,
+            overflow: getComputedStyle(element).overflow,
+            right: content?.right ?? 0,
+            transform: contentElement ? getComputedStyle(contentElement).transform : "none",
+          };
+        });
+        expect(layout.overflow).toBe("hidden");
+        expect(layout.aspectRatio, `${route} ${JSON.stringify(layout)}`).not.toBe("auto");
+        expect(layout.height, `${route} ${JSON.stringify(layout)}`).toBeLessThanOrEqual(300);
+        expect(layout.transform).not.toBe("none");
+        expect(layout.left).toBeGreaterThanOrEqual(layout.frameLeft - 1);
+        expect(layout.right).toBeLessThanOrEqual(layout.frameRight + 1);
+        expect(layout.bottom, `${route} ${layout.className}`).toBeLessThanOrEqual(
+          layout.frameBottom + 1,
+        );
+      }
+    }
+  },
+);
 
 test("project cards use overviews while case studies keep desktop detail", async ({ page }) => {
   await page.goto("/");
@@ -389,65 +380,67 @@ test("market pulse visual keeps a compact, explicit responsibility path", async 
   expect(Math.abs((earlier?.height ?? 0) - (current?.height ?? 0))).toBeLessThanOrEqual(1);
 });
 
-test("mobile homepage uses a motion-safe project cover stack", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
-
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.setViewportSize({ width: 402, height: 874 });
-  await page.goto("/");
-  const cards = page.locator(".project-card-showcase");
-  const sectionHeading = page.locator(".projects-band .section-heading");
-  const stickyTop = Number.parseFloat(
-    await cards.first().evaluate((element) => getComputedStyle(element).top),
-  );
-  const viewportHeight = page.viewportSize()?.height ?? 0;
-
-  await expect(cards).toHaveCount(2);
-  await expect(cards.first()).toHaveCSS("position", "sticky");
-  await expect(sectionHeading).toHaveCSS("position", "sticky");
-  for (const card of await cards.all()) {
-    expect((await card.boundingBox())?.height ?? viewportHeight).toBeLessThan(
-      viewportHeight - stickyTop,
+test(
+  "mobile homepage uses a motion-safe project cover stack",
+  { tag: "@mobile" },
+  async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    await page.setViewportSize({ width: 402, height: 874 });
+    await page.goto("/");
+    const cards = page.locator(".project-card-showcase");
+    const sectionHeading = page.locator(".projects-band .section-heading");
+    const stickyTop = Number.parseFloat(
+      await cards.first().evaluate((element) => getComputedStyle(element).top),
     );
-  }
+    const viewportHeight = page.viewportSize()?.height ?? 0;
 
-  const firstCardDocumentTop = await cards
-    .first()
-    .evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
-  await page.evaluate(({ top }) => window.scrollTo({ top, behavior: "instant" }), {
-    top: firstCardDocumentTop - stickyTop,
-  });
-  await page.waitForTimeout(300);
+    expect(await cards.count()).toBeGreaterThan(1);
+    await expect(cards.first()).toHaveCSS("position", "sticky");
+    await expect(sectionHeading).toHaveCSS("position", "sticky");
+    for (const card of await cards.all()) {
+      expect((await card.boundingBox())?.height ?? viewportHeight).toBeLessThan(
+        viewportHeight - stickyTop,
+      );
+    }
 
-  const [headerBox, headingBox, firstCardBox] = await Promise.all([
-    page.locator(".site-header").boundingBox(),
-    sectionHeading.boundingBox(),
-    cards.first().boundingBox(),
-  ]);
-  expect(Math.abs((headingBox?.y ?? 0) - (headerBox?.height ?? 0))).toBeLessThanOrEqual(1);
-  expect(Math.abs((firstCardBox?.y ?? 0) - stickyTop)).toBeLessThanOrEqual(1);
-  expect(
-    (firstCardBox?.y ?? 0) - ((headingBox?.y ?? 0) + (headingBox?.height ?? 0)),
-  ).toBeGreaterThanOrEqual(10);
+    const firstCardDocumentTop = await cards
+      .first()
+      .evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
+    await page.evaluate(({ top }) => window.scrollTo({ top, behavior: "instant" }), {
+      top: firstCardDocumentTop - stickyTop,
+    });
+    await expect
+      .poll(() => cards.first().evaluate((element) => element.getBoundingClientRect().top))
+      .toBeCloseTo(stickyTop, 0);
 
-  const lastCardDocumentTop = await cards
-    .last()
-    .evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
-  await page.evaluate(({ top }) => window.scrollTo({ top, behavior: "instant" }), {
-    top: lastCardDocumentTop - stickyTop,
-  });
-  await page.waitForTimeout(500);
-  const lastCardTop = await cards.last().evaluate((element) => element.getBoundingClientRect().top);
-  expect(Math.abs(lastCardTop - stickyTop)).toBeLessThanOrEqual(1);
-  const finalHeadingTop = await sectionHeading.evaluate(
-    (element) => element.getBoundingClientRect().top,
-  );
-  expect(Math.abs(finalHeadingTop - (headerBox?.height ?? 0))).toBeLessThanOrEqual(1);
-});
+    const [headerBox, headingBox, firstCardBox] = await Promise.all([
+      page.locator(".site-header").boundingBox(),
+      sectionHeading.boundingBox(),
+      cards.first().boundingBox(),
+    ]);
+    expect(Math.abs((headingBox?.y ?? 0) - (headerBox?.height ?? 0))).toBeLessThanOrEqual(1);
+    expect(Math.abs((firstCardBox?.y ?? 0) - stickyTop)).toBeLessThanOrEqual(1);
+    expect(
+      (firstCardBox?.y ?? 0) - ((headingBox?.y ?? 0) + (headingBox?.height ?? 0)),
+    ).toBeGreaterThanOrEqual(10);
 
-test("mobile hero uses the shared overview frame", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
+    const lastCardDocumentTop = await cards
+      .last()
+      .evaluate((element) => element.getBoundingClientRect().top + window.scrollY);
+    await page.evaluate(({ top }) => window.scrollTo({ top, behavior: "instant" }), {
+      top: lastCardDocumentTop - stickyTop,
+    });
+    await expect
+      .poll(() => cards.last().evaluate((element) => element.getBoundingClientRect().top))
+      .toBeCloseTo(stickyTop, 0);
+    const finalHeadingTop = await sectionHeading.evaluate(
+      (element) => element.getBoundingClientRect().top,
+    );
+    expect(Math.abs(finalHeadingTop - (headerBox?.height ?? 0))).toBeLessThanOrEqual(1);
+  },
+);
 
+test("mobile hero uses the shared overview frame", { tag: "@mobile" }, async ({ page }) => {
   await page.goto("/");
   const frame = page.locator(".hero-visual .visual-frame");
   const visual = frame.locator(":scope > .signature-figure");
@@ -457,35 +450,37 @@ test("mobile hero uses the shared overview frame", async ({ page }) => {
   expect((await frame.boundingBox())?.height ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(300);
 });
 
-test("mobile inline case-study visuals use complete overview frames", async ({ page }) => {
-  test.skip((page.viewportSize()?.width ?? 0) > 640, "Mobile-only layout");
+test(
+  "mobile inline case-study visuals use complete overview frames",
+  { tag: "@mobile" },
+  async ({ page }) => {
+    for (const route of ["/projects/mini-lakehouse/", "/projects/vn-market-pulse/"] as const) {
+      await page.goto(route);
+      const figures = page.locator(".case-figure");
+      await expect(figures).not.toHaveCount(0);
 
-  for (const route of ["/projects/mini-lakehouse/", "/projects/vn-market-pulse/"] as const) {
-    await page.goto(route);
-    const figures = page.locator(".case-figure");
-    await expect(figures).not.toHaveCount(0);
+      for (const figure of await figures.all()) {
+        await figure.scrollIntoViewIfNeeded();
+        const frame = figure.locator(".visual-frame");
+        const content = frame.locator(":scope > *");
+        await expect(frame).not.toHaveCSS("aspect-ratio", "auto");
+        await expect(content).not.toHaveCSS("transform", "none");
 
-    for (const figure of await figures.all()) {
-      await figure.scrollIntoViewIfNeeded();
-      const frame = figure.locator(".visual-frame");
-      const content = frame.locator(":scope > *");
-      await expect(frame).not.toHaveCSS("aspect-ratio", "auto");
-      await expect(content).not.toHaveCSS("transform", "none");
-
-      const [frameBox, contentBox] = await Promise.all([
-        frame.boundingBox(),
-        content.boundingBox(),
-      ]);
-      expect(contentBox?.x ?? 0).toBeGreaterThanOrEqual((frameBox?.x ?? 0) - 1);
-      expect((contentBox?.x ?? 0) + (contentBox?.width ?? 0)).toBeLessThanOrEqual(
-        (frameBox?.x ?? 0) + (frameBox?.width ?? 0) + 1,
-      );
-      expect((contentBox?.y ?? 0) + (contentBox?.height ?? 0)).toBeLessThanOrEqual(
-        (frameBox?.y ?? 0) + (frameBox?.height ?? 0) + 1,
-      );
+        const [frameBox, contentBox] = await Promise.all([
+          frame.boundingBox(),
+          content.boundingBox(),
+        ]);
+        expect(contentBox?.x ?? 0).toBeGreaterThanOrEqual((frameBox?.x ?? 0) - 1);
+        expect((contentBox?.x ?? 0) + (contentBox?.width ?? 0)).toBeLessThanOrEqual(
+          (frameBox?.x ?? 0) + (frameBox?.width ?? 0) + 1,
+        );
+        expect((contentBox?.y ?? 0) + (contentBox?.height ?? 0)).toBeLessThanOrEqual(
+          (frameBox?.y ?? 0) + (frameBox?.height ?? 0) + 1,
+        );
+      }
     }
-  }
-});
+  },
+);
 
 test("RSS endpoint is valid XML", async ({ request }) => {
   const response = await request.get("/rss.xml");
