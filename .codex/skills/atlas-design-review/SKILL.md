@@ -23,6 +23,16 @@ Keep Atlas deliberate, technical, and quiet. Preserve its code-native visual lan
 - Keep spacing, radii, borders, type scale, and light/dark contrast token-driven.
 - Keep inline styles out of templates; Atlas uses a strict content security policy.
 
+## Vary topology, preserve grammar
+
+- Keep the frame, header, caption, palette, typography, spacing, and responsive treatment consistent. Vary the internal composition according to the relationship being explained.
+- Inspect adjacent project or article visuals before designing a new one. Do not default to another left-to-right card chain when the recent visuals already use that topology.
+- Choose the smallest fitting topology: timeline for time and lateness, parallel lanes for retries, state machine for lifecycle and publication, nested boundaries for ownership and trust, fan-out graph for dependency impact, matrix for cases and evidence, layered stack for platform architecture, or before/after split for simplification.
+- Let reading direction follow meaning. Left-to-right is natural for a true sequence, but use top-down, concentric, branching, or spatial grouping when they describe the system more accurately.
+- Avoid novelty without information. A different topology must clarify a different relationship, not merely make the article look different.
+- Limit mobile complexity. The complete scaled visual must remain legible; shorten labels and reduce nodes before introducing a separate mobile composition.
+- Treat repeated visual chrome as brand consistency and repeated internal topology as a design warning. Across a series, aim for a coherent family rather than one template with replaced labels.
+
 ## Responsive and motion contract
 
 - Desktop may show a full-size visual. At `640px` and below, keep the entire visual and scale it inside a fixed overview frame; do not crop, selectively hide, or redesign its information.
