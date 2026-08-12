@@ -13,6 +13,18 @@ Keep Atlas deliberate, technical, and quiet. Preserve its code-native visual lan
 2. State the visual's meaning and the intended desktop, tablet, and mobile behavior.
 3. Reuse an existing primitive or token before adding a new abstraction.
 
+## Choose the implementation owner
+
+Evaluate ownership before writing interaction code, in this order:
+
+1. Prefer semantic HTML and native CSS/browser behavior.
+2. If an installed package owns the behavior, read its current official docs and use its public lifecycle, events, options, and accessibility patterns before adding wrapper state.
+3. Prefer an Astro built-in or official integration when it reduces client JavaScript without changing the site architecture.
+4. Add a maintained package only when it removes meaningful state, geometry, accessibility, or lifecycle code. Compare bundle cost, static rendering, reduced motion, browser support, and testability first.
+5. Write custom client logic only for the remaining project-specific contract; do not recreate package scheduling, animation, focus, or responsive behavior.
+
+Proactively report a better owner when one exists. For Atlas, use Embla for carousel targeting and settling, native `position: sticky` for the project stack, MDX content collections for case studies and writing, and Takumi for generated social cards. Do not add smooth-scroll or scroll-trigger packages merely to reproduce native sticky behavior.
+
 ## Preserve the visual system
 
 - Use lime for active state, execution order, and data flow. Use neutrals for structure and boundaries. Do not assign colors without semantic meaning.

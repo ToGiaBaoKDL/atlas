@@ -1,0 +1,592 @@
+---
+import type { HomepageWritingSeriesSelection } from "../data/content";
+import { getWritingSeriesPath } from "../data/series";
+import { getWritingSocialCard } from "../data/social-cards";
+
+interface Props {
+  groups: HomepageWritingSeriesSelection[];
+}
+
+const { groups } = Astro.props;
+const spotlights = groups.map((group) => ({
+  ...group,
+  initialIndex: group.entries.findIndex(
+    ({ data }) => data.series?.part === group.series.homepage.part,
+  ),
+  articles: group.entries.map((entry) => ({
+    entry,
+    socialCard: getWritingSocialCard(entry),
+  })),
+}));
+---
+
+<div class="container writing-spotlight" data-writing-spotlight data-reveal>
+  <header class="spotlight-heading">
+    <p class="section-kicker">II / Writing</p>
+    <a class="text-link" href="/writing/">View all writing →</a>
+  </header>
+
+  {
+    spotlights.length > 1 && (
+      <div
+        class="series-selector"
+        role="group"
+        aria-label="Choose a writing series"
+        data-series-selector
+        hidden
+      >
+        {spotlights.map(({ series }, index) => (
+          <button
+            type="button"
+            aria-controls={`homepage-series-${series.id}`}
+            aria-pressed={index === 0 ? "true" : "false"}
+            data-series-button
+          >
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            {series.name}
+          </button>
+        ))}
+      </div>
+    )
+  }
+
+  {
+    spotlights.length > 0 ? (
+      spotlights.map(({ series, entries, articles, isComplete, initialIndex }, seriesIndex) => (
+        <section
+          class="series-panel"
+          id={`homepage-series-${series.id}`}
+          aria-labelledby={`homepage-series-title-${series.id}`}
+          data-series-panel
+        >
+          <div class="series-copy">
+            <p class="series-position">
+              {spotlights.length > 1
+                ? `Series ${String(seriesIndex + 1).padStart(2, "0")} / ${String(spotlights.length).padStart(2, "0")}`
+                : "Featured series"}
+            </p>
+            <h2 id={`homepage-series-title-${series.id}`}>{series.name}</h2>
+            <p class="series-description">{series.description}</p>
+            <p class="series-meta">
+              {isComplete
+                ? `Complete series · ${series.totalParts} parts`
+                : `In progress · ${entries.length} of ${series.totalParts} parts`}
+            </p>
+            <a class="text-link" href={getWritingSeriesPath(series.id)}>
+              Explore series →
+            </a>
+          </div>
+
+          <div class="article-carousel" data-article-carousel data-initial-index={initialIndex}>
+            <div class="carousel-stage">
+              <div
+                class="carousel-viewport"
+                role="region"
+                aria-roledescription="carousel"
+                aria-label={`${series.name} articles`}
+                data-carousel-viewport
+              >
+                <ol class="carousel-track">
+                  {articles.map(({ entry, socialCard }) => {
+                    const part = entry.data.series?.part ?? 1;
+                    const partLabel = `Part ${String(part).padStart(2, "0")} / ${String(series.totalParts).padStart(2, "0")}`;
+
+                    return (
+                      <li
+                        class="carousel-slide"
+                        aria-roledescription="slide"
+                        aria-label={`Part ${part} of ${series.totalParts}`}
+                        data-carousel-slide
+                        data-part-label={partLabel}
+                      >
+                        <a class="article-card" href={`/writing/${entry.id}/`}>
+                          <span class="card-image">
+                            <img
+                              src={socialCard.path}
+                              alt=""
+                              width="1200"
+                              height="630"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                          </span>
+                          <span class="article-caption">
+                            <span>{partLabel}</span>
+                            <h3>{entry.data.title}</h3>
+                          </span>
+                        </a>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            </div>
+
+            <div class="carousel-controls" data-carousel-controls hidden>
+              <p role="status" data-carousel-status>
+                Part {String(entries[initialIndex]?.data.series?.part ?? 1).padStart(2, "0")}
+                {" / "}
+                {String(series.totalParts).padStart(2, "0")}
+              </p>
+              <div>
+                <button
+                  type="button"
+                  aria-label={`Previous article in ${series.name}`}
+                  data-carousel-previous
+                >
+                  <span aria-hidden="true">←</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label={`Next article in ${series.name}`}
+                  data-carousel-next
+                >
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      ))
+    ) : (
+      <div class="writing-empty">
+        <h2>Technical writing, in progress.</h2>
+        <a class="text-link" href="/writing/">
+          Explore writing →
+        </a>
+      </div>
+    )
+  }
+</div>
+
+<script>
+  import EmblaCarousel from "embla-carousel";
+
+  document.querySelectorAll<HTMLElement>("[data-writing-spotlight]").forEach((root) => {
+    const panels = Array.from(root.querySelectorAll<HTMLElement>("[data-series-panel]"));
+    const seriesButtons = Array.from(
+      root.querySelectorAll<HTMLButtonElement>("[data-series-button]"),
+    );
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const enhanceCarousel = (panel: HTMLElement) => {
+      const carousel = panel.querySelector<HTMLElement>("[data-article-carousel]");
+
+      if (!carousel || carousel.hasAttribute("data-enhanced")) return;
+
+      const viewport = carousel.querySelector<HTMLElement>("[data-carousel-viewport]");
+      const slides = Array.from(carousel.querySelectorAll<HTMLElement>("[data-carousel-slide]"));
+      const controls = carousel.querySelector<HTMLElement>("[data-carousel-controls]");
+      const previous = carousel.querySelector<HTMLButtonElement>("[data-carousel-previous]");
+      const next = carousel.querySelector<HTMLButtonElement>("[data-carousel-next]");
+      const status = carousel.querySelector<HTMLElement>("[data-carousel-status]");
+
+      if (!viewport || !controls || !previous || !next || !status || slides.length === 0) return;
+
+      const initialIndex = Number.parseInt(carousel.dataset.initialIndex ?? "0", 10);
+      const embla = EmblaCarousel(viewport, {
+        align: "start",
+        breakpoints: {
+          "(prefers-reduced-motion: reduce)": { duration: 0 },
+        },
+        duration: 20,
+        startIndex: Number.isNaN(initialIndex) ? 0 : initialIndex,
+      });
+
+      const syncControls = () => {
+        previous.disabled = !embla.canScrollPrev();
+        next.disabled = !embla.canScrollNext();
+      };
+
+      const presentSelectedSlide = () => {
+        const selectedIndex = embla.selectedScrollSnap();
+
+        slides.forEach((slide, index) => {
+          const isSelected = index === selectedIndex;
+          slide.inert = !isSelected;
+          slide.setAttribute("aria-hidden", String(!isSelected));
+        });
+        status.textContent = slides[selectedIndex]?.dataset.partLabel ?? "";
+        viewport.setAttribute("aria-busy", "false");
+      };
+
+      const syncCarousel = () => {
+        syncControls();
+        presentSelectedSlide();
+      };
+
+      const selectTarget = () => {
+        syncControls();
+        if (reduceMotion.matches) presentSelectedSlide();
+        else viewport.setAttribute("aria-busy", "true");
+      };
+
+      previous.addEventListener("click", () => embla.scrollPrev());
+      next.addEventListener("click", () => embla.scrollNext());
+      embla
+        .on("select", selectTarget)
+        .on("settle", presentSelectedSlide)
+        .on("reInit", syncCarousel);
+      carousel.setAttribute("data-enhanced", "");
+      controls.hidden = slides.length < 2;
+      syncCarousel();
+    };
+
+    const activateSeries = (index: number) => {
+      panels.forEach((panel, panelIndex) => {
+        panel.hidden = panelIndex !== index;
+      });
+      seriesButtons.forEach((button, buttonIndex) => {
+        button.setAttribute("aria-pressed", String(buttonIndex === index));
+      });
+
+      const activePanel = panels[index];
+      if (activePanel) enhanceCarousel(activePanel);
+    };
+
+    const selector = root.querySelector<HTMLElement>("[data-series-selector]");
+    if (selector) selector.hidden = false;
+
+    seriesButtons.forEach((button, index) => {
+      button.addEventListener("click", () => activateSeries(index));
+    });
+
+    activateSeries(0);
+  });
+</script>
+
+<style>
+  .spotlight-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: clamp(2rem, 5vw, 3.5rem);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+  }
+
+  .spotlight-heading .section-kicker {
+    margin: 0;
+  }
+
+  .series-selector {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.5rem;
+    margin: 0 0 clamp(2rem, 5vw, 3.5rem);
+    padding: 0 0 0.5rem;
+    scrollbar-width: thin;
+  }
+
+  .series-selector[hidden] {
+    display: none;
+  }
+
+  .series-selector button {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.6rem;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-soft);
+    padding: 0.55rem 0.8rem;
+    cursor: pointer;
+  }
+
+  .series-selector button[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+  }
+
+  .series-selector button span {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+  }
+
+  .series-panel {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.68fr) minmax(0, 1.32fr);
+    gap: clamp(3rem, 8vw, 7rem);
+    align-items: center;
+  }
+
+  .series-panel[hidden] {
+    display: none;
+  }
+
+  .series-copy {
+    min-width: 0;
+  }
+
+  .series-position,
+  .series-meta {
+    color: var(--accent-ink);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .series-position {
+    margin: 0 0 1.2rem;
+  }
+
+  .series-copy h2 {
+    max-width: 13ch;
+    margin: 0 0 1.25rem;
+    font-size: clamp(2.2rem, 4.5vw, 4rem);
+    font-weight: 620;
+    letter-spacing: -0.055em;
+    line-height: 1.04;
+  }
+
+  .series-description {
+    max-width: 31rem;
+    margin: 0;
+    color: var(--text-soft);
+  }
+
+  .series-meta {
+    margin-block: 1.5rem 0.8rem;
+  }
+
+  .article-carousel {
+    min-width: 0;
+  }
+
+  .carousel-stage {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .carousel-stage::before,
+  .carousel-stage::after {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    content: "";
+    pointer-events: none;
+  }
+
+  .carousel-stage::before {
+    transform: translate(0.45rem, 0.45rem);
+  }
+
+  .carousel-stage::after {
+    transform: translate(0.85rem, 0.85rem);
+    opacity: 0.55;
+  }
+
+  .carousel-viewport {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-elevated);
+    scroll-snap-type: inline mandatory;
+    scrollbar-width: none;
+  }
+
+  .carousel-viewport::-webkit-scrollbar {
+    display: none;
+  }
+
+  .article-carousel[data-enhanced] .carousel-viewport {
+    overflow: hidden;
+  }
+
+  .carousel-track {
+    display: flex;
+    margin: 0;
+    padding: 0;
+    touch-action: pan-y pinch-zoom;
+    list-style: none;
+  }
+
+  .carousel-slide {
+    min-width: 0;
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+
+  .article-card {
+    display: grid;
+    min-width: 0;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .card-image {
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 1200 / 630;
+    background: var(--visual-bg);
+  }
+
+  .card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .article-caption {
+    display: grid;
+    min-height: 6.8rem;
+    align-content: center;
+    gap: 0.45rem;
+    padding: 1rem 1.2rem;
+  }
+
+  .article-caption > span {
+    color: var(--accent-ink);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 650;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .article-caption h3 {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0;
+    font-size: clamp(1.05rem, 2vw, 1.35rem);
+    font-weight: 620;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    transition: color var(--motion-fast) ease;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .article-card:hover h3,
+  .article-card:focus-visible h3 {
+    color: var(--accent);
+  }
+
+  .carousel-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.6rem;
+  }
+
+  .carousel-controls[hidden] {
+    display: none;
+  }
+
+  .carousel-controls p {
+    margin: 0;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    font-weight: 620;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .carousel-controls > div {
+    display: flex;
+    overflow: hidden;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--bg-elevated);
+  }
+
+  .carousel-controls button {
+    display: inline-grid;
+    width: 2.25rem;
+    height: 2.25rem;
+    place-items: center;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition:
+      background-color var(--motion-fast) ease,
+      color var(--motion-fast) ease;
+  }
+
+  .carousel-controls button + button {
+    border-left: 1px solid var(--border);
+  }
+
+  .carousel-controls button:hover:not(:disabled) {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .carousel-controls button:focus-visible {
+    outline: 0;
+    box-shadow: inset 0 0 0 0.125rem var(--accent);
+  }
+
+  .carousel-controls button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .writing-empty h2 {
+    margin: 0 0 1rem;
+  }
+
+  @media (max-width: 56rem) {
+    .series-panel {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+
+    .series-copy h2 {
+      max-width: 16ch;
+    }
+  }
+
+  @media (max-width: 40rem) {
+    .spotlight-heading {
+      align-items: flex-end;
+    }
+
+    .series-panel {
+      gap: 2rem;
+    }
+
+    .series-copy h2 {
+      font-size: clamp(2.15rem, 12vw, 3rem);
+    }
+
+    .carousel-stage::before {
+      transform: translate(0.3rem, 0.3rem);
+    }
+
+    .carousel-stage::after {
+      transform: translate(0.55rem, 0.55rem);
+    }
+
+    .article-caption {
+      min-height: 6.2rem;
+      padding: 0.9rem 1rem;
+    }
+
+    .carousel-controls {
+      margin-top: 1.25rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .article-caption h3,
+    .carousel-controls button {
+      transition: none;
+    }
+  }
+</style>

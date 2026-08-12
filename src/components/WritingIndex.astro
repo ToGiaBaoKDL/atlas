@@ -1,19 +1,15 @@
 ---
-import { getPublishedWriting, selectWritingSeries } from "../data/content";
-import BaseLayout from "../layouts/BaseLayout.astro";
-import { writingSeries } from "../data/series";
+import { getWritingCatalog } from "../data/content";
+import { getWritingSeriesPath } from "../data/series";
 import { writingTopics } from "../data/topics";
+import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHero from "./PageHero.astro";
 import WritingList from "./WritingList.astro";
 
-const entries = await getPublishedWriting();
+const { entries, series: seriesGroups } = await getWritingCatalog();
 const activeTopics = writingTopics.filter(({ slug }) =>
   entries.some(({ data }) => data.topics.includes(slug)),
 );
-const seriesGroups = writingSeries
-  .map((series) => selectWritingSeries(entries, series.id))
-  .filter(({ entries }) => entries.length > 0);
-const standaloneEntries = entries.filter(({ data }) => !data.series);
 
 const copy = {
   kicker: "Essays · Notes · Research",
@@ -25,7 +21,7 @@ const copy = {
 <BaseLayout title={copy.title} description={copy.description} section="writing">
   <div class="container">
     <PageHero kicker={copy.kicker} title={copy.title} description={copy.description} />
-    <section class="writing-collection" aria-label="Published writing" data-reveal>
+    <div class="writing-collection" data-reveal>
       {
         activeTopics.length > 1 && (
           <nav class="topic-nav" aria-label="Browse by topic">
@@ -40,38 +36,59 @@ const copy = {
           </nav>
         )
       }
+
       {
-        seriesGroups.map(({ series, entries: seriesEntries, isComplete }) => {
-          return (
-            <section
-              class="series-group"
-              id={`series-${series.id}`}
-              aria-labelledby={`series-title-${series.id}`}
-            >
-              <header class="series-header">
-                <div>
-                  <p class="section-kicker">
-                    {isComplete ? "Complete series" : "Series"} · {series.totalParts} parts
-                  </p>
-                  <h2 id={`series-title-${series.id}`}>{series.name}</h2>
-                </div>
-                <p>{series.description}</p>
-              </header>
-              <WritingList entries={seriesEntries} />
-            </section>
-          );
-        })
-      }
-      {
-        standaloneEntries.length > 0 && (
-          <section class="standalone-writing" aria-labelledby="standalone-writing-heading">
-            <p class="section-kicker">Essays and notes</p>
-            <h2 id="standalone-writing-heading">More writing</h2>
-            <WritingList entries={standaloneEntries} />
+        seriesGroups.length > 0 && (
+          <section class="series-directory" aria-labelledby="writing-series-heading">
+            <header class="collection-heading">
+              <div class="collection-title">
+                <p class="section-kicker">Guided collections</p>
+                <h2 id="writing-series-heading">Series</h2>
+              </div>
+              <p class="collection-description">
+                Read focused series, one practical question at a time.
+              </p>
+            </header>
+            <ol class="series-index">
+              {seriesGroups.map(({ series, entries: seriesEntries, isComplete }, index) => (
+                <li>
+                  <a href={getWritingSeriesPath(series.id)}>
+                    <span class="series-number" aria-hidden="true">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span class="series-copy">
+                      <h3>{series.name}</h3>
+                      <p>{series.description}</p>
+                    </span>
+                    <span class="series-status">
+                      {isComplete
+                        ? `Complete · ${series.totalParts} parts`
+                        : `In progress · ${seriesEntries.length} of ${series.totalParts}`}
+                    </span>
+                    <span class="series-arrow" aria-hidden="true">
+                      →
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ol>
           </section>
         )
       }
-    </section>
+
+      <section class="all-writing" aria-labelledby="all-writing-heading">
+        <header class="collection-heading">
+          <div class="collection-title">
+            <p class="section-kicker">Latest first</p>
+            <h2 id="all-writing-heading">All writing</h2>
+          </div>
+          <p class="collection-description">
+            Every published essay and note, ordered by publication date.
+          </p>
+        </header>
+        <WritingList entries={entries} headingLevel="h3" />
+      </section>
+    </div>
   </div>
 </BaseLayout>
 
@@ -80,21 +97,26 @@ const copy = {
     margin-bottom: clamp(5rem, 10vw, 9rem);
   }
 
-  .series-group,
-  .standalone-writing {
+  .series-directory,
+  .all-writing {
     margin-top: clamp(3rem, 7vw, 5rem);
   }
 
-  .series-header {
+  .collection-heading {
     display: grid;
-    grid-template-columns: minmax(14rem, 0.7fr) minmax(0, 1fr);
+    grid-template-areas: "title description";
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 28rem);
     gap: clamp(2rem, 7vw, 6rem);
     align-items: end;
     margin-bottom: 2rem;
   }
 
-  .series-header h2,
-  .standalone-writing h2 {
+  .collection-title {
+    grid-area: title;
+    min-width: 0;
+  }
+
+  .collection-title h2 {
     margin: 0;
     font-size: clamp(1.8rem, 4vw, 3rem);
     font-weight: 630;
@@ -102,14 +124,91 @@ const copy = {
     line-height: 1.05;
   }
 
-  .series-header > p {
-    max-width: 36rem;
+  .collection-description {
+    grid-area: description;
     margin: 0;
     color: var(--text-soft);
+    text-align: right;
   }
 
-  .standalone-writing h2 {
-    margin-bottom: 2rem;
+  .series-index {
+    margin: 0;
+    border-top: 1px solid var(--border);
+    padding: 0;
+    list-style: none;
+  }
+
+  .series-index > li {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .series-index a {
+    display: grid;
+    grid-template-areas: "number copy status arrow";
+    grid-template-columns: 2.5rem minmax(0, 1fr) minmax(10rem, auto) auto;
+    gap: clamp(1rem, 3vw, 2.5rem);
+    align-items: baseline;
+    padding-block: clamp(1.35rem, 3vw, 2rem);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .series-number,
+  .series-status {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .series-number {
+    grid-area: number;
+    color: var(--accent-ink);
+    font-weight: 650;
+  }
+
+  .series-copy {
+    grid-area: copy;
+    min-width: 0;
+  }
+
+  .series-copy h3 {
+    margin: 0;
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+    font-weight: 630;
+    letter-spacing: -0.04em;
+    line-height: 1.08;
+    transition: color var(--motion-fast) ease;
+  }
+
+  .series-copy p {
+    max-width: 42rem;
+    margin: 0.55rem 0 0;
+    color: var(--text-soft);
+    line-height: 1.5;
+  }
+
+  .series-status {
+    grid-area: status;
+    color: var(--text-faint);
+    text-align: right;
+  }
+
+  .series-arrow {
+    grid-area: arrow;
+    color: var(--accent);
+    line-height: 1;
+    transition: transform var(--motion-fast) var(--ease-out);
+  }
+
+  .series-index a:hover .series-copy h3,
+  .series-index a:focus-visible .series-copy h3 {
+    color: var(--accent);
+  }
+
+  .series-index a:hover .series-arrow,
+  .series-index a:focus-visible .series-arrow {
+    transform: translateX(0.25rem);
   }
 
   .topic-nav {
@@ -155,10 +254,39 @@ const copy = {
     color: var(--accent-ink);
   }
 
+  @media (min-width: 64rem) {
+    .collection-heading {
+      grid-template-columns: minmax(0, 1fr) minmax(28rem, 36rem);
+    }
+  }
+
+  @media (max-width: 48rem) {
+    .series-index a {
+      grid-template-areas:
+        "number status arrow"
+        "copy copy copy";
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 0.55rem 1rem;
+    }
+
+    .series-status {
+      justify-self: start;
+      text-align: left;
+    }
+  }
+
   @media (max-width: 40rem) {
-    .series-header {
+    .collection-heading {
+      grid-template-areas:
+        "title"
+        "description";
       grid-template-columns: 1fr;
       gap: 0.75rem;
+    }
+
+    .collection-description {
+      justify-self: start;
+      text-align: left;
     }
 
     .topic-nav {

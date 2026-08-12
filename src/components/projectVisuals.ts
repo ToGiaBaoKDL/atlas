@@ -1,7 +1,7 @@
 import MarketPulseVisual from "./MarketPulseVisual.astro";
 import MiniLakehouseVisual from "./MiniLakehouseVisual.astro";
 
-export const projectVisuals = {
+const projectVisuals = {
   "mini-lakehouse": {
     component: MiniLakehouseVisual,
     label: "Mini Lakehouse hybrid platform boundaries",

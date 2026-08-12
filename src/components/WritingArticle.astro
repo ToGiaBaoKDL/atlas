@@ -1,7 +1,7 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
 import { getPublishedWriting, selectWritingSeries } from "../data/content";
-import { getWritingSeries } from "../data/series";
+import { getWritingSeries, getWritingSeriesPath } from "../data/series";
 import { getWritingSocialCard } from "../data/social-cards";
 import { site } from "../data/site";
 import { getWritingTopicLabel } from "../data/topics";
@@ -144,7 +144,7 @@ const articleSchema = {
             <p class="section-kicker">
               Series · Part {String(entry.data.series.part).padStart(2, "0")} of {series.totalParts}
             </p>
-            <a href={`/writing/#series-${series.id}`}>{series.name}</a>
+            <a href={getWritingSeriesPath(series.id)}>{series.name}</a>
           </header>
           <div class="series-links">
             {previousInSeries && (

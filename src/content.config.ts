@@ -2,7 +2,7 @@ import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 import { projectStatuses } from "./data/projects";
-import { writingSeries } from "./data/series";
+import { getWritingSeries, writingSeries } from "./data/series";
 import { topicSlugs, writingTopics } from "./data/topics";
 
 const requiredText = z.string().trim().min(1);
@@ -50,9 +50,22 @@ const writingSchema = z
       })
       .optional(),
   })
-  .refine(({ publishedAt, updatedAt }) => !updatedAt || updatedAt >= publishedAt, {
-    message: "updatedAt must be on or after publishedAt",
-    path: ["updatedAt"],
+  .superRefine(({ publishedAt, series, updatedAt }, context) => {
+    if (updatedAt && updatedAt < publishedAt) {
+      context.addIssue({
+        code: "custom",
+        message: "updatedAt must be on or after publishedAt",
+        path: ["updatedAt"],
+      });
+    }
+
+    if (series && series.part > getWritingSeries(series.id).totalParts) {
+      context.addIssue({
+        code: "custom",
+        message: `part exceeds the configured length of writing series "${series.id}"`,
+        path: ["series", "part"],
+      });
+    }
   });
 
 const writing = defineCollection({

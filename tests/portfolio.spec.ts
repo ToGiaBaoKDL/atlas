@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { featuredWritingSeries } from "../src/data/series";
+import { getWritingSeriesPath, homepageWritingSeries } from "../src/data/series";
 
 const writingArticles = [
   {
@@ -35,7 +35,8 @@ const writingArticles = [
   },
 ] as const;
 const firstWritingRoute = writingArticles[0].route;
-const replayableSeries = featuredWritingSeries;
+const replayableSeries = homepageWritingSeries[0];
+const replayableSeriesRoute = getWritingSeriesPath(replayableSeries.id);
 
 const criticalRoutes = [
   "/",
@@ -43,6 +44,7 @@ const criticalRoutes = [
   "/projects/mini-lakehouse/",
   "/projects/vn-market-pulse/",
   "/writing/",
+  replayableSeriesRoute,
   ...writingArticles.map(({ route }) => route),
   "/about/",
 ] as const;
@@ -67,6 +69,7 @@ for (const route of criticalRoutes) {
 for (const route of [
   "/",
   "/projects/mini-lakehouse/",
+  "/writing/",
   ...writingArticles.map(({ route }) => route),
   "/about/",
 ] as const) {
@@ -149,6 +152,57 @@ test("homepage showcases every project visual", async ({ page }) => {
   );
 });
 
+test("homepage writing spotlight advances one article at a time", async ({ page }) => {
+  await page.goto("/");
+  const carousel = page.getByRole("region", { name: `${replayableSeries.name} articles` });
+  const status = page.getByRole("status");
+  const controls = page.getByRole("button", {
+    name: new RegExp(`article in ${replayableSeries.name}`),
+  });
+
+  await expect(status).toHaveText("Part 01 / 05");
+  for (const control of await controls.all()) {
+    const box = await control.boundingBox();
+    expect(box?.width).toBeLessThanOrEqual(36);
+    expect(box?.height).toBeLessThanOrEqual(36);
+  }
+  await expect(
+    carousel.getByRole("link", { name: new RegExp(writingArticles[0].title) }),
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: `Next article in ${replayableSeries.name}` }).click();
+
+  await expect(status).toHaveText("Part 02 / 05");
+  await expect(
+    carousel.getByRole("link", { name: new RegExp(writingArticles[1].title) }),
+  ).toBeVisible();
+});
+
+test("homepage writing spotlight keeps rapid navigation synchronized", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+
+  const carousel = page.getByRole("region", { name: `${replayableSeries.name} articles` });
+  const next = page.getByRole("button", {
+    name: `Next article in ${replayableSeries.name}`,
+  });
+
+  await next.evaluate((button) => {
+    if (!(button instanceof HTMLButtonElement)) throw new Error("Expected a button");
+    button.click();
+    button.click();
+  });
+
+  expect(await page.getByRole("status").textContent()).toBe("Part 01 / 05");
+  await expect(page.getByRole("status")).toHaveText("Part 03 / 05");
+
+  const [viewportBox, cardBox] = await Promise.all([
+    carousel.boundingBox(),
+    carousel.getByRole("link", { name: new RegExp(writingArticles[2].title) }).boundingBox(),
+  ]);
+  expect(Math.abs((cardBox?.x ?? 0) - (viewportBox?.x ?? 0))).toBeLessThanOrEqual(1);
+});
+
 test("desktop projects use the motion-safe sticky stack", { tag: "@desktop" }, async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
@@ -203,21 +257,14 @@ test("desktop projects use the motion-safe sticky stack", { tag: "@desktop" }, a
     .poll(() => cards.last().evaluate((element) => element.getBoundingClientRect().top))
     .toBeCloseTo(stickyOffsets[0], 0);
   const lastCardTop = await cards.last().evaluate((element) => element.getBoundingClientRect().top);
-  await expect(sectionHeading).not.toHaveAttribute("data-sticky-hidden", "");
-  await expect(sectionHeading).toHaveCSS("position", "sticky");
-  await expect(sectionHeading).toHaveCSS("opacity", "1");
 
-  await page.evaluate(
-    (top) => window.scrollTo({ top, behavior: "instant" }),
-    writingTop - (page.viewportSize()?.height ?? 0) + 2,
-  );
-  await expect(sectionHeading).toHaveAttribute("data-sticky-hidden", "");
-  await expect(sectionHeading).toHaveAttribute("inert", "");
+  await page.evaluate((top) => window.scrollTo({ top, behavior: "instant" }), writingTop);
+  await expect
+    .poll(() => sectionHeading.evaluate((element) => element.getBoundingClientRect().bottom))
+    .toBeLessThanOrEqual(0);
   await expect
     .poll(() => cards.last().evaluate((element) => element.getBoundingClientRect().top))
     .toBeLessThanOrEqual(lastCardTop);
-  await expect(sectionHeading).toHaveCSS("position", "sticky");
-  await expect(sectionHeading).toHaveCSS("opacity", "0");
 });
 
 test(
@@ -582,11 +629,15 @@ for (const article of writingArticles) {
 
 test("writing series is ordered and has explicit continuation", async ({ page }) => {
   await page.goto("/writing/");
-  const series = page.getByRole("region", { name: replayableSeries.name });
+  await expect(page.getByRole("link", { name: new RegExp(replayableSeries.name) })).toHaveAttribute(
+    "href",
+    replayableSeriesRoute,
+  );
 
-  await expect(
-    series.getByText(`Complete series · ${replayableSeries.totalParts} parts`),
-  ).toBeVisible();
+  await page.goto(replayableSeriesRoute);
+  const series = page.getByRole("region", { name: `${replayableSeries.name} articles` });
+
+  await expect(series.getByText(`Complete · ${replayableSeries.totalParts} parts`)).toBeVisible();
   await expect(series.locator("ol").getByRole("heading", { level: 2 })).toHaveText(
     writingArticles.map(({ title }) => title),
   );
@@ -595,6 +646,10 @@ test("writing series is ordered and has explicit continuation", async ({ page })
   const navigation = page.getByRole("navigation", {
     name: `${replayableSeries.name} series navigation`,
   });
+  await expect(navigation.getByRole("link", { name: replayableSeries.name })).toHaveAttribute(
+    "href",
+    replayableSeriesRoute,
+  );
   await expect(navigation.getByRole("link", { name: /Previous part/ })).toHaveCount(0);
   await expect(
     navigation.getByRole("link", { name: new RegExp(`Next part.*${writingArticles[1].title}`) }),

@@ -23,7 +23,7 @@ export interface SocialCardInput {
 
 type SocialCardContent = Omit<SocialCardInput, "brand">;
 
-export interface SocialCardAsset {
+interface SocialCardAsset {
   collection: "projects" | "writing";
   asset: string;
   path: string;

@@ -1,5 +1,11 @@
 import { getCollection, type CollectionEntry } from "astro:content";
-import { getWritingSeries, type WritingSeriesId } from "./series";
+import {
+  getWritingSeries,
+  homepageWritingSeries,
+  writingSeries,
+  type HomepageWritingSeries,
+  type WritingSeriesId,
+} from "./series";
 
 export const getProjects = async () =>
   (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
@@ -13,11 +19,10 @@ const orderSeriesWriting = (entries: CollectionEntry<"writing">[], seriesId: Wri
   const orderedEntries = entries
     .filter(({ data }) => data.series?.id === seriesId)
     .sort((a, b) => (a.data.series?.part ?? 0) - (b.data.series?.part ?? 0));
-  const { totalParts } = getWritingSeries(seriesId);
   const parts = orderedEntries.map(({ data }) => data.series?.part ?? 0);
 
-  if (new Set(parts).size !== parts.length || parts.some((part) => part > totalParts)) {
-    throw new Error(`Invalid published part sequence for writing series "${seriesId}".`);
+  if (new Set(parts).size !== parts.length) {
+    throw new Error(`Writing series "${seriesId}" contains duplicate part numbers.`);
   }
 
   return orderedEntries;
@@ -39,5 +44,42 @@ export const selectWritingSeries = (
   return { series, entries: seriesEntries, isComplete };
 };
 
-export const getPublishedWritingSeries = async (seriesId: WritingSeriesId) =>
-  selectWritingSeries(await getPublishedWriting(), seriesId);
+export type WritingSeriesSelection = ReturnType<typeof selectWritingSeries>;
+export type HomepageWritingSeriesSelection = Omit<WritingSeriesSelection, "series"> & {
+  series: HomepageWritingSeries;
+};
+
+const selectWritingSeriesGroups = (entries: CollectionEntry<"writing">[]) =>
+  writingSeries
+    .map(({ id }) => selectWritingSeries(entries, id))
+    .filter(({ entries: seriesEntries }) => seriesEntries.length > 0);
+
+export const getWritingCatalog = async () => {
+  const entries = await getPublishedWriting();
+
+  return {
+    entries,
+    series: selectWritingSeriesGroups(entries),
+  };
+};
+
+export const getHomepageWritingSeries = async () => {
+  const catalog = await getWritingCatalog();
+  const selectionsById = new Map(
+    catalog.series.map((selection) => [selection.series.id, selection]),
+  );
+
+  return homepageWritingSeries.flatMap<HomepageWritingSeriesSelection>((series) => {
+    const selection = selectionsById.get(series.id);
+
+    if (!selection) return [];
+
+    if (!selection.entries.some(({ data }) => data.series?.part === series.homepage.part)) {
+      throw new Error(
+        `Homepage part ${series.homepage.part} is not published for writing series "${series.id}".`,
+      );
+    }
+
+    return [{ ...selection, series }];
+  });
+};
