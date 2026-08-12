@@ -1,33 +1,133 @@
 <svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1200" height="630" fill="#111310"/>
-  <g opacity="0.42" stroke="#30352F">
-    <path d="M0 105.5H1200M0 210.5H1200M0 315.5H1200M0 420.5H1200M0 525.5H1200"/>
-    <path d="M100.5 0V630M300.5 0V630M500.5 0V630M700.5 0V630M900.5 0V630M1100.5 0V630"/>
-  </g>
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" stroke="#293029" stroke-width="1"/>
+    </pattern>
+    <linearGradient id="edge-fade" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#B7EE58" stop-opacity="0"/>
+      <stop offset="0.22" stop-color="#B7EE58"/>
+      <stop offset="1" stop-color="#8FCE2F"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(1050 80) rotate(135) scale(370 300)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A3E635" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#A3E635" stop-opacity="0"/>
+    </radialGradient>
+    <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0 0L6 3L0 6V0Z" fill="#8FCE2F"/>
+    </marker>
+  </defs>
 
-  <g transform="translate(76 68)">
-    <circle cx="7" cy="7" r="7" fill="#A3E635"/>
-    <text x="28" y="13" fill="#B8BCB3" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" letter-spacing="2.4">DATA ENGINEER · DATA PLATFORMS</text>
-  </g>
+  <rect width="1200" height="630" fill="#101310"/>
+  <rect width="1200" height="630" fill="url(#grid)" opacity="0.48"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
 
-  <text x="76" y="190" fill="#F1F2ED" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="700" letter-spacing="-1.5">Tô Gia Bảo</text>
-  <text x="76" y="302" fill="#F1F2ED" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" letter-spacing="-4">Reliable data platforms,</text>
-  <text x="76" y="385" fill="#F1F2ED" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" letter-spacing="-4">end to end.</text>
+  <g font-family="'Helvetica Neue', Arial, sans-serif">
+    <g transform="translate(72 62)">
+      <circle cx="6" cy="6" r="6" fill="#A3E635"/>
+      <circle cx="6" cy="6" r="11" fill="#A3E635" opacity="0.12"/>
+      <text x="28" y="12" fill="#F1F3ED" font-size="17" font-weight="700" letter-spacing="0.4">Tô Gia Bảo</text>
+      <text x="142" y="12" fill="#7F877B" font-family="'SFMono-Regular', Consolas, monospace" font-size="12" font-weight="600" letter-spacing="1.4">/ DATA ENGINEER</text>
+    </g>
 
-  <g transform="translate(76 494)">
-    <rect width="164" height="48" rx="8" fill="#A3E635"/>
-    <text x="82" y="31" text-anchor="middle" fill="#111310" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Portfolio</text>
-    <text x="190" y="30" fill="#91978D" font-family="Arial, Helvetica, sans-serif" font-size="16">Systems · Decisions · Technical writing</text>
-  </g>
+    <text x="72" y="191" fill="#F4F5EF" font-size="66" font-weight="700" letter-spacing="-3.8">Reliable data</text>
+    <text x="72" y="261" fill="#F4F5EF" font-size="66" font-weight="700" letter-spacing="-3.8">platforms,</text>
+    <text x="72" y="331" fill="#F4F5EF" font-size="66" font-weight="700" letter-spacing="-3.8">end to end.</text>
 
-  <g transform="translate(835 135)">
-    <rect x="0.5" y="0.5" width="287" height="287" rx="18" fill="#171A16" stroke="#30352F"/>
-    <path d="M48 80H105M125 80H182M202 80H240" stroke="#4A5148" stroke-width="2"/>
-    <path d="M76 80V143H144V205H212" stroke="#A3E635" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="76" cy="80" r="14" fill="#26320F" stroke="#A3E635" stroke-width="2"/>
-    <circle cx="144" cy="143" r="14" fill="#26320F" stroke="#A3E635" stroke-width="2"/>
-    <circle cx="212" cy="205" r="14" fill="#26320F" stroke="#A3E635" stroke-width="2"/>
-    <rect x="39" y="234" width="210" height="18" rx="9" fill="#1D211C"/>
-    <rect x="39" y="234" width="137" height="18" rx="9" fill="#3F6212"/>
+    <text x="74" y="397" fill="#AEB4AA" font-size="21" font-weight="400">Explicit boundaries, owned data products</text>
+    <text x="74" y="427" fill="#AEB4AA" font-size="21" font-weight="400">and delivery designed for recovery.</text>
+
+    <g transform="translate(72 517)" font-family="'SFMono-Regular', Consolas, monospace">
+      <text y="11" fill="#B7EE58" font-size="12" font-weight="700" letter-spacing="1.3">TGBLAB.IO.VN</text>
+      <path d="M0 31H512" stroke="#303831"/>
+      <text y="58" fill="#7F877B" font-size="11" font-weight="600" letter-spacing="1.15">DATA PLATFORMS  /  LAKEHOUSE  /  CLOUD INFRASTRUCTURE</text>
+    </g>
+
+    <g transform="translate(666 72)">
+      <rect x="0.5" y="0.5" width="461" height="485" rx="18" fill="#121712" stroke="#303831"/>
+      <rect x="1" y="1" width="460" height="484" rx="17" fill="url(#grid)" opacity="0.32"/>
+
+      <g transform="translate(26 25)">
+        <text y="10" fill="#7F877B" font-family="'SFMono-Regular', Consolas, monospace" font-size="10" font-weight="700" letter-spacing="1.35">PLATFORM BLUEPRINT</text>
+        <text y="37" fill="#F1F3ED" font-size="17" font-weight="650">A stable path from source to product</text>
+        <circle cx="354" cy="9" r="4" fill="#A3E635"/>
+        <circle cx="354" cy="9" r="8" fill="#A3E635" opacity="0.12"/>
+        <text x="366" y="12" fill="#AEB4AA" font-family="'SFMono-Regular', Consolas, monospace" font-size="9" font-weight="700" letter-spacing="1">RELIABLE</text>
+        <path d="M0 58H409" stroke="#303831"/>
+      </g>
+
+      <g transform="translate(26 111)">
+        <rect x="0.5" y="0.5" width="409" height="234" rx="10" fill="#141A15" fill-opacity="0.8" stroke="#668F29" stroke-dasharray="3 5"/>
+        <rect x="13" y="-6" width="122" height="14" fill="#121712"/>
+        <text x="18" y="3" fill="#B7EE58" font-family="'SFMono-Regular', Consolas, monospace" font-size="9" font-weight="700" letter-spacing="1.2">DATA PLANE</text>
+        <text x="86" y="3" fill="#7F877B" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="600" letter-spacing="0.9">BOUNDED FLOW</text>
+
+        <g transform="translate(18 51)">
+          <rect x="0.5" y="0.5" width="72" height="105" rx="7" fill="#171D17" stroke="#303831"/>
+          <text x="11" y="20" fill="#7F877B" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="700" letter-spacing="0.9">SOURCES</text>
+          <text x="11" y="48" fill="#F1F3ED" font-size="13" font-weight="650">Bounded</text>
+          <text x="11" y="65" fill="#F1F3ED" font-size="13" font-weight="650">inputs</text>
+          <text x="11" y="89" fill="#AEB4AA" font-family="'SFMono-Regular', Consolas, monospace" font-size="8">BATCH · API</text>
+        </g>
+
+        <path d="M95 104H113" stroke="url(#edge-fade)" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <g transform="translate(116 51)">
+          <rect x="0.5" y="0.5" width="76" height="105" rx="7" fill="#171D17" stroke="#303831"/>
+          <text x="11" y="20" fill="#7F877B" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="700" letter-spacing="0.9">EXECUTION</text>
+          <text x="11" y="48" fill="#F1F3ED" font-size="13" font-weight="650">Ingest +</text>
+          <text x="11" y="65" fill="#F1F3ED" font-size="13" font-weight="650">transform</text>
+          <text x="11" y="89" fill="#AEB4AA" font-family="'SFMono-Regular', Consolas, monospace" font-size="8">REPLACEABLE</text>
+        </g>
+
+        <path d="M195 104H213" stroke="url(#edge-fade)" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <g transform="translate(216 38)">
+          <rect x="0.5" y="0.5" width="102" height="131" rx="7" fill="#182016" stroke="#8FCE2F"/>
+          <text x="11" y="20" fill="#AEB4AA" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="700" letter-spacing="0.8">OWNED PRODUCTS</text>
+          <g font-size="11" font-weight="600">
+            <text x="25" y="51" fill="#F1F3ED">Landing</text>
+            <text x="25" y="79" fill="#F1F3ED">Curated</text>
+            <text x="25" y="107" fill="#F1F3ED">Analytics</text>
+          </g>
+          <g fill="#B7EE58" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="700">
+            <text x="11" y="51">01</text>
+            <text x="11" y="79">02</text>
+            <text x="11" y="107">03</text>
+          </g>
+        </g>
+
+        <path d="M321 104H339" stroke="url(#edge-fade)" stroke-width="2" marker-end="url(#arrow)"/>
+
+        <g transform="translate(342 51)">
+          <rect x="0.5" y="0.5" width="49" height="105" rx="7" fill="#171D17" stroke="#303831"/>
+          <text x="9" y="20" fill="#7F877B" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="700" letter-spacing="0.7">SERVE</text>
+          <text x="9" y="48" fill="#F1F3ED" font-size="12" font-weight="650">BI</text>
+          <text x="9" y="68" fill="#F1F3ED" font-size="12" font-weight="650">APIs</text>
+          <text x="9" y="88" fill="#F1F3ED" font-size="12" font-weight="650">AI</text>
+        </g>
+
+        <path d="M18 194H391" stroke="#2A322B"/>
+        <text x="18" y="216" fill="#7F877B" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="600" letter-spacing="0.8">CONTRACTS AT EVERY BOUNDARY</text>
+        <path d="M300 213H391" stroke="#8FCE2F" stroke-width="2"/>
+      </g>
+
+      <g transform="translate(26 369)">
+        <rect x="0.5" y="0.5" width="409" height="78" rx="9" fill="#171D17" stroke="#303831"/>
+        <text x="14" y="24" fill="#7F877B" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="700" letter-spacing="1">PLATFORM PLANE</text>
+        <g fill="#AEB4AA" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="600" letter-spacing="0.5">
+          <text x="14" y="55">ORCHESTRATE</text>
+          <text x="105" y="55">TEST</text>
+          <text x="157" y="55">CATALOG</text>
+          <text x="228" y="55">OBSERVE</text>
+          <text x="303" y="55">SECURE</text>
+        </g>
+        <g stroke="#303831">
+          <path d="M94 42V61"/>
+          <path d="M145 42V61"/>
+          <path d="M216 42V61"/>
+          <path d="M291 42V61"/>
+        </g>
+      </g>
+    </g>
   </g>
 </svg>
