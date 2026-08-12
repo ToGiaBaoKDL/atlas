@@ -1,5 +1,5 @@
 ---
-import CaseStudyFigure from "./CaseStudyFigure.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
 
 interface Props {
   variant: "lakehouse" | "market-pulse";
@@ -61,7 +61,7 @@ const visuals = {
 const visual = visuals[variant];
 ---
 
-<CaseStudyFigure
+<TechnicalFigure
   eyebrow={visual.eyebrow}
   title={visual.title}
   status={visual.status}
@@ -95,7 +95,7 @@ const visual = visuals[variant];
       }
     </div>
   </div>
-</CaseStudyFigure>
+</TechnicalFigure>
 
 <style>
   .recovery-map {

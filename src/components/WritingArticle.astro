@@ -1,6 +1,7 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
 import { getPublishedWriting } from "../data/content";
+import { getWritingSeries } from "../data/series";
 import { site } from "../data/site";
 import { getWritingMaturityLabel, getWritingTopicLabel } from "../data/topics";
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -35,6 +36,7 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
   year: "numeric",
 });
 const topicLabels = entry.data.topics.map(getWritingTopicLabel);
+const series = entry.data.series ? getWritingSeries(entry.data.series.id) : undefined;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 const socialImage = Astro.site ? new URL("/social-card.png", Astro.site).href : undefined;
 const personId = Astro.site ? `${new URL("/", Astro.site).href}#person` : undefined;
@@ -46,6 +48,17 @@ const articleSchema = {
   dateModified: (entry.data.updatedAt ?? entry.data.publishedAt).toISOString(),
   author: personId ? { "@id": personId } : { "@type": "Person", name: site.name },
   keywords: topicLabels,
+  ...(series && entry.data.series
+    ? {
+        isPartOf: {
+          "@type": "CreativeWorkSeries",
+          identifier: series.id,
+          name: series.name,
+          description: series.description,
+        },
+        position: entry.data.series.part,
+      }
+    : {}),
   ...(socialImage ? { image: socialImage } : {}),
   ...(canonical
     ? { mainEntityOfPage: { "@type": "WebPage", "@id": canonical }, url: canonical }
@@ -66,7 +79,13 @@ const articleSchema = {
   <article>
     <header class="article-hero container" data-enter>
       <a class="text-link" href="/writing/">← All writing</a>
-      <p class="section-kicker">{topicLabels.slice(0, 2).join(" · ")}</p>
+      <p class="section-kicker">
+        {
+          series && entry.data.series
+            ? `${series.name} · Part ${String(entry.data.series.part).padStart(2, "0")}`
+            : topicLabels.slice(0, 2).join(" · ")
+        }
+      </p>
       <h1>{entry.data.title}</h1>
       <p class="article-description">{entry.data.description}</p>
       <div class="article-meta">

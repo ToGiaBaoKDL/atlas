@@ -2,6 +2,7 @@ import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 import { projectStatuses } from "./data/projects";
+import { writingSeries } from "./data/series";
 import { topicSlugs, writingMaturities, writingTopics } from "./data/topics";
 
 const requiredText = z.string().trim().min(1);
@@ -32,6 +33,7 @@ const projects = defineCollection({
 });
 
 const writingTopicSlugs = writingTopics.map(({ slug }) => slug);
+const writingSeriesIds = writingSeries.map(({ id }) => id);
 
 const writingSchema = z
   .object({
@@ -42,6 +44,12 @@ const writingSchema = z
     draft: z.boolean().default(false),
     topics: z.array(z.enum(writingTopicSlugs)).min(1),
     maturity: z.enum(writingMaturities),
+    series: z
+      .object({
+        id: z.enum(writingSeriesIds),
+        part: z.number().int().positive(),
+      })
+      .optional(),
   })
   .refine(({ publishedAt, updatedAt }) => !updatedAt || updatedAt >= publishedAt, {
     message: "updatedAt must be on or after publishedAt",

@@ -56,8 +56,8 @@ Project and writing entries live in `src/content/` and are validated by
 `src/content.config.ts`.
 
 ```text
-mini-lakehouse.md
-vn-market-pulse.md
+projects/*.mdx
+writing/*.{md,mdx}
 ```
 
 Use `src/content/writing/_template.md` as the authoring baseline. Draft entries remain available to
@@ -71,11 +71,15 @@ updatedAt: 2026-08-11 # optional
 draft: true
 topics: []
 maturity: seed # seed | growing | evergreen
+series: # optional
+  id: replayable-by-design
+  part: 1
 ```
 
 Core UI strings live in `src/data/site.ts`; canonical topic and maturity labels live in
-`src/data/topics.ts`. Search remains intentionally disabled until the writing corpus is large enough
-to make it useful.
+`src/data/topics.ts`, while series identity and copy live in `src/data/series.ts`. Content entries
+reference those registries by stable ID. Search remains intentionally disabled until the writing
+corpus is large enough to make it useful.
 
 The default social card is stored as both an editable SVG source and a 1200 × 630 PNG fallback in
 `public/`.

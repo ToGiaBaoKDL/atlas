@@ -1,0 +1,187 @@
+---
+import FlowArrow from "../FlowArrow.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const attempts = [
+  {
+    attempt: "Attempt 01",
+    tone: "failed",
+    stages: [
+      { label: "Produce", detail: "candidate files" },
+      { label: "Validate", detail: "schema fails" },
+      { label: "Discard", detail: "snapshot N stays" },
+    ],
+  },
+  {
+    attempt: "Attempt 02",
+    tone: "committed",
+    stages: [
+      { label: "Produce", detail: "same boundary" },
+      { label: "Validate", detail: "checks pass" },
+      { label: "Commit", detail: "snapshot N + 1" },
+    ],
+  },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Publish boundary"
+  title="Produced is not the same as visible"
+  status="Fail closed"
+  caption="A failed attempt may leave temporary work behind, but readers stay on the previous snapshot. Only a validated commit moves the visible state."
+  number="02 / COMMIT PATH"
+>
+  <div class="publish-map">
+    <div class="reader-state">
+      <span>Reader sees</span>
+      <strong>Snapshot N</strong>
+      <small>Stable until commit</small>
+    </div>
+
+    <ol class="attempts">
+      {
+        attempts.map((attempt) => (
+          <li class={attempt.tone}>
+            <span class="attempt-label">{attempt.attempt}</span>
+            <div class="attempt-path">
+              {attempt.stages.map((stage, index) => (
+                <>
+                  <article>
+                    <strong>{stage.label}</strong>
+                    <small>{stage.detail}</small>
+                  </article>
+                  {index < attempt.stages.length - 1 && <FlowArrow particle={index === 0} />}
+                </>
+              ))}
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="visible-state">
+      <span>After commit</span>
+      <strong>Snapshot N + 1</strong>
+      <small>One atomic move</small>
+    </div>
+  </div>
+</TechnicalFigure>
+
+<style>
+  .publish-map {
+    display: grid;
+    height: 100%;
+    grid-template-columns: minmax(6.8rem, 0.72fr) minmax(0, 3fr) minmax(7rem, 0.78fr);
+    gap: 0.75rem;
+    align-items: stretch;
+  }
+
+  .reader-state,
+  .visible-state {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 0.4rem;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel-soft);
+    padding: 0.75rem;
+  }
+
+  .visible-state {
+    border-color: var(--visual-accent-strong);
+    background: color-mix(in srgb, var(--visual-panel) 86%, var(--visual-accent-glow));
+  }
+
+  .reader-state span,
+  .reader-state small,
+  .visible-state span,
+  .visible-state small,
+  .attempt-label,
+  article small {
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .reader-state span,
+  .visible-state span,
+  .attempt-label {
+    color: var(--visual-muted);
+    font-weight: 650;
+  }
+
+  .reader-state strong,
+  .visible-state strong {
+    color: var(--visual-text);
+    font-size: 0.76rem;
+    font-weight: 600;
+  }
+
+  .reader-state small,
+  .visible-state small,
+  article small {
+    color: var(--visual-soft);
+  }
+
+  .attempts {
+    display: grid;
+    min-width: 0;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .attempts > li {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 4.3rem minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: center;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel-soft) 94%, transparent);
+    padding: 0.6rem;
+  }
+
+  .committed {
+    border-color: var(--visual-accent-strong) !important;
+  }
+
+  .attempt-path {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) 0.85rem minmax(0, 1fr) 0.85rem minmax(0, 1fr);
+    gap: 0.35rem;
+    align-items: center;
+  }
+
+  article {
+    display: grid;
+    min-width: 0;
+    min-height: 3.35rem;
+    align-content: center;
+    gap: 0.3rem;
+    border: 1px solid var(--visual-border);
+    border-radius: 0.35rem;
+    background: var(--visual-panel);
+    padding: 0.5rem;
+  }
+
+  article strong {
+    color: var(--visual-text);
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  .failed article:last-child strong {
+    color: #df8f82;
+  }
+
+  .committed article:last-child strong {
+    color: var(--visual-accent);
+  }
+</style>

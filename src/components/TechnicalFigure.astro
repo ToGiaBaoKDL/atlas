@@ -1,6 +1,6 @@
 ---
-import VisualFrame from "../VisualFrame.astro";
-import VisualHeader from "../VisualHeader.astro";
+import VisualFrame from "./VisualFrame.astro";
+import VisualHeader from "./VisualHeader.astro";
 
 interface Props {
   eyebrow: string;
@@ -13,11 +13,11 @@ interface Props {
 const { eyebrow, title, status, caption, number } = Astro.props;
 ---
 
-<figure class="case-figure" data-reveal>
+<figure class="technical-figure" data-reveal>
   <VisualFrame aspect="landscape" presentation="detail">
-    <div class="case-figure-panel">
+    <div class="technical-figure-panel">
       <VisualHeader {eyebrow} {title} {status} />
-      <div class="case-figure-canvas">
+      <div class="technical-figure-canvas">
         <slot />
       </div>
     </div>
@@ -29,12 +29,12 @@ const { eyebrow, title, status, caption, number } = Astro.props;
 </figure>
 
 <style>
-  .case-figure {
+  .technical-figure {
     width: 100%;
     margin: clamp(2.5rem, 6vw, 4rem) 0;
   }
 
-  .case-figure-panel {
+  .technical-figure-panel {
     position: relative;
     display: grid;
     overflow: hidden;
@@ -58,13 +58,13 @@ const { eyebrow, title, status, caption, number } = Astro.props;
     color: var(--visual-text);
   }
 
-  .case-figure-canvas {
+  .technical-figure-canvas {
     min-height: 0;
     padding-top: clamp(0.65rem, 1.4vw, 0.85rem);
   }
 
-  /* MDX prose rhythm must not alter the geometry of embedded UI diagrams. */
-  .case-figure-canvas :global(li + li) {
+  /* Prose rhythm must not alter the geometry of embedded UI diagrams. */
+  .technical-figure-canvas :global(li + li) {
     margin-top: 0;
   }
 
@@ -94,7 +94,7 @@ const { eyebrow, title, status, caption, number } = Astro.props;
   }
 
   @media (max-width: 40rem) {
-    .case-figure {
+    .technical-figure {
       margin-block: 2.5rem;
     }
 

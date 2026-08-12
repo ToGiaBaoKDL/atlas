@@ -1,5 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { writingSeries } from "../src/data/series";
+
+const firstWritingRoute = "/writing/backfills-are-a-data-model-problem/";
+const replayableSeries = writingSeries.find(({ id }) => id === "replayable-by-design");
+
+if (!replayableSeries) throw new Error("Missing replayable-by-design writing series");
 
 const criticalRoutes = [
   "/",
@@ -7,6 +13,7 @@ const criticalRoutes = [
   "/projects/mini-lakehouse/",
   "/projects/vn-market-pulse/",
   "/writing/",
+  firstWritingRoute,
   "/about/",
 ] as const;
 
@@ -27,7 +34,7 @@ for (const route of criticalRoutes) {
   });
 }
 
-for (const route of ["/", "/projects/mini-lakehouse/", "/about/"] as const) {
+for (const route of ["/", "/projects/mini-lakehouse/", firstWritingRoute, "/about/"] as const) {
   test(`${route} has no serious accessibility violations`, async ({ page }) => {
     await page.goto(route);
     const results = await new AxeBuilder({ page })
@@ -299,15 +306,16 @@ test("project cards use overviews while case studies keep desktop detail", async
   }
 });
 
-test("project visual canvases do not clip their internal layouts", async ({ page }) => {
+test("technical visual canvases do not clip their internal layouts", async ({ page }) => {
   for (const route of [
     "/",
     "/projects/",
     "/projects/mini-lakehouse/",
     "/projects/vn-market-pulse/",
+    firstWritingRoute,
   ]) {
     await page.goto(route);
-    const canvases = page.locator(".lakehouse-map, .market-map, .case-figure-panel");
+    const canvases = page.locator(".lakehouse-map, .market-map, .technical-figure-panel");
 
     for (const canvas of await canvases.all()) {
       await canvas.scrollIntoViewIfNeeded();
@@ -371,7 +379,7 @@ test("market pulse visual keeps a compact, explicit responsibility path", async 
     );
   expect(clippedOwnerLabels).toEqual([]);
 
-  const comparison = page.locator(".case-figure").filter({ hasText: "Fewer stages" });
+  const comparison = page.locator(".technical-figure").filter({ hasText: "Fewer stages" });
   await comparison.scrollIntoViewIfNeeded();
   const [earlier, current] = await Promise.all([
     comparison.locator(".earlier").boundingBox(),
@@ -456,7 +464,7 @@ test(
   async ({ page }) => {
     for (const route of ["/projects/mini-lakehouse/", "/projects/vn-market-pulse/"] as const) {
       await page.goto(route);
-      const figures = page.locator(".case-figure");
+      const figures = page.locator(".technical-figure");
       await expect(figures).not.toHaveCount(0);
 
       for (const figure of await figures.all()) {
@@ -487,6 +495,37 @@ test("RSS endpoint is valid XML", async ({ request }) => {
   expect(response.ok()).toBe(true);
   expect(response.headers()["content-type"]).toContain("application/xml");
   expect(await response.text()).toContain("<rss");
+});
+
+test("published writing exposes its date, series and article metadata", async ({ page }) => {
+  await page.goto(firstWritingRoute);
+
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    "Backfills Are a Data Model Problem, Not an Airflow Feature",
+  );
+  await expect(page.locator(".article-hero time").first()).toHaveAttribute(
+    "datetime",
+    /^2026-08-12/,
+  );
+  await expect(page.locator(".article-hero .section-kicker")).toHaveText(
+    `${replayableSeries.name} · Part 01`,
+  );
+  expect(await page.locator(".technical-figure").count()).toBeGreaterThan(0);
+
+  const graph = await page.locator('script[type="application/ld+json"]').textContent();
+  expect(JSON.parse(graph ?? "{}")["@graph"]).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        "@type": "BlogPosting",
+        datePublished: "2026-08-12T00:00:00.000Z",
+        isPartOf: expect.objectContaining({
+          "@type": "CreativeWorkSeries",
+          name: replayableSeries.name,
+        }),
+        position: 1,
+      }),
+    ]),
+  );
 });
 
 test("production SEO metadata is canonical and internally consistent", async ({

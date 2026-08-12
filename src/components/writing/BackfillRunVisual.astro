@@ -1,0 +1,194 @@
+---
+import FlowArrow from "../FlowArrow.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const contract = [
+  { label: "Boundary", value: "orders · 09 Aug", detail: "Versioned input set" },
+  { label: "Revision", value: "code + contract", detail: "One reviewed meaning" },
+  { label: "Publish", value: "replace or MERGE", detail: "One visible commit" },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Run identity"
+  title="The clock triggers work; the interval identifies it"
+  status="Bounded"
+  caption="A backfill happens now, but it owns a past data interval. The run contract binds that interval to a reviewed revision and one publish rule."
+  number="01 / RUN CONTRACT"
+>
+  <div class="run-contract">
+    <div class="time-map" aria-label="Wall clock and data interval">
+      <div class="wall-clock">
+        <span>Wall clock</span>
+        <strong>12 Aug · 09:00</strong>
+        <small>Backfill starts now</small>
+      </div>
+      <div class="interval">
+        <span>Logical date</span>
+        <strong>09 Aug · 00:00</strong>
+        <div class="interval-track" aria-hidden="true"><i></i></div>
+        <small>Data interval · 24 hours</small>
+      </div>
+      <div class="window-end">
+        <span>Window end</span>
+        <strong>10 Aug · 00:00</strong>
+        <small>Exclusive boundary</small>
+      </div>
+    </div>
+
+    <ol class="contract" aria-label="Run contract">
+      {
+        contract.map((item, index) => (
+          <li>
+            <article>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <small>{item.detail}</small>
+            </article>
+            {index < contract.length - 1 && <FlowArrow particle={index === 0} />}
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</TechnicalFigure>
+
+<style>
+  .run-contract {
+    display: grid;
+    height: 100%;
+    grid-template-rows: auto auto;
+    gap: 0.8rem;
+    align-content: center;
+  }
+
+  .time-map {
+    display: grid;
+    grid-template-columns: minmax(8rem, 0.8fr) minmax(15rem, 1.7fr) minmax(8rem, 0.8fr);
+    gap: 0.7rem;
+    align-items: end;
+  }
+
+  .time-map > div {
+    display: grid;
+    min-width: 0;
+    gap: 0.3rem;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel-soft);
+    padding: 0.65rem 0.75rem;
+  }
+
+  .time-map span,
+  .time-map small,
+  .contract span,
+  .contract small {
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .time-map span,
+  .contract span {
+    color: var(--visual-muted);
+    font-weight: 650;
+  }
+
+  .time-map strong {
+    color: var(--visual-text);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .time-map small,
+  .contract small {
+    color: var(--visual-soft);
+  }
+
+  .interval {
+    border-color: var(--visual-accent-strong) !important;
+    background: color-mix(in srgb, var(--visual-panel) 86%, var(--visual-accent-glow)) !important;
+  }
+
+  .interval-track {
+    position: relative;
+    height: 2px;
+    margin-block: 0.2rem;
+    background: linear-gradient(
+      90deg,
+      var(--visual-accent),
+      var(--visual-accent-strong) 82%,
+      transparent
+    );
+  }
+
+  .interval-track::before,
+  .interval-track::after {
+    position: absolute;
+    top: -0.2rem;
+    width: 1px;
+    height: 0.4rem;
+    background: var(--visual-accent);
+    content: "";
+  }
+
+  .interval-track::before {
+    left: 0;
+  }
+
+  .interval-track::after {
+    right: 0;
+  }
+
+  .interval-track i {
+    position: absolute;
+    top: 50%;
+    left: 72%;
+    width: 0.38rem;
+    height: 0.38rem;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: var(--visual-accent);
+    box-shadow: 0 0 0 0.18rem var(--visual-accent-glow);
+  }
+
+  .contract {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .contract li {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) 1rem;
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .contract li:last-child {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .contract article {
+    display: grid;
+    min-width: 0;
+    min-height: 4.5rem;
+    align-content: center;
+    gap: 0.35rem;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel);
+    padding: 0.65rem 0.75rem;
+  }
+
+  .contract strong {
+    color: var(--visual-text);
+    font-size: clamp(0.68rem, 1.3vw, 0.82rem);
+    font-weight: 600;
+  }
+</style>

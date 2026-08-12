@@ -1,0 +1,143 @@
+---
+title: Backfills Are a Data Model Problem, Not an Airflow Feature
+description: A scheduler can recreate yesterday's run. Only the data model can make that run safe to publish again.
+publishedAt: 2026-08-12
+draft: false
+topics:
+  - data-systems
+  - software-design
+maturity: growing
+series:
+  id: replayable-by-design
+  part: 1
+---
+
+import BackfillRunVisual from "../../components/writing/BackfillRunVisual.astro";
+import PublishBoundaryVisual from "../../components/writing/PublishBoundaryVisual.astro";
+
+Backfills often enter a project as an operations request: pick a date range, ask the scheduler to
+create old runs, and watch the queue. That part is useful, but it is also the easy part.
+
+The difficult question arrives one layer lower: **what does it mean to write 9 August again?**
+
+If the answer is “run the same tasks,” the pipeline can finish green and still duplicate facts,
+replace newer state with older observations, or expose half of a failed attempt. Airflow can decide
+which runs to create. It cannot infer the identity and publication rules of your data.
+
+## What the scheduler actually knows
+
+For a scheduled Airflow DAG, each run has a data interval. Its logical date marks the beginning of
+that interval; it is not the wall-clock time at which the job happens to execute. Airflow backfill
+uses a past range to create DAG runs and lets the operator choose reprocessing behaviour,
+concurrency and ordering.
+
+Those are orchestration decisions. Airflow still does not know:
+
+- whether one day maps to one partition, several business entities or a rolling snapshot;
+- which key makes two records the same logical fact;
+- whether an older observation may update current state;
+- which temporary outputs are safe for readers to see; or
+- whether a retry may write outside the requested interval.
+
+That is why I treat a backfill run as a data contract before treating it as a scheduler command.
+
+<BackfillRunVisual />
+
+The wall clock answers _when the compute starts_. The data interval answers _which slice of the
+dataset it owns_. A useful run contract then adds the reviewed code and schema revision, the input
+identity or checksum, and the one operation allowed to make output visible.
+
+This distinction matters when code changes. Replaying an interval with the same revision and the
+same bounded inputs should converge to the same logical result. Recomputing it with a new revision
+may intentionally produce a different result, but it should still replace or merge only the data
+owned by that interval.
+
+## “Run it again” can mean four different things
+
+Teams often use _retry_, _rerun_ and _backfill_ as if they were interchangeable. They are not:
+
+| Operation    | Boundary                        | Main risk                           | Data-layer rule                     |
+| ------------ | ------------------------------- | ----------------------------------- | ----------------------------------- |
+| Retry        | Same failed attempt             | Partial work from the first attempt | Reuse or discard it explicitly      |
+| Rerun        | Same logical interval           | Publishing the same facts twice     | Converge on the same owned output   |
+| Backfill     | A bounded interval range        | Writing beyond the requested range  | Isolate every run by interval       |
+| Late arrival | A previously published interval | Older data changing newer state     | Define an ordering or reopen policy |
+
+The scheduler can help create and limit these runs. The table design still has to tell each run
+what it owns.
+
+## Design the write from the boundary backwards
+
+Start with the smallest output that can be replaced safely. For a daily source, that may be one
+landing partition. Replaying the day replaces that partition instead of appending another copy.
+
+Curated state usually needs a different rule. An event table can merge on an immutable event ID.
+An entity table may need a deterministic ordering tuple such as `(observed_at, event_id)` so that a
+late, older observation cannot win simply because its backfill finished last.
+
+Analytics output can often replace the partitions derived from the same interval. If a model reads
+outside that range, the dependency should be explicit; otherwise a “small” backfill quietly gains a
+much larger blast radius.
+
+The exact operation varies—partition replacement, `MERGE`, snapshot swap—but the invariant is the
+same:
+
+> A run may change only the logical output it owns, and repeating the run must converge rather than
+> accumulate side effects.
+
+## Produced is not published
+
+An idempotent write is not enough if readers can observe it halfway through. The pipeline needs a
+publication boundary after validation.
+
+<PublishBoundaryVisual />
+
+With a snapshot-based table format such as Iceberg, data files can be prepared before a table
+commit atomically moves the current metadata pointer. A failed validation leaves readers on the
+previous snapshot. The same pattern can use a staging table or manifest pointer only when the
+catalog and storage provide one atomic switch for the visible state.
+
+This is a useful place to be strict about language. “The task produced files” is not the same as
+“the dataset published a valid revision.” A scheduler success state should follow the data commit,
+not stand in for it.
+
+## How I would prove a pipeline is replayable
+
+The strongest replay tests are invariants, not screenshots of a green DAG:
+
+1. Run the same interval twice and compare the logical output, not generated file names.
+2. Fail after producing temporary output and confirm the visible snapshot does not move.
+3. Backfill a small range and verify that partitions outside the range remain unchanged.
+4. Deliver an older observation after a newer one and confirm the ordering rule still holds.
+5. Change a contract deliberately and verify that the new revision either migrates explicitly or
+   fails before publication.
+
+These tests belong close to the producer and data model. An orchestration test can confirm that
+Airflow passes the correct interval and reacts to failure, but it cannot prove the merge semantics
+inside Spark, SQL or the table format.
+
+## Airflow still matters
+
+None of this makes Airflow's backfill support unimportant. Data intervals give runs a useful time
+boundary. Reprocessing policy controls when another DAG run may be created for an existing logical
+date. Concurrency limits keep a repair from overwhelming the platform, and a dry run helps an
+operator inspect the dates that would be considered.
+
+Those controls become powerful after the data contract exists. Without it, a backfill feature only
+makes it easier to repeat an unsafe write many times.
+
+The practical order is therefore:
+
+1. define the interval and output ownership;
+2. make the write converge;
+3. validate before one atomic publish boundary; and
+4. let the scheduler create and control the historical runs.
+
+That order is less exciting than adding a backfill button. It is also what makes the button safe to
+use.
+
+## Further reading
+
+- [DAG runs and data intervals](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/dag-run.html) — Apache Airflow documentation.
+- [Backfill and reprocessing behaviour](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/backfill.html) — Apache Airflow documentation.
+- [Reliable table commits](https://iceberg.apache.org/docs/latest/reliability/) — Apache Iceberg documentation.
