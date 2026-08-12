@@ -1,0 +1,4 @@
+interface:
+  display_name: "Atlas Test Review"
+  short_description: "Write lean, durable regression tests for Atlas"
+  default_prompt: "Use $atlas-test-review to add or review the smallest useful tests for this Atlas change."

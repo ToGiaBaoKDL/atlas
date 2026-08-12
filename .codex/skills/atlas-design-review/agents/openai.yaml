@@ -1,0 +1,4 @@
+interface:
+  display_name: "Atlas Design Review"
+  short_description: "Review Atlas visuals, layout, motion, and responsive UI"
+  default_prompt: "Use $atlas-design-review to review this Atlas UI change across desktop and mobile."

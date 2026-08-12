@@ -7,4 +7,10 @@ test-results/
 .DS_Store
 *.log
 plans/
-.codex/
+.codex/*
+!.codex/skills/
+.codex/skills/*
+!.codex/skills/atlas-design-review/
+!.codex/skills/atlas-design-review/**
+!.codex/skills/atlas-test-review/
+!.codex/skills/atlas-test-review/**
