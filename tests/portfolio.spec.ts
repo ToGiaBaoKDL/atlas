@@ -512,6 +512,20 @@ test("published writing exposes its date, series and article metadata", async ({
   );
   expect(await page.locator(".technical-figure").count()).toBeGreaterThan(0);
 
+  const attemptHeights = await page
+    .locator(".attempt-path")
+    .evaluateAll((paths) =>
+      paths.map((path) =>
+        Array.from(
+          path.querySelectorAll("article"),
+          (stage) => stage.getBoundingClientRect().height,
+        ),
+      ),
+    );
+  for (const heights of attemptHeights) {
+    expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1);
+  }
+
   const graph = await page.locator('script[type="application/ld+json"]').textContent();
   expect(JSON.parse(graph ?? "{}")["@graph"]).toEqual(
     expect.arrayContaining([

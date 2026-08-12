@@ -9,7 +9,7 @@ const attempts = [
     stages: [
       { label: "Produce", detail: "candidate files" },
       { label: "Validate", detail: "schema fails" },
-      { label: "Discard", detail: "snapshot N stays" },
+      { label: "Discard", detail: "N unchanged" },
     ],
   },
   {
@@ -156,7 +156,7 @@ const attempts = [
     min-width: 0;
     grid-template-columns: minmax(0, 1fr) 0.85rem minmax(0, 1fr) 0.85rem minmax(0, 1fr);
     gap: 0.35rem;
-    align-items: center;
+    align-items: stretch;
   }
 
   article {
