@@ -3,7 +3,7 @@ import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 import { projectStatuses } from "./data/projects";
 import { writingSeries } from "./data/series";
-import { topicSlugs, writingMaturities, writingTopics } from "./data/topics";
+import { topicSlugs, writingTopics } from "./data/topics";
 
 const requiredText = z.string().trim().min(1);
 
@@ -43,7 +43,6 @@ const writingSchema = z
     updatedAt: z.coerce.date().optional(),
     draft: z.boolean().default(false),
     topics: z.array(z.enum(writingTopicSlugs)).min(1),
-    maturity: z.enum(writingMaturities),
     series: z
       .object({
         id: z.enum(writingSeriesIds),

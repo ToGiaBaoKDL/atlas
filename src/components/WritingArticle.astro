@@ -3,7 +3,7 @@ import { render, type CollectionEntry } from "astro:content";
 import { getPublishedWriting } from "../data/content";
 import { getWritingSeries } from "../data/series";
 import { site } from "../data/site";
-import { getWritingMaturityLabel, getWritingTopicLabel } from "../data/topics";
+import { getWritingTopicLabel } from "../data/topics";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import TableOfContents from "./TableOfContents.astro";
 import WritingList from "./WritingList.astro";
@@ -104,7 +104,6 @@ const articleSchema = {
             </span>
           )
         }
-        <span>{getWritingMaturityLabel(entry.data.maturity)}</span>
       </div>
       <ul class="article-topics" aria-label="Topics">
         {
@@ -173,10 +172,6 @@ const articleSchema = {
     font-size: 0.68rem;
     letter-spacing: 0.035em;
     text-transform: uppercase;
-  }
-
-  .article-meta span:last-child {
-    color: var(--accent);
   }
 
   .article-topics {

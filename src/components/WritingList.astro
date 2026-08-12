@@ -1,6 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import { getWritingMaturityLabel, getWritingTopicLabel } from "../data/topics";
+import { getWritingTopicLabel } from "../data/topics";
 
 interface Props {
   entries: CollectionEntry<"writing">[];
@@ -25,7 +25,6 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
             <time datetime={entry.data.publishedAt.toISOString()}>
               {dateFormatter.format(entry.data.publishedAt)}
             </time>
-            <span>{getWritingMaturityLabel(entry.data.maturity)}</span>
           </div>
           <div>
             <Heading>{entry.data.title}</Heading>
@@ -74,10 +73,6 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
     font-size: 0.68rem;
     letter-spacing: 0.035em;
     text-transform: uppercase;
-  }
-
-  .writing-meta span {
-    color: var(--accent);
   }
 
   .writing-list h2,

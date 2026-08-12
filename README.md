@@ -70,16 +70,15 @@ publishedAt: 2026-08-11
 updatedAt: 2026-08-11 # optional
 draft: true
 topics: []
-maturity: seed # seed | growing | evergreen
 series: # optional
   id: replayable-by-design
   part: 1
 ```
 
-Core UI strings live in `src/data/site.ts`; canonical topic and maturity labels live in
-`src/data/topics.ts`, while series identity and copy live in `src/data/series.ts`. Content entries
-reference those registries by stable ID. Search remains intentionally disabled until the writing
-corpus is large enough to make it useful.
+Core UI strings live in `src/data/site.ts`; canonical topic labels live in `src/data/topics.ts`,
+while series identity and copy live in `src/data/series.ts`. Content entries reference those
+registries by stable ID. Search remains intentionally disabled until the writing corpus is large
+enough to make it useful.
 
 The default social card is stored as both an editable SVG source and a 1200 × 630 PNG fallback in
 `public/`.

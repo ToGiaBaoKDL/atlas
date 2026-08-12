@@ -38,16 +38,3 @@ const writingTopicLabels = Object.fromEntries(
 ) as Record<WritingTopicSlug, string>;
 
 export const getWritingTopicLabel = (slug: WritingTopicSlug) => writingTopicLabels[slug];
-
-export const writingMaturities = ["seed", "growing", "evergreen"] as const;
-
-export type WritingMaturity = (typeof writingMaturities)[number];
-
-const writingMaturityLabels: Record<WritingMaturity, string> = {
-  seed: "Seed",
-  growing: "Growing",
-  evergreen: "Evergreen",
-};
-
-export const getWritingMaturityLabel = (maturity: WritingMaturity) =>
-  writingMaturityLabels[maturity];

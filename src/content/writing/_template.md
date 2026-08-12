@@ -5,7 +5,6 @@ publishedAt: 2026-01-01
 draft: true
 topics:
   - data-systems
-maturity: seed
 # series:
 #   id: series-id
 #   part: 1
