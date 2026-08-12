@@ -3,15 +3,15 @@ import FlowArrow from "../FlowArrow.astro";
 import TechnicalFigure from "../TechnicalFigure.astro";
 
 const contract = [
-  { label: "Boundary", value: "orders · 09 Aug", detail: "Versioned input set" },
+  { label: "Owned slice", value: "orders · 09 Aug", detail: "Versioned inputs" },
   { label: "Revision", value: "code + contract", detail: "One reviewed meaning" },
   { label: "Publish", value: "replace or MERGE", detail: "One visible commit" },
 ] as const;
 ---
 
 <TechnicalFigure
-  eyebrow="Run identity"
-  title="The clock triggers work; the interval identifies it"
+  eyebrow="Run contract"
+  title="The clock starts work; the interval defines its data boundary"
   status="Bounded"
   caption="A backfill happens now, but it owns a past data interval. The run contract binds that interval to a reviewed revision and one publish rule."
   number="01 / RUN CONTRACT"
@@ -24,10 +24,10 @@ const contract = [
         <small>Backfill starts now</small>
       </div>
       <div class="interval">
-        <span>Logical date</span>
+        <span>Interval start</span>
         <strong>09 Aug · 00:00</strong>
-        <div class="interval-track" aria-hidden="true"><i></i></div>
-        <small>Data interval · 24 hours</small>
+        <div class="interval-track" aria-hidden="true"></div>
+        <small>Logical date · 24 hours</small>
       </div>
       <div class="window-end">
         <span>Window end</span>
@@ -115,12 +115,7 @@ const contract = [
     position: relative;
     height: 2px;
     margin-block: 0.2rem;
-    background: linear-gradient(
-      90deg,
-      var(--visual-accent),
-      var(--visual-accent-strong) 82%,
-      transparent
-    );
+    background: var(--visual-accent);
   }
 
   .interval-track::before,
@@ -139,18 +134,6 @@ const contract = [
 
   .interval-track::after {
     right: 0;
-  }
-
-  .interval-track i {
-    position: absolute;
-    top: 50%;
-    left: 72%;
-    width: 0.38rem;
-    height: 0.38rem;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: var(--visual-accent);
-    box-shadow: 0 0 0 0.18rem var(--visual-accent-glow);
   }
 
   .contract {
