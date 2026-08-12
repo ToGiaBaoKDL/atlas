@@ -79,13 +79,17 @@ This design does not pretend that every failure is solved. The development envir
 
 ## Delivery without a platform-wide release
 
-A reviewed merge publishes immutable images by digest or EMR artifacts under the Git commit SHA. An EMR revision is not visible to workloads until its entrypoints, dependencies, contract bundle and checksum manifest all exist. Only then does CI move the SSM release pointer. A partial upload can be repaired without exposing an incomplete release.
+CI starts by proving that a revision is internally consistent. Depending on the changed paths, a pull request enters the general `make check` quality gate, the focused Airflow-bundle gate or both. Together they check frozen lockfiles, data contracts, dbt projects, formatting, linting, types, unit tests, Terraform, Compose definitions and Dockerfile build rules. The split keeps DAG and runtime validation inside their own release boundary without making the general workflow repeat it.
 
-Airflow, each dbt domain, OCR and the Inspector can move to a reviewed revision independently. Rollback verifies the target artifact instead of rebuilding an old commit and hoping it produces the same bytes. CI uses short-lived credentials, so releases do not depend on stored AWS keys, SSH keys or shared runtime credentials.
+A merge to `main` does not deploy the monorepo as one unit. Path-filtered workflows select the component that changed: Airflow, either dbt domain, OCR, the Inspector or EMR jobs. Image releases validate the component boundary, assume a narrowly scoped AWS role through GitHub OIDC, build both ARM64 and AMD64 images with provenance and an SBOM, then deploy the exact ECR digest. The runtime never follows a mutable tag.
+
+EMR follows the same rule without a container. CI packages entrypoints, locked dependencies and the contract bundle under the Git commit SHA. The revision becomes visible in SSM only after every artifact and its checksum manifest exist, so a partial upload cannot become the active release.
+
+Deployment and rollback therefore use the same reviewed evidence. A component can move independently, while a rollback must name an existing digest and the matching revision from `main`; it does not rebuild an old commit and hope for the same bytes. Release jobs use short-lived credentials rather than stored AWS keys, and container deployments reach the private services host through Tailscale instead of SSH keys or a public ingress path.
 
 ## Where the project stands
 
-The complete topology is deployed and maintained. It currently supports two batch sources, curated Iceberg products, provider-neutral document OCR, two analytics domains and read-only inspection workflows. A single quality gate checks lockfiles, data contracts, dbt projects, linting, types, unit tests, infrastructure, Compose definitions and images.
+The complete topology is deployed and maintained. It currently supports two batch sources, curated Iceberg products, provider-neutral document OCR, two analytics domains and read-only inspection workflows. Its active runtime and data products now have independent validation, release and rollback boundaries.
 
 The next useful work is operational evidence rather than another engine: boundary data-quality rules, actionable freshness alerts, end-to-end lineage and telemetry, cost/SLA dashboards, and automated restore drills with explicit RPO/RTO. After that, I can test permissions and idempotency against disposable infrastructure before deciding whether incremental dbt or deeper governance is justified.
 
