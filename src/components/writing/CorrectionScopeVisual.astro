@@ -1,0 +1,205 @@
+---
+import FlowArrow from "../FlowArrow.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const manifest = [
+  { label: "Event", value: "order-1842" },
+  { label: "Interval", value: "09 Aug" },
+  { label: "Revision", value: "repair-07" },
+  { label: "Route", value: "Explicit" },
+] as const;
+
+const outputs = [
+  { label: "Daily revenue", range: "09 Aug" },
+  { label: "7-day rollup", range: "09–15 Aug" },
+  { label: "30-day rollup", range: "09 Aug–07 Sep" },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Correction scope"
+  title="Repair the dependency closure, not all history"
+  status="3 outputs"
+  caption="The late order changes one owned fact slice and only the declared aggregates whose windows contain that slice. Unrelated partitions and models stay outside the repair."
+  number="02 / IMPACT CLOSURE"
+>
+  <div class="correction-scope">
+    <dl class="repair-manifest" aria-label="Correction manifest">
+      {
+        manifest.map((item) => (
+          <div>
+            <dt>{item.label}</dt>
+            <dd>{item.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <div class="impact-map" aria-label="Affected dependency path">
+      <article class="late-event">
+        <span>Late input</span>
+        <strong>One order</strong>
+        <small>event_at · 09 Aug</small>
+      </article>
+      <FlowArrow particle />
+      <article class="owned-slice">
+        <span>Owned fact slice</span>
+        <strong>orders / 09 Aug</strong>
+        <small>Recompute once</small>
+      </article>
+      <FlowArrow particle delayed />
+      <section class="affected-outputs" aria-labelledby="affected-heading">
+        <span id="affected-heading">Declared dependents</span>
+        <ol>
+          {
+            outputs.map((output) => (
+              <li>
+                <strong>{output.label}</strong>
+                <small>{output.range}</small>
+              </li>
+            ))
+          }
+        </ol>
+      </section>
+    </div>
+
+    <div class="outside-closure">
+      <span>Outside closure</span>
+      <strong>orders · 08 Aug</strong>
+      <strong>traffic sessions</strong>
+      <small>Unchanged</small>
+    </div>
+  </div>
+</TechnicalFigure>
+
+<style>
+  .correction-scope {
+    display: grid;
+    height: 100%;
+    gap: 0.65rem;
+    align-content: center;
+  }
+
+  .repair-manifest {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel-soft) 94%, transparent);
+  }
+
+  .repair-manifest div {
+    display: grid;
+    min-width: 0;
+    gap: 0.2rem;
+    padding: 0.5rem 0.65rem;
+  }
+
+  .repair-manifest div + div {
+    border-left: 1px solid var(--visual-border-soft);
+  }
+
+  .repair-manifest dt,
+  .repair-manifest dd {
+    margin: 0;
+  }
+
+  .repair-manifest dt,
+  .impact-map span,
+  .impact-map small,
+  .outside-closure span,
+  .outside-closure small {
+    color: var(--visual-muted);
+    font-family: var(--font-mono);
+    font-size: 0.47rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .repair-manifest dd {
+    overflow-wrap: anywhere;
+    color: var(--visual-text);
+    font-size: 0.62rem;
+    font-weight: 600;
+  }
+
+  .impact-map {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(6.4rem, 0.75fr) 1rem minmax(8rem, 0.95fr) 1rem minmax(0, 2.2fr);
+    gap: 0.45rem;
+    align-items: stretch;
+  }
+
+  .impact-map > article,
+  .affected-outputs {
+    display: grid;
+    min-width: 0;
+    min-height: 5.6rem;
+    align-content: center;
+    gap: 0.35rem;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel);
+    padding: 0.6rem;
+  }
+
+  .impact-map strong,
+  .outside-closure strong {
+    color: var(--visual-text);
+    font-size: 0.68rem;
+    font-weight: 600;
+  }
+
+  .owned-slice,
+  .affected-outputs {
+    border-color: var(--visual-accent-strong) !important;
+    background: color-mix(in srgb, var(--visual-panel) 86%, var(--visual-accent-glow)) !important;
+  }
+
+  .owned-slice > span,
+  .affected-outputs > span {
+    color: var(--visual-accent);
+  }
+
+  .affected-outputs {
+    align-content: stretch;
+  }
+
+  .affected-outputs ol {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .affected-outputs li {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 0.25rem;
+    border: 1px solid var(--visual-border);
+    border-radius: 0.35rem;
+    background: var(--visual-panel);
+    padding: 0.45rem;
+  }
+
+  .outside-closure {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: 0.65rem;
+    align-items: center;
+    border: 1px dashed var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    padding: 0.5rem 0.65rem;
+  }
+
+  .outside-closure strong {
+    color: var(--visual-soft);
+    font-size: 0.6rem;
+  }
+</style>

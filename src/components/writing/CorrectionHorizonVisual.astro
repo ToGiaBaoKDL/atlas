@@ -1,0 +1,213 @@
+---
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const zones = [
+  {
+    index: "01",
+    label: "Open interval",
+    detail: "Normal processing",
+    timing: "Before first publish",
+    tone: "neutral",
+  },
+  {
+    index: "02",
+    label: "Correction window",
+    detail: "Automatic repair",
+    timing: "Before policy cutoff",
+    tone: "active",
+  },
+  {
+    index: "03",
+    label: "Repair queue",
+    detail: "Explicit approval",
+    timing: "After policy cutoff",
+    tone: "manual",
+  },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Correction horizon"
+  title="Stop waiting; keep a repair path"
+  status="Bounded"
+  caption="Arrival time changes how a correction is scheduled, not which business interval owns the event. Closing automatic correction must leave a durable repair path."
+  number="01 / CORRECTION HORIZON"
+>
+  <div class="correction-horizon">
+    <div class="event-contract">
+      <span>Late event</span>
+      <strong>order-1842</strong>
+      <span>Event time</span>
+      <strong>09 Aug · 18:42</strong>
+      <span>Owned interval</span>
+      <strong>orders · 09 Aug</strong>
+    </div>
+
+    <div class="arrival-axis" aria-hidden="true">
+      <span>Arrival time</span>
+      <i></i>
+    </div>
+
+    <ol class="zones" aria-label="Late-data correction zones">
+      {
+        zones.map((zone) => (
+          <li class={zone.tone}>
+            <div>
+              <span>{zone.index}</span>
+              <small>{zone.timing}</small>
+            </div>
+            <strong>{zone.label}</strong>
+            <p>{zone.detail}</p>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="ownership-rule">
+      <span>Invariant</span>
+      <strong>Business ownership stays on 09 Aug</strong>
+      <small>Only the correction route changes</small>
+    </div>
+  </div>
+</TechnicalFigure>
+
+<style>
+  .correction-horizon {
+    display: grid;
+    height: 100%;
+    gap: 0.55rem;
+    align-content: center;
+  }
+
+  .event-contract,
+  .ownership-rule {
+    display: grid;
+    min-width: 0;
+    align-items: center;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel-soft) 94%, transparent);
+  }
+
+  .event-contract {
+    grid-template-columns: auto minmax(0, 0.8fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 0.45rem 0.65rem;
+    padding: 0.55rem 0.7rem;
+  }
+
+  .event-contract span,
+  .ownership-rule span,
+  .ownership-rule small,
+  .zones span,
+  .zones small {
+    color: var(--visual-muted);
+    font-family: var(--font-mono);
+    font-size: 0.47rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .event-contract strong,
+  .ownership-rule strong {
+    min-width: 0;
+    color: var(--visual-text);
+    font-size: 0.62rem;
+    font-weight: 600;
+  }
+
+  .arrival-axis {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: center;
+    color: var(--visual-muted);
+    font-family: var(--font-mono);
+    font-size: 0.46rem;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .arrival-axis i {
+    position: relative;
+    height: 1px;
+    background: linear-gradient(90deg, var(--visual-border), var(--visual-accent-strong));
+  }
+
+  .arrival-axis i::after {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 0.32rem;
+    height: 0.32rem;
+    transform: translateY(-50%) rotate(45deg);
+    border-top: 1px solid var(--visual-accent);
+    border-right: 1px solid var(--visual-accent);
+    content: "";
+  }
+
+  .zones {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .zones li {
+    display: grid;
+    min-width: 0;
+    min-height: 5.2rem;
+    align-content: center;
+    gap: 0.35rem;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel);
+    padding: 0.65rem 0.7rem;
+  }
+
+  .zones li > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .zones li strong {
+    color: var(--visual-text);
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .zones li p {
+    margin: 0;
+    color: var(--visual-soft);
+    font-size: 0.58rem;
+    line-height: 1.35;
+  }
+
+  .zones .active {
+    border-color: var(--visual-accent-strong);
+    background: color-mix(in srgb, var(--visual-panel) 86%, var(--visual-accent-glow));
+  }
+
+  .zones .active span,
+  .zones .active strong {
+    color: var(--visual-accent);
+  }
+
+  .zones .manual {
+    border-style: dashed;
+  }
+
+  .ownership-rule {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.7rem;
+    padding: 0.55rem 0.7rem;
+  }
+
+  .ownership-rule small {
+    color: var(--visual-soft);
+  }
+</style>

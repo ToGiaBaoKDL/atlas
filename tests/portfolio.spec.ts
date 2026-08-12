@@ -15,6 +15,12 @@ const writingArticles = [
     part: 2,
     publishedAt: "2026-08-12T05:30:00.000Z",
   },
+  {
+    route: "/writing/late-data-without-endless-reprocessing/",
+    title: "Late Data Without Endless Reprocessing",
+    part: 3,
+    publishedAt: "2026-08-12T06:45:00.000Z",
+  },
 ] as const;
 const firstWritingRoute = writingArticles[0].route;
 const replayableSeries = writingSeries.find(({ id }) => id === "replayable-by-design");
