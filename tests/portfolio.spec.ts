@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
-import { writingSeries } from "../src/data/series";
+import { featuredWritingSeries } from "../src/data/series";
 
 const writingArticles = [
   {
@@ -35,9 +35,7 @@ const writingArticles = [
   },
 ] as const;
 const firstWritingRoute = writingArticles[0].route;
-const replayableSeries = writingSeries.find(({ id }) => id === "replayable-by-design");
-
-if (!replayableSeries) throw new Error("Missing replayable-by-design writing series");
+const replayableSeries = featuredWritingSeries;
 
 const criticalRoutes = [
   "/",
@@ -581,6 +579,49 @@ for (const article of writingArticles) {
     );
   });
 }
+
+test("writing series is ordered and has explicit continuation", async ({ page }) => {
+  await page.goto("/writing/");
+  const series = page.getByRole("region", { name: replayableSeries.name });
+
+  await expect(
+    series.getByText(`Complete series · ${replayableSeries.totalParts} parts`),
+  ).toBeVisible();
+  await expect(series.locator("ol").getByRole("heading", { level: 2 })).toHaveText(
+    writingArticles.map(({ title }) => title),
+  );
+
+  await page.goto(firstWritingRoute);
+  const navigation = page.getByRole("navigation", {
+    name: `${replayableSeries.name} series navigation`,
+  });
+  await expect(navigation.getByRole("link", { name: /Previous part/ })).toHaveCount(0);
+  await expect(
+    navigation.getByRole("link", { name: new RegExp(`Next part.*${writingArticles[1].title}`) }),
+  ).toHaveAttribute("href", writingArticles[1].route);
+});
+
+test("content pages publish dedicated PNG social cards", async ({ page, request }) => {
+  for (const route of [firstWritingRoute, "/projects/mini-lakehouse/"] as const) {
+    await page.goto(route);
+    const socialImage = await page.locator('meta[property="og:image"]').getAttribute("content");
+
+    expect(socialImage).toBeTruthy();
+    const imageUrl = new URL(socialImage ?? "https://portfolio.example/");
+    expect(imageUrl.pathname).toMatch(/^\/og\/(writing|projects)\/[a-z0-9-]+-[a-f0-9]{10}\.png$/);
+    await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute(
+      "content",
+      socialImage ?? "",
+    );
+
+    const response = await request.get(imageUrl.pathname);
+    expect(response.ok()).toBe(true);
+    expect(response.headers()["content-type"]).toContain("image/png");
+    const image = await response.body();
+    expect(image.readUInt32BE(16)).toBe(1200);
+    expect(image.readUInt32BE(20)).toBe(630);
+  }
+});
 
 test("production SEO metadata is canonical and internally consistent", async ({
   page,

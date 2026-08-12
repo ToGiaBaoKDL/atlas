@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { getWritingSeries } from "../data/series";
 import { getWritingTopicLabel } from "../data/topics";
 
 interface Props {
@@ -25,6 +26,12 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
             <time datetime={entry.data.publishedAt.toISOString()}>
               {dateFormatter.format(entry.data.publishedAt)}
             </time>
+            {entry.data.series && (
+              <span>
+                Part {String(entry.data.series.part).padStart(2, "0")} /{" "}
+                {String(getWritingSeries(entry.data.series.id).totalParts).padStart(2, "0")}
+              </span>
+            )}
           </div>
           <div>
             <Heading>{entry.data.title}</Heading>

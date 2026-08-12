@@ -2,6 +2,7 @@
 import { render, type CollectionEntry } from "astro:content";
 import { getProjects } from "../data/content";
 import { getProjectStatusLabel } from "../data/projects";
+import { getProjectSocialCard } from "../data/social-cards";
 import { site } from "../data/site";
 import { getTopicLabel } from "../data/topics";
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -17,6 +18,7 @@ const { Content, headings } = await render(project);
 const projects = await getProjects();
 const currentIndex = projects.findIndex(({ id }) => id === project.id);
 const nextProject = currentIndex >= 0 ? projects[currentIndex + 1] : undefined;
+const socialCard = getProjectSocialCard(project);
 const personId = Astro.site ? `${new URL("/", Astro.site).href}#person` : undefined;
 const projectSchema = {
   "@type": "SoftwareSourceCode",
@@ -24,6 +26,7 @@ const projectSchema = {
   description: project.data.description,
   author: personId ? { "@id": personId } : { "@type": "Person", name: site.name },
   keywords: project.data.stack,
+  ...(Astro.site ? { image: new URL(socialCard.path, Astro.site).href } : {}),
   ...(project.data.links.repository ? { codeRepository: project.data.links.repository } : {}),
   ...(Astro.site ? { url: new URL(Astro.url.pathname, Astro.site).href } : {}),
 };
@@ -34,6 +37,8 @@ const projectSchema = {
   description={project.data.description}
   section="projects"
   ogType="article"
+  image={socialCard.path}
+  imageAlt={socialCard.alt}
   tags={project.data.topics.map(getTopicLabel)}
   schema={projectSchema}
 >

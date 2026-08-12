@@ -1,7 +1,8 @@
 ---
 import { render, type CollectionEntry } from "astro:content";
-import { getPublishedWriting } from "../data/content";
+import { getPublishedWriting, selectWritingSeries } from "../data/content";
 import { getWritingSeries } from "../data/series";
+import { getWritingSocialCard } from "../data/social-cards";
 import { site } from "../data/site";
 import { getWritingTopicLabel } from "../data/topics";
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -15,8 +16,17 @@ interface Props {
 const { entry } = Astro.props;
 const { Content, headings } = await render(entry);
 const entries = await getPublishedWriting();
+const seriesEntries = entry.data.series
+  ? selectWritingSeries(entries, entry.data.series.id).entries
+  : [];
+const seriesIndex = seriesEntries.findIndex(({ id }) => id === entry.id);
+const previousInSeries = seriesIndex > 0 ? seriesEntries[seriesIndex - 1] : undefined;
+const nextInSeries = seriesIndex >= 0 ? seriesEntries[seriesIndex + 1] : undefined;
 const related = entries
-  .filter(({ id }) => id !== entry.id)
+  .filter(
+    ({ id, data }) =>
+      id !== entry.id && (!entry.data.series || data.series?.id !== entry.data.series.id),
+  )
   .map((candidate) => ({
     candidate,
     relevance: candidate.data.topics.filter((topic) => entry.data.topics.includes(topic)).length,
@@ -38,7 +48,8 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
 const topicLabels = entry.data.topics.map(getWritingTopicLabel);
 const series = entry.data.series ? getWritingSeries(entry.data.series.id) : undefined;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
-const socialImage = Astro.site ? new URL("/social-card.png", Astro.site).href : undefined;
+const socialCard = getWritingSocialCard(entry);
+const socialImage = Astro.site ? new URL(socialCard.path, Astro.site).href : undefined;
 const personId = Astro.site ? `${new URL("/", Astro.site).href}#person` : undefined;
 const articleSchema = {
   "@type": "BlogPosting",
@@ -71,6 +82,8 @@ const articleSchema = {
   description={entry.data.description}
   section="writing"
   ogType="article"
+  image={socialCard.path}
+  imageAlt={socialCard.alt}
   publishedAt={entry.data.publishedAt}
   updatedAt={entry.data.updatedAt}
   tags={topicLabels}
@@ -123,6 +136,33 @@ const articleSchema = {
       </div>
       <TableOfContents headings={headings} mode="desktop" />
     </div>
+
+    {
+      series && entry.data.series && (
+        <nav class="container series-navigation" aria-label={`${series.name} series navigation`}>
+          <header>
+            <p class="section-kicker">
+              Series · Part {String(entry.data.series.part).padStart(2, "0")} of {series.totalParts}
+            </p>
+            <a href={`/writing/#series-${series.id}`}>{series.name}</a>
+          </header>
+          <div class="series-links">
+            {previousInSeries && (
+              <a class="series-link series-link-previous" href={`/writing/${previousInSeries.id}/`}>
+                <small>← Previous part</small>
+                <strong>{previousInSeries.data.title}</strong>
+              </a>
+            )}
+            {nextInSeries && (
+              <a class="series-link series-link-next" href={`/writing/${nextInSeries.id}/`}>
+                <small>Next part →</small>
+                <strong>{nextInSeries.data.title}</strong>
+              </a>
+            )}
+          </div>
+        </nav>
+      )
+    }
 
     {
       related.length > 0 && (
@@ -211,6 +251,83 @@ const articleSchema = {
     padding-bottom: clamp(5rem, 10vw, 9rem);
   }
 
+  .series-navigation {
+    margin-bottom: clamp(4rem, 9vw, 7rem);
+    border-block: 1px solid var(--border);
+    padding-block: 1.5rem;
+  }
+
+  .series-navigation > header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .series-navigation > header .section-kicker {
+    margin: 0;
+  }
+
+  .series-navigation > header > a {
+    color: var(--text-soft);
+    font-size: 0.85rem;
+    font-weight: 590;
+    text-decoration: none;
+  }
+
+  .series-navigation > header > a:hover,
+  .series-navigation > header > a:focus-visible {
+    color: var(--accent);
+  }
+
+  .series-links {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .series-link {
+    display: grid;
+    min-width: 0;
+    gap: 0.45rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    color: var(--text);
+    text-decoration: none;
+    transition:
+      border-color var(--motion-fast) ease,
+      background-color var(--motion-fast) ease;
+  }
+
+  .series-link:hover,
+  .series-link:focus-visible {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+
+  .series-link small {
+    color: var(--accent-ink);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 650;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+  }
+
+  .series-link strong {
+    max-width: 28rem;
+    font-size: clamp(1rem, 2.2vw, 1.2rem);
+    font-weight: 620;
+    line-height: 1.25;
+  }
+
+  .series-link-next {
+    grid-column: 2;
+    text-align: right;
+  }
+
   .related-writing > h2 {
     margin: 0 0 2rem;
     font-size: clamp(1.8rem, 4vw, 3rem);
@@ -227,6 +344,21 @@ const articleSchema = {
   @media (max-width: 40rem) {
     .article-hero h1 {
       overflow-wrap: anywhere;
+    }
+
+    .series-navigation > header {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .series-links {
+      grid-template-columns: 1fr;
+    }
+
+    .series-link-next {
+      grid-column: 1;
+      text-align: left;
     }
   }
 </style>

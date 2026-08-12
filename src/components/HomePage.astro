@@ -1,8 +1,8 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { getProjects, getPublishedWriting } from "../data/content";
+import { getProjects, getPublishedWritingSeries } from "../data/content";
+import { featuredWritingSeries } from "../data/series";
 import { site } from "../data/site";
-import { writingTopics } from "../data/topics";
 import ProjectCard from "./ProjectCard.astro";
 import SignatureVisual from "./SignatureVisual.astro";
 import VisualFrame from "./VisualFrame.astro";
@@ -10,7 +10,12 @@ import WritingList from "./WritingList.astro";
 
 const projects = await getProjects();
 const homepageProjects = projects.slice(0, 3);
-const writing = (await getPublishedWriting()).slice(0, 3);
+const {
+  series: featuredSeries,
+  entries: featuredWriting,
+  isComplete: featuredSeriesComplete,
+} = await getPublishedWritingSeries(featuredWritingSeries.id);
+const featuredStart = featuredWriting[0];
 ---
 
 <BaseLayout
@@ -68,27 +73,16 @@ const writing = (await getPublishedWriting()).slice(0, 3);
     <div class="container writing-grid" data-reveal>
       <div class="writing-intro">
         <p class="section-kicker">II / Writing</p>
-        <h2>Ideas worth unpacking.</h2>
-        <p>
-          Notes and essays on data systems, software design, cloud infrastructure, applied AI and
-          other technical questions worth exploring.
+        <h2>{featuredSeries.name}.</h2>
+        <p>{featuredSeries.description}</p>
+        <p class="series-meta">
+          {featuredSeriesComplete ? "Complete series" : "Series"} · {featuredSeries.totalParts} parts
         </p>
-        <a class="text-link" href="/writing/">Explore writing →</a>
+        <a class="text-link" href={featuredStart ? `/writing/${featuredStart.id}/` : "/writing/"}>
+          {featuredStart ? "Start with part 01" : "Explore writing"} →
+        </a>
       </div>
-      {
-        writing.length > 0 ? (
-          <WritingList entries={writing} headingLevel="h3" />
-        ) : (
-          <ul class="topic-list">
-            {writingTopics.map((topic) => (
-              <li>
-                <span>{topic.label}</span>
-                <code>{topic.slug}</code>
-              </li>
-            ))}
-          </ul>
-        )
-      }
+      {featuredWriting.length > 0 && <WritingList entries={featuredWriting} headingLevel="h3" />}
     </div>
   </section>
 </BaseLayout>
@@ -282,33 +276,14 @@ const writing = (await getPublishedWriting()).slice(0, 3);
     color: var(--text-soft);
   }
 
-  .topic-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .topic-list li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    border-top: 1px solid var(--border);
-    padding-block: 0.9rem;
-  }
-
-  .topic-list li:last-child {
-    border-bottom: 1px solid var(--border);
-  }
-
-  .topic-list span {
-    font-weight: 560;
-  }
-
-  .topic-list code {
-    color: var(--text-faint);
+  .writing-intro .series-meta {
+    margin-block: 1.5rem 0.8rem;
+    color: var(--accent-ink);
     font-family: var(--font-mono);
     font-size: 0.68rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
   }
 
   @media (max-width: 56rem) {
@@ -360,12 +335,6 @@ const writing = (await getPublishedWriting()).slice(0, 3);
 
     .project-stack {
       gap: 1rem;
-    }
-
-    .topic-list li {
-      align-items: flex-start;
-      flex-direction: column;
-      gap: 0.2rem;
     }
   }
 

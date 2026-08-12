@@ -108,24 +108,26 @@
 
         <path d="M18 194H391" stroke="#2A322B"/>
         <text x="18" y="216" fill="#7F877B" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="600" letter-spacing="0.8">CONTRACTS AT EVERY BOUNDARY</text>
-        <path d="M300 213H391" stroke="#8FCE2F" stroke-width="2"/>
       </g>
 
       <g transform="translate(26 369)">
         <rect x="0.5" y="0.5" width="409" height="78" rx="9" fill="#171D17" stroke="#303831"/>
-        <text x="14" y="24" fill="#7F877B" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="700" letter-spacing="1">PLATFORM PLANE</text>
-        <g fill="#AEB4AA" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="600" letter-spacing="0.5">
-          <text x="14" y="55">ORCHESTRATE</text>
-          <text x="105" y="55">TEST</text>
-          <text x="157" y="55">CATALOG</text>
-          <text x="228" y="55">OBSERVE</text>
-          <text x="303" y="55">SECURE</text>
+        <text x="14" y="21" fill="#7F877B" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="700" letter-spacing="1">PLATFORM CONTROL PLANE</text>
+        <text x="395" y="21" text-anchor="end" fill="#626B62" font-family="'SFMono-Regular', Consolas, monospace" font-size="7" font-weight="600" letter-spacing="0.8">SHARED GUARDRAILS</text>
+        <path d="M14 32H395" stroke="#2A322B"/>
+        <rect x="14.5" y="42.5" width="380" height="23" rx="5.5" fill="#141A15" stroke="#2A322B"/>
+        <g fill="#AEB4AA" font-family="'SFMono-Regular', Consolas, monospace" font-size="8" font-weight="600" letter-spacing="0.45">
+          <text x="25" y="58">ORCHESTRATE</text>
+          <text x="109" y="58">VALIDATE</text>
+          <text x="177" y="58">CATALOG</text>
+          <text x="245" y="58">OBSERVE</text>
+          <text x="322" y="58">SECURE</text>
         </g>
         <g stroke="#303831">
-          <path d="M94 42V61"/>
-          <path d="M145 42V61"/>
-          <path d="M216 42V61"/>
-          <path d="M291 42V61"/>
+          <path d="M98 47V61"/>
+          <path d="M166 47V61"/>
+          <path d="M234 47V61"/>
+          <path d="M310 47V61"/>
         </g>
       </g>
     </g>
