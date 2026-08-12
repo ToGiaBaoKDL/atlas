@@ -1,0 +1,191 @@
+---
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const columns = ["Visible state", "Logical effect", "Recovery", "Blast radius"] as const;
+
+interface Trial {
+  id: string;
+  name: string;
+  focus?: boolean;
+  cells: readonly { value: string; detail: string }[];
+}
+
+const trials: readonly Trial[] = [
+  {
+    id: "01",
+    name: "Exact replay",
+    cells: [
+      { value: "Same result", detail: "One reference" },
+      { value: "Applied once", detail: "Stable effect ID" },
+      { value: "Converged", detail: "No new intent" },
+      { value: "No change", detail: "Outside contract" },
+    ],
+  },
+  {
+    id: "02",
+    name: "Pre-commit stop",
+    cells: [
+      { value: "Previous result", detail: "Pointer unchanged" },
+      { value: "Not visible", detail: "Candidate only" },
+      { value: "Safe retry", detail: "Known failure" },
+      { value: "Owned temp", detail: "Retained by policy" },
+    ],
+  },
+  {
+    id: "03",
+    name: "Lost response",
+    focus: true,
+    cells: [
+      { value: "repair-07", detail: "Commit landed" },
+      { value: "Applied once", detail: "No blind repeat" },
+      { value: "Reconciled", detail: "Identity lookup" },
+      { value: "No cleanup", detail: "Until resolved" },
+    ],
+  },
+  {
+    id: "04",
+    name: "Concurrent writer",
+    cells: [
+      { value: "N + 1 kept", detail: "No overwrite" },
+      { value: "Not repeated", detail: "Stale intent held" },
+      { value: "Revalidate", detail: "Assumptions first" },
+      { value: "Conflict scoped", detail: "Touched data only" },
+    ],
+  },
+  {
+    id: "05",
+    name: "Late repair",
+    cells: [
+      { value: "Repaired result", detail: "Certified publish" },
+      { value: "One correction", detail: "Stable repair ID" },
+      { value: "Closed", detail: "Manifest recorded" },
+      { value: "Declared closure", detail: "Others unchanged" },
+    ],
+  },
+];
+---
+
+<TechnicalFigure
+  eyebrow="Replay proof matrix"
+  title="Inject failure where ownership changes"
+  status="5 controlled trials"
+  caption="A scenario counts only when it names both the injected boundary and the state that must remain true. The baseline establishes the reference; these trials challenge it."
+  number="01 / FAILURE COVERAGE"
+>
+  <div class="coverage-matrix" role="table" aria-label="Replay failure coverage matrix">
+    <div class="matrix-header" role="row">
+      <span role="columnheader">Trial</span>
+      {columns.map((column) => <span role="columnheader">{column}</span>)}
+    </div>
+
+    <div class="matrix-body" role="rowgroup">
+      {
+        trials.map((trial) => (
+          <div class:list={["trial-row", { focus: trial.focus }]} role="row">
+            <div class="trial-name" role="rowheader">
+              <span>{trial.id}</span>
+              <strong>{trial.name}</strong>
+            </div>
+            {trial.cells.map((cell) => (
+              <article role="cell">
+                <strong>{cell.value}</strong>
+                <small>{cell.detail}</small>
+              </article>
+            ))}
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</TechnicalFigure>
+
+<style>
+  .coverage-matrix {
+    display: grid;
+    height: 100%;
+    gap: 0.4rem;
+    align-content: center;
+  }
+
+  .matrix-header,
+  .trial-row {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 6.6rem repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .matrix-header {
+    padding-inline: 0.55rem;
+  }
+
+  .matrix-header span,
+  .trial-name span,
+  article small {
+    color: var(--visual-muted);
+    font-family: var(--font-mono);
+    font-size: 0.43rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .matrix-body {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .trial-row {
+    min-height: 2.7rem;
+    align-items: stretch;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel-soft) 94%, transparent);
+    padding: 0.4rem 0.55rem;
+  }
+
+  .trial-row.focus {
+    border-color: var(--visual-accent-strong);
+    background: color-mix(in srgb, var(--visual-panel-soft) 87%, var(--visual-accent-glow));
+  }
+
+  .trial-name,
+  article {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 0.17rem;
+  }
+
+  .trial-name {
+    padding-right: 0.4rem;
+  }
+
+  .trial-name span {
+    color: var(--visual-soft);
+  }
+
+  .trial-name strong,
+  article strong {
+    color: var(--visual-text);
+    font-size: 0.58rem;
+    font-weight: 600;
+  }
+
+  article {
+    border-left: 1px solid var(--visual-border-soft);
+    padding-left: 0.55rem;
+  }
+
+  article small {
+    color: var(--visual-soft);
+    font-size: 0.4rem;
+    font-weight: 500;
+  }
+
+  .focus .trial-name span,
+  .focus .trial-name strong,
+  .focus article:first-of-type strong {
+    color: var(--visual-accent);
+  }
+</style>

@@ -1,0 +1,210 @@
+---
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const evidence = [
+  {
+    label: "01 · Setup",
+    tone: "setup",
+    items: [
+      ["Contract", "orders · 09 Aug"],
+      ["Base", "snapshot N"],
+      ["Code", "immutable SHA"],
+      ["Schema", "revision 12"],
+    ],
+  },
+  {
+    label: "02 · Stimulus",
+    tone: "stimulus",
+    items: [
+      ["Trial", "lost response"],
+      ["Failpoint", "commit → ack"],
+      ["Action", "retry contract"],
+      ["Mode", "deterministic"],
+    ],
+  },
+  {
+    label: "03 · Observations",
+    tone: "observations",
+    items: [
+      ["Reference", "repair-07"],
+      ["Commit", "1 occurrence"],
+      ["Effect", "1 receipt"],
+      ["Outside", "unchanged"],
+    ],
+  },
+  {
+    label: "04 · Verdict",
+    tone: "verdict",
+    items: [
+      ["Visibility", "holds"],
+      ["Replay", "converged"],
+      ["Unknown", "reconciled"],
+      ["Cleanup", "guarded"],
+    ],
+  },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Replay evidence"
+  title="A green task is one observation, not the verdict"
+  status="Reproducible"
+  caption="Evidence is reviewable when another engineer can reconstruct the starting state, repeat the fault and obtain the same verdict. The claim remains limited to the boundaries the bundle records."
+  number="02 / PROOF BUNDLE"
+>
+  <div class="proof-bundle">
+    <div class="proof-claim">
+      <span>Supported claim</span>
+      <strong>orders · 09 Aug is replayable within the tested boundary</strong>
+      <small>Evidence complete</small>
+    </div>
+
+    <ol class="evidence-grid" aria-label="Replay proof evidence bundle">
+      {
+        evidence.map((section) => (
+          <li class={section.tone}>
+            <span>{section.label}</span>
+            <dl>
+              {section.items.map(([term, detail]) => (
+                <div>
+                  <dt>{term}</dt>
+                  <dd>{detail}</dd>
+                </div>
+              ))}
+            </dl>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="claim-limit">
+      <span>Not covered by this bundle</span>
+      <strong>Multi-region catalog outage</strong>
+      <small>Separate integration trial required</small>
+    </div>
+  </div>
+</TechnicalFigure>
+
+<style>
+  .proof-bundle {
+    display: grid;
+    height: 100%;
+    gap: 0.5rem;
+    align-content: center;
+  }
+
+  .proof-claim,
+  .claim-limit {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: 7rem minmax(0, 1fr) auto;
+    gap: 0.7rem;
+    align-items: center;
+    border: 1px solid var(--visual-border-soft);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel-soft) 94%, transparent);
+    padding: 0.45rem 0.7rem;
+  }
+
+  .proof-claim {
+    border-color: var(--visual-accent-strong);
+    background: color-mix(in srgb, var(--visual-panel-soft) 87%, var(--visual-accent-glow));
+  }
+
+  .proof-claim span,
+  .proof-claim small,
+  .evidence-grid > li > span,
+  dt,
+  .claim-limit span,
+  .claim-limit small {
+    color: var(--visual-muted);
+    font-family: var(--font-mono);
+    font-size: 0.43rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .proof-claim strong,
+  .claim-limit strong {
+    color: var(--visual-text);
+    font-size: 0.61rem;
+    font-weight: 600;
+  }
+
+  .proof-claim span,
+  .proof-claim small {
+    color: var(--visual-accent);
+  }
+
+  .evidence-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .evidence-grid > li {
+    display: grid;
+    min-width: 0;
+    min-height: 4.25rem;
+    align-content: start;
+    gap: 0.35rem;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel);
+    padding: 0.5rem 0.6rem;
+  }
+
+  .evidence-grid > .stimulus {
+    border-style: dashed;
+  }
+
+  .evidence-grid > .verdict {
+    border-color: var(--visual-accent-strong);
+    background: color-mix(in srgb, var(--visual-panel) 88%, var(--visual-accent-glow));
+  }
+
+  .evidence-grid > .verdict > span,
+  .verdict dd {
+    color: var(--visual-accent);
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin: 0;
+  }
+
+  dl div {
+    display: grid;
+    min-width: 0;
+    gap: 0.08rem;
+    border-top: 1px solid var(--visual-border-soft);
+    padding-top: 0.25rem;
+  }
+
+  dt,
+  dd {
+    margin: 0;
+  }
+
+  dd {
+    overflow-wrap: anywhere;
+    color: var(--visual-soft);
+    font-size: 0.5rem;
+    font-weight: 550;
+  }
+
+  .claim-limit {
+    border-style: dashed;
+  }
+
+  .claim-limit strong,
+  .claim-limit small {
+    color: var(--visual-soft);
+  }
+</style>

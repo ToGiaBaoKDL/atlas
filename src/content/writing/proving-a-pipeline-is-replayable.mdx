@@ -1,0 +1,260 @@
+---
+title: Proving a Pipeline Is Replayable
+description: Replayability becomes credible when controlled failures produce independently observed evidence that named invariants still hold.
+publishedAt: 2026-08-12T15:18:00+07:00
+draft: false
+topics:
+  - data-systems
+  - software-design
+series:
+  id: replayable-by-design
+  part: 5
+---
+
+import ReplayCoverageVisual from "../../components/writing/ReplayCoverageVisual.astro";
+import ReplayProofVisual from "../../components/writing/ReplayProofVisual.astro";
+
+The `orders · 09 Aug` repair has made it through the first four parts of this series. Its run owns a
+clear interval. Its writes and side effects have stable identities. Late data follows a bounded
+repair path. Candidate `repair-07` is validated and published through one conditional commit.
+
+Now someone asks a fair question in review: **how do we know any of that survives a real retry?**
+
+“The tasks are green” does not answer it. Neither does “I retried the DAG in staging and it worked.”
+Those are useful observations, but replayability is a claim about state transitions under several
+failures. I want evidence that begins from a known state, introduces one controlled disturbance,
+observes the real system boundaries and checks named invariants afterward.
+
+That is the final concern this series owns. The contracts from [part 1](/writing/backfills-are-a-data-model-problem/),
+[part 2](/writing/idempotent-writes-are-not-replay-safety/),
+[part 3](/writing/late-data-without-endless-reprocessing/) and
+[part 4](/writing/validation-is-not-a-publish-protocol/) become assertions here. I do not need to
+explain them again. I need to make them fail when the implementation stops honoring them.
+
+## A green task is not the system state
+
+A scheduler knows about an attempt: when it started, which process exited and whether a retry was
+requested. The state we care about is spread across other boundaries:
+
+- the table or manifest reference readers resolve;
+- the immutable candidate and owned output digest;
+- the receipt held by an external side-effect consumer;
+- the partitions and models outside the declared repair closure; and
+- the durable recovery state that permits retry, quarantine or cleanup.
+
+A task can be red after its commit succeeded and the response was lost. It can be green after it
+wrote a candidate that no reader will ever see. It can also be green while a notification or export
+was applied twice. The task state is evidence about execution, not an oracle for the data protocol.
+
+For each test, I want four explicit parts:
+
+1. **Setup** — the run contract, code and schema revisions, starting references and existing effects.
+2. **Stimulus** — the exact action sequence and the named point where failure is introduced.
+3. **Observation** — fresh reads from the catalog, output store, effect receiver and repair boundary.
+4. **Verdict** — the invariant each observation supports or contradicts.
+
+Without the setup, a passing result is hard to reproduce. Without the stimulus, it is unclear which
+failure was exercised. Without independent observations, the test may only be asking the code under
+test whether it thinks it succeeded. Without a named invariant, a pile of logs is not yet a verdict.
+
+## Write the invariant before the test
+
+“Replay the pipeline and compare row counts” sounds practical, but it leaves too much unnamed. Which
+slice should converge? Can another writer's data change? Is one extra effect acceptable? May an
+unreferenced candidate remain after a known failure?
+
+For this running example, I would start with six reviewable invariants:
+
+1. **One visible result.** Readers resolve either the previous revision or the complete certified
+   candidate, never half of each.
+2. **Replay convergence.** Submitting the same run contract again creates neither a second logical
+   result nor a duplicate business effect.
+3. **Conflict preservation.** A concurrent writer remains visible; the stale repair cannot silently
+   overwrite it.
+4. **Bounded repair.** The declared dependency closure may change, while unrelated outputs retain
+   their identities or digests.
+5. **Uncertain means retained.** An unknown commit result cannot authorize another blind commit or
+   deletion.
+6. **Traceable recovery.** Retry, rebase, quarantine and reconciliation decisions link back to the
+   same run, candidate and fault trial.
+
+The wording matters because it identifies the subject. “No duplicates” is vague. “The receiver has
+one receipt for this stable effect ID after two deliveries” is testable. “Unrelated data is safe” is
+vague. “The digests of outputs outside this dependency closure are unchanged” gives the harness an
+actual boundary to inspect.
+
+## Inject failure where ownership changes
+
+I do not start by turning on random chaos across the whole environment. That usually produces an
+interesting incident and a weak explanation. I start with deterministic failpoints at seams where
+one component may have acted but the next component does not yet know it:
+
+- after candidate files are durable, before the visible commit;
+- after the catalog commit, before its acknowledgement reaches the worker;
+- after an external effect is applied, before its receipt is recorded by the sender; and
+- after an outcome becomes eligible for cleanup, before deletion begins.
+
+Some seams are easiest to expose through a small test interface around the operation. Network edges
+can also run through a controllable proxy that adds latency, closes a connection or drops a response.
+Either way, the trial should name the semantic edge. `AFTER_COMMIT_BEFORE_ACK` is more useful in a
+failure report than “random timeout after 18 seconds.”
+
+The baseline publishes `repair-07` once and records the reference observations. I would then keep a
+small table-driven suite beside it:
+
+- submit the exact contract again;
+- stop after candidate creation but before commit;
+- lose the successful commit response;
+- let another writer advance the table first; and
+- deliver the late order and repair only its declared closure.
+
+<ReplayCoverageVisual />
+
+The highlighted trial is deliberately awkward. A successful commit with a lost response leaves the
+worker uncertain while readers already see `repair-07`. The correct evidence is not another green
+attempt. It is one occurrence of the candidate in table history, one external receipt, a reconciled
+recovery state and no cleanup before that reconciliation finishes.
+
+## Allowed intermediate states belong in the contract
+
+Tests become brittle when every leftover file is called a leak and every red task is called a failed
+publication. The protocol has legitimate intermediate states.
+
+If a worker stops before commit, candidate files may remain unreferenced until retention makes them
+eligible for cleanup. The visible pointer must stay on the previous revision. If the commit outcome
+is unknown, those same files must remain protected while reconciliation is still possible. After a
+concurrent writer wins, the repair may need a new base and new validation evidence.
+
+The harness should assert the allowed state for each outcome, not demand immediate emptiness. This
+is also why cleanup needs an oracle of its own: known failure, known success and unresolved status
+grant different authority over the same physical files.
+
+## Observe through the boundary, not through the task
+
+The useful test reads state through interfaces that a real consumer or operator would trust. For
+the running example, `observe()` resolves the catalog reference and recent history, reads the effect
+receipt from its destination, computes digests for the owned and unrelated outputs, and checks the
+durable recovery record.
+
+One compact trial is enough to show the shape:
+
+```text
+before = observe(contract)
+
+run(contract, fail=AFTER_COMMIT_BEFORE_ACK)
+retry(contract)
+
+after = observe(contract)
+assert after.visible_candidate == "repair-07"
+assert after.commit_count("repair-07") == 1
+assert after.effect_count(contract.effect_key) == 1
+assert after.unrelated_digests == before.unrelated_digests
+```
+
+`observe()` must not return the worker's cached idea of the outcome. Otherwise a bug shared by the
+write path and the assertion helper can make both agree on the same wrong answer. The table history,
+effect receiver and unrelated-output digests are deliberately separate sources of evidence.
+
+Counts are not universally good or bad here. A total row count is a weak proxy for identity. A count
+of receipts for one stable effect key, or occurrences of one candidate in a version history, directly
+tests the contract we named.
+
+## Generate sequences after the model is clear
+
+Five deterministic trials catch a surprising amount because each one targets a known seam. They are
+also easy to reproduce in CI. I would get those stable before adding property-based or stateful tests.
+
+Once the model is explicit, generated sequences become valuable. A state machine can choose actions
+such as produce, validate, publish, lose acknowledgement, reconcile, retry, conflict and repair. It
+then checks the six invariants after every applicable action, not only at the end of a hand-written
+happy path.
+
+The benefit is not randomness for its own sake. It is exploring orders that a reviewer may not think
+to write down, then shrinking a failure to a small sequence that can become a permanent regression
+case. The generated model should remain smaller than the production implementation: visible
+candidate, known or unknown outcome, applied effect IDs, protected artifacts and the declared repair
+closure are enough for this claim.
+
+## Prove that the proof can fail
+
+A test suite that has never failed for the intended reason deserves some suspicion. In an isolated
+fixture, I would disable one guard at a time:
+
+- replace the stable effect key with an attempt-local ID;
+- turn an unknown commit outcome into an immediate retry; or
+- let a repair rewrite an output outside its dependency closure.
+
+The corresponding invariant should fail with a useful observation: two receipts, two candidate
+occurrences, or a changed unrelated digest. This control experiment is small, but it confirms that
+the oracle is connected to the mechanism it claims to protect.
+
+It does not belong in production code as a hidden switch. The harness should replace or intercept a
+boundary explicitly, so the normal implementation does not accumulate test-only branches.
+
+## Keep a proof bundle, not just a log archive
+
+When a trial fails next month, another engineer needs more than a CI link that may expire. I would
+store a compact proof bundle containing:
+
+- the run contract, code and schema revision;
+- initial references and relevant input identities;
+- the trial name, failpoint and generated seed when one exists;
+- the action history and independently observed states;
+- the verdict for each applicable invariant; and
+- retained candidates or receipts needed to investigate the failure.
+
+<ReplayProofVisual />
+
+The “not covered” line is part of the proof, not a disclaimer added later. A deterministic lost-response
+trial says little about a multi-region catalog outage. Naming that gap keeps a strong local result from
+quietly becoming a universal reliability claim.
+
+## Put each proof at the right cadence
+
+Not every scenario belongs in every pull request.
+
+- **CI:** deterministic contract trials using stable identities, controlled failpoints and a small
+  isolated state model. These should be fast enough to block a change.
+- **Integration:** real object storage, catalog and receiver boundaries, with connection faults and
+  concurrent writers in an isolated environment.
+- **Scheduled drills:** longer generated sequences, retention behavior and recovery from failures
+  that are too expensive for each commit.
+- **Production exercises:** only the risks that cannot be represented safely elsewhere, with an
+  explicit blast radius and stop condition.
+
+Moving a test to a slower cadence should not remove its ownership. The proof bundle should still say
+which revision was exercised, which invariant it supports and how recently that evidence was
+produced.
+
+## What I want to hear in a review
+
+Before accepting “this pipeline is replayable,” I want concise answers to these questions:
+
+1. Which run and output boundary does the claim cover?
+2. What observable state serves as the oracle at each external boundary?
+3. Which failures are injected deterministically, and at which ownership seams?
+4. What intermediate states are explicitly allowed?
+5. Does an exact replay converge in both data and side effects?
+6. Does a concurrent writer survive the trial?
+7. Can an unknown commit outcome prevent retry and cleanup until it is reconciled?
+8. Does a late repair leave outputs outside its declared closure unchanged?
+9. Has the suite demonstrated that each important oracle can catch its corresponding broken guard?
+10. What relevant boundary remains untested, and where is that risk recorded?
+
+That is enough to close the series. [Part 1](/writing/backfills-are-a-data-model-problem/) gave a run
+an owned boundary. [Part 2](/writing/idempotent-writes-are-not-replay-safety/) made its writes and
+effects converge. [Part 3](/writing/late-data-without-endless-reprocessing/) bounded correction.
+[Part 4](/writing/validation-is-not-a-publish-protocol/) separated validated candidates from visible
+publication. This final part asks those contracts to survive controlled failure and leave evidence
+another engineer can reproduce.
+
+A replayable pipeline is not one that never gets stuck. It is one whose state remains explainable
+when work repeats, whose recovery actions are constrained by what is actually known, and whose
+guarantees can be challenged without relying on luck.
+
+## Further reading
+
+- [Hypothesis stateful testing](https://hypothesis.readthedocs.io/en/latest/stateful.html) — generating action sequences and checking invariants throughout the run.
+- [Toxiproxy](https://github.com/Shopify/toxiproxy) — deterministic network conditions for test and CI environments.
+- [Apache Iceberg reliability](https://iceberg.apache.org/docs/latest/reliability/) — optimistic commits expressed as assumptions and actions that must remain valid.
+- [Apache Iceberg configuration](https://iceberg.apache.org/docs/latest/configuration/) — commit retry and status-check behavior for unresolved outcomes.

@@ -27,6 +27,12 @@ const writingArticles = [
     part: 4,
     publishedAt: "2026-08-12T07:25:00.000Z",
   },
+  {
+    route: "/writing/proving-a-pipeline-is-replayable/",
+    title: "Proving a Pipeline Is Replayable",
+    part: 5,
+    publishedAt: "2026-08-12T08:18:00.000Z",
+  },
 ] as const;
 const firstWritingRoute = writingArticles[0].route;
 const replayableSeries = writingSeries.find(({ id }) => id === "replayable-by-design");
