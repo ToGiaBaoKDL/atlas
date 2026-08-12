@@ -100,21 +100,6 @@ This is a useful place to be strict about language. “The task produced files�
 “the dataset published a valid revision.” A scheduler success state should follow the data commit,
 not stand in for it.
 
-## How I would prove a pipeline is replayable
-
-The strongest replay tests are invariants, not screenshots of a green DAG:
-
-1. Run the same interval twice and compare the logical output, not generated file names.
-2. Fail after producing temporary output and confirm the visible snapshot does not move.
-3. Backfill a small range and verify that partitions outside the range remain unchanged.
-4. Deliver an older observation after a newer one and confirm the ordering rule still holds.
-5. Change a contract deliberately and verify that the new revision either migrates explicitly or
-   fails before publication.
-
-These tests belong close to the producer and data model. An orchestration test can confirm that
-Airflow passes the correct interval and reacts to failure, but it cannot prove the merge semantics
-inside Spark, SQL or the table format.
-
 ## Airflow still matters
 
 None of this makes Airflow's backfill support unimportant. Data intervals give runs a useful time
@@ -122,18 +107,15 @@ boundary. Reprocessing policy controls when another DAG run may be created for a
 date. Concurrency limits keep a repair from overwhelming the platform, and a dry run helps an
 operator inspect the dates that would be considered.
 
-Those controls become powerful after the data contract exists. Without it, a backfill feature only
-makes it easier to repeat an unsafe write many times.
-
-The practical order is therefore:
+Those controls become powerful after the data contract exists. The practical order is:
 
 1. define the interval and output ownership;
 2. make the write converge;
 3. validate before one atomic publish boundary; and
 4. let the scheduler create and control the historical runs.
 
-That order is less exciting than adding a backfill button. It is also what makes the button safe to
-use.
+Part 5 turns these contracts into executable replay tests. Airflow can confirm that it passes the
+right interval and reacts to failure; the producer and data model must prove what the interval means.
 
 ## Further reading
 

@@ -86,16 +86,9 @@ The word _sealed_ is useful only if it means “no longer changed automatically.
 older truth. Beyond the horizon, the platform should make that truth visible to an operator instead
 of silently dropping it.
 
-This is also where batch and streaming systems share a policy without sharing an implementation.
-A batch pipeline may use a scheduled cutoff and bounded lookback. A stream processor tracks event
-time progress with a watermark and can retain window state for an allowed-lateness period. Both
-eventually stop waiting to bound latency and state. A watermark is still an estimate of progress,
-not a certificate that no older event exists.
-
-The streaming comparison ends there for this article. Window triggers, state retention and
-side-output APIs deserve their own treatment. The production question here remains batch-first:
-after a daily result is visible, how long may the platform revise it automatically, and how does an
-older correction enter a controlled repair workflow?
+Batch and streaming systems implement this differently but share the policy. A batch job may use a
+cutoff and bounded lookback; a stream processor may use a watermark and allowed lateness. Both stop
+waiting to bound latency and state. Neither boundary proves that no older event exists.
 
 ## Repair the dependency closure
 
@@ -108,25 +101,14 @@ closure of the corrected slice.
 
 <CorrectionScopeVisual />
 
-For the example in the visual, the repair surface contains:
-
-- the 9 August order fact slice;
-- daily revenue for 9 August;
-- seven-day results dated 9–15 August; and
-- 30-day results dated 9 August–7 September.
-
-The exact ranges depend on the model. A cumulative lifetime metric may genuinely need every later
-output. A daily model with no cross-day dependency needs one partition. That difference belongs in
-the model contract, not in a repair operator's memory.
-
-I want each derived model to expose enough information to answer two questions: which input
-intervals can change one output interval, and which output intervals can be changed by one corrected
-input. Once those mappings are explicit, the system can build a small correction manifest instead
-of turning `start_date = 09 Aug` into “run until now.”
+The ranges depend on the model. A lifetime cumulative metric may need every later output; an
+independent daily model needs one partition. Each model should declare which inputs can change one
+output and which outputs can be changed by one corrected input. The system can then build a bounded
+correction manifest instead of turning `start_date = 09 Aug` into “run until now.”
 
 A useful manifest records the event or source revision that triggered repair, the owned input
 interval, the reviewed model revision and the exact outputs selected for recomputation. Article 4
-will handle how those results become visible safely. Here the manifest's job is narrower: keep the
+handles how those results become visible safely. Here the manifest's job is narrower: keep the
 blast radius explainable before compute starts.
 
 ## Choose the horizon from evidence
@@ -143,14 +125,9 @@ I start with four inputs:
 | Correction cost            | How much state and downstream work the automatic path keeps available       |
 | Recovery SLO               | How quickly an older discrepancy must be reviewed and corrected             |
 
-A percentile alone is not the policy. The rarest late order may also be the most valuable one. A
-source with cheap daily partitions can keep a longer automatic horizon than a source whose one fact
-fans out into months of aggregates. A regulated output may close automation early but require a
-much faster reviewed repair.
-
-The policy should therefore be named, versioned and owned by the team responsible for the dataset.
-Changing it is an operational decision with a measurable effect on freshness, compute and repair
-load—not a hidden constant inside one incremental query.
+A percentile alone is not the policy: a rare late order may also be the most valuable. The horizon
+should be named, versioned and owned, with its effect on freshness, compute and repair load measured
+instead of hidden inside one incremental query.
 
 ## Operate the repair path like a queue
 
@@ -169,10 +146,9 @@ Alerts should focus on a growing backlog, a shifting delay distribution or mater
 on every late record trains the team to ignore the signal. Quietly counting only accepted records
 hides the records that matter most.
 
-The queue also gives policy changes evidence. If almost every repair intent is approved unchanged,
-the automatic horizon may be too short. If automatic corrections repeatedly consume large amounts
-of compute for immaterial differences, it may be too long. The decision becomes observable instead
-of anecdotal.
+If almost every repair is approved unchanged, the automatic horizon may be too short. If automatic
+corrections consume large compute for immaterial changes, it may be too long. The queue turns that
+decision into evidence instead of anecdote.
 
 ## What I want to hear in a review
 

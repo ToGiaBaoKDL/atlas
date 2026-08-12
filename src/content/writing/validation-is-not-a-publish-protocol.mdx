@@ -28,9 +28,8 @@ The validation task passed. The workflow still cannot answer three basic questio
 2. Did readers move to that candidate?
 3. Is it safe to retry or delete the candidate files?
 
-That is the gap this article owns. [Part 1](/writing/backfills-are-a-data-model-problem/) separated
-produced files from a published result. Here I want to make the boundary operational: one candidate
-identity, evidence bound to that identity, and one conditional change to the state readers resolve.
+This article makes that boundary operational: one candidate identity, evidence bound to it, and one
+conditional change to the state readers resolve.
 
 ## “Validated” needs a subject
 
@@ -46,9 +45,8 @@ For `repair-07`, I want the report to bind at least:
 - the code, schema and contract revision; and
 - the individual checks and their evidence.
 
-The candidate can be a staged snapshot, an audit branch head, a versioned manifest or another
-immutable unit supported by the storage system. The useful property is not its name. It is that the
-same identity means the same candidate throughout validation and publication.
+The candidate can be a staged snapshot, audit branch head or versioned manifest. What matters is
+that one identity means the same content throughout validation and publication.
 
 If a process rewrites the candidate in place, it creates a new subject. If rebasing the repair on
 `N + 1` changes its files or assumptions, it also creates a new subject. Evidence from `repair-07`
@@ -56,21 +54,14 @@ cannot be copied onto `repair-08` just because both came from the same workflow.
 
 <CandidateStateVisual />
 
-The main path is deliberately strict about identity. Checks certify `repair-07`, not “orders” in
-general. Failed evidence follows a separate route into quarantine. Passed evidence reaches the
-publish gate only with its expected base. A changed base may allow a rebase, but any check whose
-subject or assumption changed has to run again.
-
-That last qualification matters. A concurrent append to an unrelated partition may leave every
-repair assumption valid. A concurrent update to the 9 August slice probably does not. Optimistic
-concurrency is not “retry every conflict.” It is refresh, validate the operation's assumptions
-against the new table state, and retry only when the action is still valid.
+Checks certify `repair-07`, not “orders” in general. Failed evidence is quarantined; passed evidence
+reaches the publish gate with its expected base. After a conflict, refresh the table and retry only
+if the operation's assumptions still hold. Any changed subject or assumption needs new evidence.
 
 ## Files existing is not publication
 
-Object storage makes it normal for candidate files to exist before a commit. That is useful: the
-expensive output can be written once and reused when a metadata commit is retried safely. It also
-makes file presence a poor publication signal.
+Candidate files normally exist before a metadata commit and may be reusable across safe retries.
+Their presence is therefore a poor publication signal.
 
 Readers need one authoritative reference. In a snapshot table, that is usually a catalog or table
 metadata reference that resolves to one current snapshot. In a manifest-based dataset, it may be a
@@ -88,9 +79,8 @@ otherwise: reject and refresh
 The compare and update must be one atomic catalog operation. Checking `N`, waiting, and then
 writing a pointer in a second operation leaves a race between the two steps.
 
-This is what gives readers a simple experience. Before the swap they resolve the old snapshot.
-After it they resolve the new one. Candidate files can take minutes to produce, but there is no
-reader-visible state where half of the candidate has been published.
+Before the swap readers resolve the old snapshot; afterward they resolve the new one. Producing the
+candidate may take minutes without exposing a half-published state.
 
 ## A conflict changes the assumptions
 
@@ -102,10 +92,9 @@ that replaces 9 August, the protocol must confirm that no concurrent change touc
 data or violated another declared assumption. If it did, the repair needs a new candidate based on
 the new visible state.
 
-The validation report follows the same logic. Checks of the candidate's internal schema or keys may
-remain meaningful when its content is unchanged. Checks that compare the candidate with the base
-table, measure replacement scope or reconcile totals against visible state do not survive a changed
-base automatically.
+Evidence follows the same logic. Candidate-only checks may survive an unchanged candidate. Checks
+against the base table, replacement scope or visible totals do not survive a changed base
+automatically.
 
 I prefer recording those dependencies in the report instead of treating validation as one boolean:
 
@@ -116,9 +105,8 @@ I prefer recording those dependencies in the report instead of treating validati
 | Reconciliation total | Candidate + source revision | Only if both inputs are unchanged          |
 | Replacement scope    | Candidate + base snapshot   | Re-evaluate against the new base           |
 
-This is not an invitation to build a complicated evidence engine on day one. A conservative rule—
-rerun all checks after every rebase—is often the cleanest starting point. The table makes explicit
-why selective reuse requires more identity, not less.
+A conservative starting rule is to rerun all checks after a rebase. Selective reuse requires more
+identity, not less.
 
 ## A timeout is not a failed commit
 
@@ -132,9 +120,8 @@ Either action can be wrong.
 
 <VisibleReferenceVisual />
 
-The visual shows the second world. The catalog reference already resolves to `repair-07`, so readers
-have one consistent state. The worker still records its knowledge as _unknown_. That uncertainty is
-about the response path, not about reader atomicity.
+The visual shows the second world: readers already resolve `repair-07`, while the worker still knows
+only that the response was lost. Its uncertainty is about the response path, not reader atomicity.
 
 The next action is reconciliation, not another commit. Use the stable publish or candidate identity
 to check the current reference and, where the table format supports it, recent reference history.
@@ -159,24 +146,16 @@ For a multi-table data product, there are three honest options:
    use together; or
 3. use a catalog or storage system that genuinely provides the required multi-table transaction.
 
-The second option moves the atomic reference upward. It works only when every reader resolves that
-manifest; direct reads of each table bypass the protocol. The third option should be verified from
-the actual catalog guarantees, not inferred from the word _transactional_ in one component.
+A higher-level manifest works only when every reader resolves it; direct table reads bypass the
+protocol. Catalog transactions should be verified from their actual guarantees, not inferred from
+the word _transactional_.
 
 ## Cleanup comes after truth
 
-Failed and abandoned attempts leave files. Cleaning them matters, but cleanup runs behind the
-publication protocol rather than inside its uncertain edge.
-
-A candidate with failed validation can be quarantined under a retention policy. A candidate from a
-known failed commit can become eligible for orphan cleanup after in-flight writers and historical
-references have been considered. A candidate with an unknown commit outcome must remain untouched
-until reconciliation resolves it.
-
-Retention is part of correctness here. An orphan-file job with a cutoff shorter than the longest
-legitimate write can delete files that an active commit is about to reference. Similarly, expiring
-the history needed for status reconciliation too early turns a temporary network problem into a
-permanent ambiguity.
+Cleanup follows truth resolution. Failed validation can enter quarantine; a known failed commit can
+become eligible for orphan cleanup after in-flight work and references are checked. Unknown outcomes
+remain protected. Retention shorter than a legitimate write or reconciliation window can delete
+active files or erase the evidence needed to resolve a commit.
 
 ## What I want to hear in a review
 
@@ -202,7 +181,7 @@ readers can see, and exactly what to do when the answer from the commit never ar
 ## Further reading
 
 - [Apache Iceberg table specification](https://iceberg.apache.org/spec/) — snapshots, immutable metadata and atomic metadata replacement.
-- [Reliable table commits](https://iceberg.apache.org/docs/1.8.0/reliability/) — optimistic concurrency, retry validation and atomic table updates.
+- [Reliable table commits](https://iceberg.apache.org/docs/latest/reliability/) — optimistic concurrency, retry validation and atomic table updates.
 - [Audit branches](https://iceberg.apache.org/docs/nightly/branching/) — a concrete write-audit-publish workflow before advancing the main branch.
 - [Unknown commit state](https://iceberg.apache.org/javadoc/1.7.1/org/apache/iceberg/exceptions/CommitStateUnknownException.html) — why a client cannot safely continue while commit status is unresolved.
 - [Table maintenance](https://iceberg.apache.org/docs/nightly/maintenance/) — retention and orphan-file cleanup constraints.

@@ -63,32 +63,16 @@ proof comes from the rules around it.
 
 ## `MERGE` is conditional safety
 
-Before I call a merge replay-safe, I want four questions answered.
+Before I call a merge replay-safe, I want four things fixed:
 
-### What makes two rows the same fact?
-
-The match condition needs a stable business key. A row number from the current file, a generated ID
-created during each attempt or a timestamp taken from the wall clock will not identify the same
-fact on the replay.
-
-### Can more than one source row match the same target row?
-
-If the source contains two candidates for one order, the engine needs one deterministic winner
-before the merge. Some implementations reject this as ambiguous. Quietly depending on current file
-order is worse: the job may finish twice with different results.
-
-### Is the source stable during the operation?
-
-Expressions such as `current_timestamp`, random IDs or an unpinned lookup can change between
-evaluations. Materialising the bounded source is useful when the engine may scan it more than once,
-but the deeper rule is simpler: the same replay intent should see one source meaning.
-
-### What happens to rows missing from the replay source?
-
-An upsert usually updates matches and inserts new keys. It does not automatically remove target
-rows that disappeared from a corrected source. If absence means deletion, that rule must be
-explicit and scoped to the owned boundary. If absence means “not observed in this batch,” deleting
-would be a data loss bug.
+- **Stable identity.** The match condition uses a business key, not an attempt-time row number,
+  generated ID or wall-clock timestamp.
+- **One source winner.** Multiple candidates for one key are resolved deterministically before the
+  merge; file order is not a rule.
+- **Stable source meaning.** Random values, `current_timestamp` and unpinned lookups cannot change
+  between evaluations of the same replay intent.
+- **Explicit absence.** Missing source rows mean deletion only when that rule is declared and scoped
+  to the owned boundary.
 
 Notice what is deliberately missing here: the policy for an older event arriving after a newer
 one. That deserves its own treatment in part 3. For this article, the requirement is only that the
@@ -109,20 +93,14 @@ function.
 
 <SideEffectGapVisual />
 
-In the unsafe lane, the table commit succeeds and the event is delivered. The worker crashes before
-its attempt-local completion state is durable. On retry, the table write converges, but the worker
-emits another anonymous event. A green table and a green retry have produced two business effects.
-
-The safer lane gives the effect a stable identity derived from intent, for example:
+The safer lane gives the effect a stable identity derived from intent:
 
 ```text
 dataset + owned interval + input version + contract revision + effect type
 ```
 
-That identity must survive retries. A task attempt ID is the wrong key because the scheduler creates
-a new one precisely when the work is retried. With a stable effect ID, duplicate delivery is still
-possible, but the receiver can record that ID durably with its business change and apply the effect
-once.
+An attempt ID is the wrong key because it changes on retry. With a stable effect ID, delivery may
+still repeat, but the receiver can record the ID with its business change and apply the effect once.
 
 This is an important distinction: **one delivery** and **one applied effect** are not the same
 promise.
@@ -142,14 +120,10 @@ creates a dual-write problem with better naming. In that case I prefer an explic
 4. let the receiver record the ID atomically with the change it owns; and
 5. reconcile intents that have no durable receipt.
 
-There are other valid protocols, but every one has to name where atomicity ends and how uncertainty
-is repaired. “The operator will check Slack” is not a protocol.
-
-Exactly-once claims need the same discipline. An idempotent producer can suppress duplicate records
-inside its supported log boundary. A transaction can bind a supported set of reads and writes. That
-guarantee does not automatically include an email provider, a REST API or a second storage system.
-The useful question is never just “is it exactly once?” It is “which effect, inside which boundary,
-under which identity?”
+Every valid protocol must name where atomicity ends and how uncertainty is repaired. An
+“exactly-once” guarantee inside a log or transaction does not automatically include an email
+provider, REST API or second store. Ask which effect is protected, inside which boundary and under
+which identity.
 
 ## Pick a write contract by what the dataset owns
 
@@ -181,7 +155,7 @@ Before approving a replayable write path, I want concise answers to these questi
 7. Where is that identity recorded with the business change?
 8. How do we reconcile an effect whose final state is unknown?
 
-Part 5 will turn claims like these into failure-injection tests and executable invariants. Here they
+Part 5 turns claims like these into failure-injection tests and executable invariants. Here they
 serve a narrower purpose: exposing whether “idempotent” describes one line of code or the complete
 replay path.
 

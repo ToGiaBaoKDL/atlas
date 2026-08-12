@@ -14,27 +14,21 @@ series:
 import ReplayCoverageVisual from "../../components/writing/ReplayCoverageVisual.astro";
 import ReplayProofVisual from "../../components/writing/ReplayProofVisual.astro";
 
-The `orders · 09 Aug` repair has made it through the first four parts of this series. Its run owns a
-clear interval. Its writes and side effects have stable identities. Late data follows a bounded
-repair path. Candidate `repair-07` is validated and published through one conditional commit.
+The `orders · 09 Aug` repair now has an owned interval, stable write and effect identities, a bounded
+late-data path and one conditional publish for candidate `repair-07`.
 
 Now someone asks a fair question in review: **how do we know any of that survives a real retry?**
 
 “The tasks are green” does not answer it. Neither does “I retried the DAG in staging and it worked.”
-Those are useful observations, but replayability is a claim about state transitions under several
-failures. I want evidence that begins from a known state, introduces one controlled disturbance,
-observes the real system boundaries and checks named invariants afterward.
+Those are useful observations, but replayability is a claim about state transitions under failure.
+It needs a known start, a controlled disturbance, independent observations and named invariants.
 
-That is the final concern this series owns. The contracts from [part 1](/writing/backfills-are-a-data-model-problem/),
-[part 2](/writing/idempotent-writes-are-not-replay-safety/),
-[part 3](/writing/late-data-without-endless-reprocessing/) and
-[part 4](/writing/validation-is-not-a-publish-protocol/) become assertions here. I do not need to
-explain them again. I need to make them fail when the implementation stops honoring them.
+The contracts established in the previous four parts become assertions here. The goal is to make
+them fail when the implementation stops honoring them.
 
 ## A green task is not the system state
 
-A scheduler knows about an attempt: when it started, which process exited and whether a retry was
-requested. The state we care about is spread across other boundaries:
+A scheduler knows about an attempt. The state we care about is spread across other boundaries:
 
 - the table or manifest reference readers resolve;
 - the immutable candidate and owned output digest;
@@ -42,9 +36,8 @@ requested. The state we care about is spread across other boundaries:
 - the partitions and models outside the declared repair closure; and
 - the durable recovery state that permits retry, quarantine or cleanup.
 
-A task can be red after its commit succeeded and the response was lost. It can be green after it
-wrote a candidate that no reader will ever see. It can also be green while a notification or export
-was applied twice. The task state is evidence about execution, not an oracle for the data protocol.
+A task can be red after a successful commit response is lost, or green while an effect is applied
+twice. Task state is evidence about execution, not an oracle for the protocol.
 
 For each test, I want four explicit parts:
 
@@ -53,9 +46,8 @@ For each test, I want four explicit parts:
 3. **Observation** — fresh reads from the catalog, output store, effect receiver and repair boundary.
 4. **Verdict** — the invariant each observation supports or contradicts.
 
-Without the setup, a passing result is hard to reproduce. Without the stimulus, it is unclear which
-failure was exercised. Without independent observations, the test may only be asking the code under
-test whether it thinks it succeeded. Without a named invariant, a pile of logs is not yet a verdict.
+Missing any one part makes the result hard to reproduce, weakly scoped or dependent on the code
+under test reporting its own success.
 
 ## Write the invariant before the test
 
@@ -78,10 +70,8 @@ For this running example, I would start with six reviewable invariants:
 6. **Traceable recovery.** Retry, rebase, quarantine and reconciliation decisions link back to the
    same run, candidate and fault trial.
 
-The wording matters because it identifies the subject. “No duplicates” is vague. “The receiver has
-one receipt for this stable effect ID after two deliveries” is testable. “Unrelated data is safe” is
-vague. “The digests of outputs outside this dependency closure are unchanged” gives the harness an
-actual boundary to inspect.
+The subject matters. “No duplicates” is vague; “one receipt for this effect ID after two deliveries”
+is testable. “Unrelated data is safe” becomes an assertion only when the unchanged outputs are named.
 
 ## Inject failure where ownership changes
 
@@ -94,40 +84,22 @@ one component may have acted but the next component does not yet know it:
 - after an external effect is applied, before its receipt is recorded by the sender; and
 - after an outcome becomes eligible for cleanup, before deletion begins.
 
-Some seams are easiest to expose through a small test interface around the operation. Network edges
-can also run through a controllable proxy that adds latency, closes a connection or drops a response.
-Either way, the trial should name the semantic edge. `AFTER_COMMIT_BEFORE_ACK` is more useful in a
-failure report than “random timeout after 18 seconds.”
-
-The baseline publishes `repair-07` once and records the reference observations. I would then keep a
-small table-driven suite beside it:
-
-- submit the exact contract again;
-- stop after candidate creation but before commit;
-- lose the successful commit response;
-- let another writer advance the table first; and
-- deliver the late order and repair only its declared closure.
+Use a small test seam or controllable network proxy, but name the semantic boundary.
+`AFTER_COMMIT_BEFORE_ACK` is more useful than “random timeout after 18 seconds.” The matrix starts
+from one baseline publication and challenges it with five deterministic trials.
 
 <ReplayCoverageVisual />
 
-The highlighted trial is deliberately awkward. A successful commit with a lost response leaves the
-worker uncertain while readers already see `repair-07`. The correct evidence is not another green
-attempt. It is one occurrence of the candidate in table history, one external receipt, a reconciled
-recovery state and no cleanup before that reconciliation finishes.
+In the highlighted trial, readers already see `repair-07` while the worker is uncertain. Evidence
+must show one candidate occurrence, one external receipt, a reconciled state and no premature
+cleanup—not merely another green attempt.
 
 ## Allowed intermediate states belong in the contract
 
-Tests become brittle when every leftover file is called a leak and every red task is called a failed
-publication. The protocol has legitimate intermediate states.
-
-If a worker stops before commit, candidate files may remain unreferenced until retention makes them
-eligible for cleanup. The visible pointer must stay on the previous revision. If the commit outcome
-is unknown, those same files must remain protected while reconciliation is still possible. After a
-concurrent writer wins, the repair may need a new base and new validation evidence.
-
-The harness should assert the allowed state for each outcome, not demand immediate emptiness. This
-is also why cleanup needs an oracle of its own: known failure, known success and unresolved status
-grant different authority over the same physical files.
+Not every leftover file is a leak. After a pre-commit stop, an unreferenced candidate may remain
+until retention permits cleanup while the visible reference stays unchanged. An unknown outcome
+protects the same files until reconciliation. Tests should assert the allowed state for each outcome,
+not demand immediate emptiness.
 
 ## Observe through the boundary, not through the task
 
@@ -151,50 +123,31 @@ assert after.effect_count(contract.effect_key) == 1
 assert after.unrelated_digests == before.unrelated_digests
 ```
 
-`observe()` must not return the worker's cached idea of the outcome. Otherwise a bug shared by the
-write path and the assertion helper can make both agree on the same wrong answer. The table history,
-effect receiver and unrelated-output digests are deliberately separate sources of evidence.
-
-Counts are not universally good or bad here. A total row count is a weak proxy for identity. A count
-of receipts for one stable effect key, or occurrences of one candidate in a version history, directly
-tests the contract we named.
+`observe()` must not return the worker's cached outcome. Table history, the effect receiver and
+unrelated-output digests are separate sources. A total row count is a weak proxy for identity; a
+count scoped to one effect key or candidate directly tests the contract.
 
 ## Generate sequences after the model is clear
 
-Five deterministic trials catch a surprising amount because each one targets a known seam. They are
-also easy to reproduce in CI. I would get those stable before adding property-based or stateful tests.
-
-Once the model is explicit, generated sequences become valuable. A state machine can choose actions
-such as produce, validate, publish, lose acknowledgement, reconcile, retry, conflict and repair. It
-then checks the six invariants after every applicable action, not only at the end of a hand-written
-happy path.
-
-The benefit is not randomness for its own sake. It is exploring orders that a reviewer may not think
-to write down, then shrinking a failure to a small sequence that can become a permanent regression
-case. The generated model should remain smaller than the production implementation: visible
-candidate, known or unknown outcome, applied effect IDs, protected artifacts and the declared repair
-closure are enough for this claim.
+Stabilize the deterministic trials before adding stateful tests. Once the model is explicit, a state
+machine can combine produce, validate, publish, lose acknowledgement, reconcile, retry, conflict and
+repair, checking invariants after each action. Its value is exploring missed orderings and shrinking
+a failure into a small permanent regression case—not randomness itself.
 
 ## Prove that the proof can fail
 
-A test suite that has never failed for the intended reason deserves some suspicion. In an isolated
-fixture, I would disable one guard at a time:
+A test suite should prove that its oracle is connected. In an isolated fixture, disable one guard:
 
 - replace the stable effect key with an attempt-local ID;
 - turn an unknown commit outcome into an immediate retry; or
 - let a repair rewrite an output outside its dependency closure.
 
-The corresponding invariant should fail with a useful observation: two receipts, two candidate
-occurrences, or a changed unrelated digest. This control experiment is small, but it confirms that
-the oracle is connected to the mechanism it claims to protect.
-
-It does not belong in production code as a hidden switch. The harness should replace or intercept a
-boundary explicitly, so the normal implementation does not accumulate test-only branches.
+The matching invariant should expose two receipts, two candidate occurrences or a changed unrelated
+digest. Intercept the boundary in the harness; do not add hidden test switches to production code.
 
 ## Keep a proof bundle, not just a log archive
 
-When a trial fails next month, another engineer needs more than a CI link that may expire. I would
-store a compact proof bundle containing:
+Keep a compact proof bundle containing:
 
 - the run contract, code and schema revision;
 - initial references and relevant input identities;
@@ -205,9 +158,8 @@ store a compact proof bundle containing:
 
 <ReplayProofVisual />
 
-The “not covered” line is part of the proof, not a disclaimer added later. A deterministic lost-response
-trial says little about a multi-region catalog outage. Naming that gap keeps a strong local result from
-quietly becoming a universal reliability claim.
+The “not covered” line is part of the proof. A lost-response trial says little about a multi-region
+catalog outage; naming the gap prevents a local result from becoming a universal claim.
 
 ## Put each proof at the right cadence
 
@@ -222,31 +174,22 @@ Not every scenario belongs in every pull request.
 - **Production exercises:** only the risks that cannot be represented safely elsewhere, with an
   explicit blast radius and stop condition.
 
-Moving a test to a slower cadence should not remove its ownership. The proof bundle should still say
-which revision was exercised, which invariant it supports and how recently that evidence was
-produced.
+At every cadence, record the revision, supported invariant and age of the evidence.
 
 ## What I want to hear in a review
 
 Before accepting “this pipeline is replayable,” I want concise answers to these questions:
 
 1. Which run and output boundary does the claim cover?
-2. What observable state serves as the oracle at each external boundary?
-3. Which failures are injected deterministically, and at which ownership seams?
-4. What intermediate states are explicitly allowed?
-5. Does an exact replay converge in both data and side effects?
-6. Does a concurrent writer survive the trial?
-7. Can an unknown commit outcome prevent retry and cleanup until it is reconciled?
-8. Does a late repair leave outputs outside its declared closure unchanged?
-9. Has the suite demonstrated that each important oracle can catch its corresponding broken guard?
-10. What relevant boundary remains untested, and where is that risk recorded?
+2. What independent oracle observes each external boundary?
+3. Which failures are injected, and what intermediate states are allowed?
+4. Does replay converge in data and side effects without overwriting a concurrent writer?
+5. Do unknown outcomes block retry and cleanup until reconciliation?
+6. Does repair leave outputs outside its declared closure unchanged?
+7. Can each oracle catch its broken guard, and which relevant risk remains untested?
 
-That is enough to close the series. [Part 1](/writing/backfills-are-a-data-model-problem/) gave a run
-an owned boundary. [Part 2](/writing/idempotent-writes-are-not-replay-safety/) made its writes and
-effects converge. [Part 3](/writing/late-data-without-endless-reprocessing/) bounded correction.
-[Part 4](/writing/validation-is-not-a-publish-protocol/) separated validated candidates from visible
-publication. This final part asks those contracts to survive controlled failure and leave evidence
-another engineer can reproduce.
+That closes the series: owned runs, convergent effects, bounded correction and conditional
+publication must survive controlled failure and leave reproducible evidence.
 
 A replayable pipeline is not one that never gets stuck. It is one whose state remains explainable
 when work repeats, whose recovery actions are constrained by what is actually known, and whose
