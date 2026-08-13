@@ -1,0 +1,189 @@
+---
+title: Production Must Confirm the Release
+description: A rollout becomes the current release only when production evidence matches the intended artifact, configuration, schema and functional path.
+publishedAt: 2026-08-13T18:15:00+07:00
+draft: false
+topics:
+  - cloud-infrastructure
+  - software-design
+series:
+  id: from-image-to-production
+  part: 4
+---
+
+import ReleaseEvidenceVisual from "../../components/writing/ReleaseEvidenceVisual.astro";
+
+The rollout controller says `r18` is complete. Two new API instances are ready, the worker is
+running, and the deploy job has reached its final step.
+
+That is useful news. It is not yet the whole release verdict.
+
+Production may have resolved a different image than the one CI intended. An instance may still be
+using the previous configuration revision. Readiness may be green while the route that creates and
+reads an order is broken. A smoke result from five minutes before the rollout may even be attached
+to the new deploy by mistake.
+
+The release closes only when **fresh production observations match the intended release identity**.
+
+> The deploy system proposes a release. Production evidence confirms, rejects or leaves it
+> inconclusive.
+
+This final boundary keeps “the command finished” from becoming a stronger claim than the available
+evidence supports.
+
+## One green light cannot own three claims
+
+Teams often compress several questions into one status named `success`:
+
+**Did the deployment complete?** The controller reached the desired replica or task state without
+exceeding its deadline. This is evidence about the delivery mechanism.
+
+**Can the service operate?** The new processes are ready, essential dependencies are usable, and
+the worker can make progress. This is evidence about runtime health.
+
+**Does one real function work?** A production request crossed the expected API, database and worker
+boundaries and produced the expected observable result. This is evidence about a functional path.
+
+None of these claims replaces the others. A completed rollout can contain the wrong configuration.
+A healthy process can return an incorrect response. One passing smoke path cannot prove every
+business rule or long-term reliability target.
+
+Keep the claims separate in the release record. Their combination may authorize confirmation, but
+their evidence and failure meanings remain distinct.
+
+## Make production say which revision produced the signal
+
+Metrics and traces without release identity can make a fresh deploy look healthy with evidence from
+the previous one. Every production signal used for a verdict should therefore name the service,
+environment and revision that produced it.
+
+OpenTelemetry defines stable resource attributes for `service.name`, `service.version` and
+`service.instance.id`, plus `deployment.environment.name` for the environment. For `orders-api`, a
+process might report `service.version=r18` and `deployment.environment.name=production`; each
+instance gets its own opaque instance ID.
+
+The service version is not a substitute for the runtime image digest. The application may know its
+build revision, but the deployment platform knows which image it actually resolved and started.
+The verifier should compare that platform-observed image ID with the intended digest from part 1.
+
+Configuration and schema identities are application contracts rather than secret values. Emit a
+safe revision such as `prod-43` and `expand-2026-08-13`, not the configuration contents or database
+credentials. If custom telemetry fields carry them, give those fields one documented owner and keep
+their names stable.
+
+The result is correlation, not decoration: a failing trace, a readiness transition and a smoke
+observation can all be tied to `orders-api-r18` instead of merely to “production”.
+
+## Check health at increasing depth
+
+Verification should move from cheap structural evidence toward one bounded functional observation.
+
+First, ask the platform what is running: desired instances, resolved image IDs, readiness and worker
+state. This catches incomplete rollout and identity mismatch without sending synthetic business
+traffic.
+
+Next, check essential dependencies from the new revision. The API may be ready only when PostgreSQL
+is usable, while an optional mail provider should not make liveness restart the process. Part 2 owns
+those probe semantics; this step only records their observed result for this release.
+
+Finally, exercise one narrow production path. For the running example, the verifier can create a
+synthetic order in an isolated test account, read it back through the public API, wait for its
+background status transition, then remove or expire the test data through a defined cleanup path.
+The observation records its trace ID and the release revision that served it.
+
+That smoke path should be small, repeatable and safe to run more than once. It is not a hidden
+end-to-end test suite, and it does not prove finance calculations, every queue consumer or the
+service SLO.
+It proves exactly the path named in the record.
+
+<ReleaseEvidenceVisual />
+
+The neutral lines gather independent observations. Lime begins where those observations have been
+bound to one release record: the record can now produce a verdict. Evidence that cannot be tied to
+`r18` or to the active time window does not enter that path.
+
+## Compare intention with observation
+
+The release record should hold both sides of the comparison. Replacing the intended values with
+whatever production reports would erase the very mismatch the verifier is supposed to find.
+
+```yaml
+release: orders-api-r18
+environment: production
+window:
+  opened_at: 2026-08-13T16:19:00+07:00
+  closed_at: 2026-08-13T16:24:00+07:00
+
+intended:
+  image_digest: sha256:7a31...c902
+  config_revision: prod-43
+  schema_revision: expand-2026-08-13
+
+observed:
+  platform_image_id: sha256:7a31...c902
+  service_version: r18
+  ready_instances: 2/2
+  migration: passed
+  smoke:
+    path: create-read-test-order
+    trace_id: 4fd0...91ac
+    status: passed
+
+verdict:
+  status: confirmed
+  rule: production-release-v2
+```
+
+The rule version matters. If the team later adds worker-lag evidence or changes the smoke path, an
+old and new `confirmed` verdict no longer mean precisely the same thing. Naming the rule preserves
+that context without storing an entire observability platform in the release record.
+
+The time window matters for the same reason. A query such as “error rate below one percent” is not
+release evidence until it is filtered to the relevant environment, revision and interval. Missing
+telemetry should normally make the verdict `inconclusive`, not silently pass the release.
+
+## Keep failure meanings explicit
+
+A verifier should return more than red or green:
+
+| Observation                 | Claim that failed                             | Release result                                      |
+| --------------------------- | --------------------------------------------- | --------------------------------------------------- |
+| Observed digest differs     | Intended artifact is not serving              | reject; do not mark `r18` current                   |
+| `r18` telemetry is absent   | Service health is unknown                     | inconclusive; inspect collection and rollout        |
+| Health passes, smoke fails  | Process runs but the named function is broken | reject or roll forward using the part 3 policy      |
+| Migration result is missing | Durable-state compatibility is unknown        | inconclusive; keep the last confirmed release named |
+
+These results can feed a progressive delivery controller, a CI job or a human approval. The tool is
+not the owner of the meaning; the release rule is.
+
+Retain the record when a release is rejected, rolled back or repaired forward. Failure evidence is
+often more valuable than a successful job log because it explains which identities matched, which
+claim failed and what production was doing at that moment.
+
+## Rehearse the verdict, not only the rollout
+
+A useful production-verification test deliberately breaks the joins between intention and
+observation:
+
+1. report a different configuration revision and confirm the release cannot close;
+2. keep readiness green while making the functional smoke path fail;
+3. remove release-labelled telemetry and confirm the result becomes `inconclusive`, not `passed`;
+4. verify the final record contains the intended digest, observed digest, schema result, smoke trace,
+   time window and rule version;
+5. repair or revert the release and confirm the failed record remains available beside the new
+   verdict.
+
+With that evidence, `r18` can become the new current release for a reason stronger than “the deploy
+job was green”.
+
+This closes the series: build one immutable image, bind an explicit runtime contract, move through
+named compatible states, then let production observations close the release. The next architecture
+question begins one level higher: what data solution is worth putting through that delivery path in
+the first place?
+
+## Further reading
+
+- [OpenTelemetry service semantic conventions](https://opentelemetry.io/docs/specs/semconv/resource/service/) — stable service name, version and instance identity for telemetry resources.
+- [OpenTelemetry deployment environment conventions](https://opentelemetry.io/docs/specs/semconv/resource/deployment-environment/) — the production, staging, test and development environment attribute.
+- [OpenTelemetry resources](https://opentelemetry.io/docs/concepts/resources/) — attaching resource identity consistently to emitted telemetry.
+- [Argo Rollouts analysis](https://argo-rollouts.readthedocs.io/en/stable/features/analysis/) — one concrete example of measurements producing successful, failed, error or inconclusive rollout analysis.

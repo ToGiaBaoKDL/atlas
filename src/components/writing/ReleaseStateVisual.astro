@@ -1,0 +1,307 @@
+---
+import FlowArrow from "../FlowArrow.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const states = [
+  { id: "current", eyebrow: "Current", title: "r17 serving", detail: "Known compatible" },
+  {
+    id: "prepare",
+    eyebrow: "Prepare r18",
+    title: "Inputs bound",
+    detail: "Digest · config · plan",
+  },
+  { id: "compatible", eyebrow: "Schema", title: "Compatible", detail: "Expand + migrate" },
+  { id: "serving", eyebrow: "Traffic", title: "r17 + r18", detail: "Readiness gates" },
+  { id: "verified", eyebrow: "Verified", title: "r18 serving", detail: "Release closes" },
+] as const;
+
+const transitions = ["Plan accepted", "Migration passed", "Ready", "Evidence passed"] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Release state machine"
+  title="Each transition has a precondition"
+  status="Last safe state known"
+  caption="A release moves only after the next compatibility condition is observed. If the expand migration fails, traffic never moves and r17 remains the named serving state."
+  number="03.1 / RELEASE TRANSITION"
+>
+  <section
+    class="release-machine"
+    aria-label="Release r18 state machine with a migration failure branch"
+  >
+    {
+      states.map(({ id, eyebrow, title, detail }, index) => (
+        <>
+          <article class:list={["release-state", `state-${id}`]}>
+            <span>{eyebrow}</span>
+            <strong>{title}</strong>
+            <small>{detail}</small>
+          </article>
+          {index < transitions.length && (
+            <div class:list={["transition", `transition-${index + 1}`]}>
+              <span>{transitions[index]}</span>
+              <FlowArrow />
+            </div>
+          )}
+        </>
+      ))
+    }
+
+    <div class="failure-link" aria-hidden="true">
+      <span>Migration failed</span>
+    </div>
+    <article class="failure-state">
+      <header>
+        <span>Stop condition</span>
+        <strong>Keep r17 serving</strong>
+      </header>
+      <dl>
+        <div>
+          <dt>Traffic</dt>
+          <dd>No move</dd>
+        </div>
+        <div>
+          <dt>Evidence</dt>
+          <dd>Record failure</dd>
+        </div>
+        <div>
+          <dt>Recovery</dt>
+          <dd>Repair, then retry</dd>
+        </div>
+      </dl>
+    </article>
+  </section>
+</TechnicalFigure>
+
+<style>
+  .release-machine {
+    --release-gap: 0.42rem;
+    --failure-lane-height: 2.35rem;
+    --failure-branch-reach: -3.19rem;
+
+    display: grid;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns:
+      minmax(5.1rem, 1fr) minmax(2rem, 0.58fr) minmax(5.1rem, 1fr)
+      minmax(2rem, 0.58fr) minmax(5.1rem, 1fr) minmax(2rem, 0.58fr)
+      minmax(5.1rem, 1fr) minmax(2rem, 0.58fr) minmax(5.1rem, 1fr);
+    grid-template-rows:
+      minmax(5.2rem, 1fr) var(--failure-lane-height)
+      minmax(3.7rem, 0.72fr);
+    gap: var(--release-gap);
+    align-content: center;
+  }
+
+  .release-state {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 0.32rem;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel);
+    padding: 0.62rem;
+  }
+
+  .release-state span,
+  .release-state small,
+  .failure-state span,
+  .failure-state dt,
+  .failure-state dd,
+  .transition > span,
+  .failure-link span {
+    font-family: var(--font-mono);
+    font-size: 0.43rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .release-state span,
+  .failure-state span,
+  .failure-state dt,
+  .transition > span,
+  .failure-link span {
+    color: var(--visual-muted);
+  }
+
+  .release-state strong,
+  .failure-state strong {
+    overflow-wrap: anywhere;
+    color: var(--visual-text);
+    font-size: 0.67rem;
+    font-weight: 610;
+    line-height: 1.2;
+  }
+
+  .release-state small,
+  .failure-state dd {
+    color: var(--visual-soft);
+  }
+
+  .state-current {
+    grid-area: 1 / 1;
+  }
+
+  .state-prepare {
+    grid-area: 1 / 3;
+  }
+
+  .state-compatible {
+    grid-area: 1 / 5;
+  }
+
+  .state-serving {
+    grid-area: 1 / 7;
+  }
+
+  .state-verified {
+    grid-area: 1 / 9;
+  }
+
+  .state-compatible,
+  .state-verified {
+    border-color: var(--visual-accent-strong);
+    background: color-mix(in srgb, var(--visual-panel) 86%, var(--visual-accent-glow));
+  }
+
+  .state-compatible span,
+  .state-verified span {
+    color: var(--visual-accent);
+  }
+
+  .transition {
+    display: grid;
+    min-width: 0;
+    grid-template-rows: minmax(1rem, auto) auto;
+    gap: 0.38rem;
+    align-content: center;
+  }
+
+  .transition > span {
+    overflow-wrap: anywhere;
+    text-align: center;
+  }
+
+  .transition-1 {
+    grid-area: 1 / 2;
+  }
+
+  .transition-2 {
+    position: relative;
+    grid-area: 1 / 4;
+  }
+
+  .transition-2::before {
+    position: absolute;
+    z-index: 0;
+    top: calc(50% + 0.62rem);
+    right: 50%;
+    bottom: var(--failure-branch-reach);
+    width: 2px;
+    transform: translateX(50%);
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--visual-accent) 24%, transparent),
+      var(--visual-accent-strong)
+    );
+    content: "";
+  }
+
+  .transition-2::after {
+    position: absolute;
+    z-index: 1;
+    right: 50%;
+    bottom: calc(var(--failure-branch-reach) - 0.01rem);
+    width: 0.38rem;
+    height: 0.38rem;
+    transform: translate(50%, 0) rotate(45deg);
+    border-right: 2px solid var(--visual-accent);
+    border-bottom: 2px solid var(--visual-accent);
+    content: "";
+  }
+
+  .transition-3 {
+    grid-area: 1 / 6;
+  }
+
+  .transition-4 {
+    grid-area: 1 / 8;
+  }
+
+  .failure-link {
+    position: relative;
+    display: grid;
+    grid-area: 2 / 4;
+  }
+
+  .failure-link span {
+    position: absolute;
+    z-index: 1;
+    top: 0.38rem;
+    left: calc(50% + 0.52rem);
+    width: max-content;
+    background: var(--visual-bg);
+    padding-inline: 0.2rem;
+  }
+
+  .failure-state {
+    display: grid;
+    min-width: 0;
+    grid-area: 3 / 2 / 4 / 8;
+    grid-template-columns: minmax(7.8rem, 0.85fr) minmax(0, 1.65fr);
+    align-items: center;
+    gap: 0.9rem;
+    border: 1px dashed var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel-soft);
+    padding: 0.62rem 0.72rem;
+  }
+
+  .failure-state header {
+    display: grid;
+    min-width: 0;
+    gap: 0.28rem;
+  }
+
+  .failure-state strong {
+    font-size: 0.63rem;
+  }
+
+  .failure-state dl {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 0;
+  }
+
+  .failure-state dl div {
+    display: grid;
+    min-width: 0;
+    gap: 0.2rem;
+    border-left: 1px solid var(--visual-border-soft);
+    padding-inline: 0.62rem;
+  }
+
+  .failure-state dt,
+  .failure-state dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .failure-state dd {
+    color: var(--visual-text);
+    font-weight: 610;
+    text-transform: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global([data-reveal].is-revealed) .transition-2::before,
+    :global([data-reveal].is-revealed) .transition-2::after {
+      animation: visual-flow-pulse var(--motion-visual-pulse) ease-in-out infinite alternate;
+    }
+  }
+</style>

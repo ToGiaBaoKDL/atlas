@@ -1,0 +1,274 @@
+---
+import FlowArrow from "../FlowArrow.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const evidence = [
+  { label: "Artifact", value: "…c902", detail: "Digest matches" },
+  { label: "Config", value: "prod-43", detail: "Revision matches" },
+  { label: "Migration", value: "expand-0813", detail: "Applied once" },
+  { label: "Telemetry", value: "r18 · 2/2", detail: "Instances observed" },
+  { label: "Smoke", value: "order-1042", detail: "Read + write passed" },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Production evidence"
+  title="Observation closes the release"
+  status="Verdict recorded"
+  caption="Artifact, configuration, migration, telemetry and one functional observation belong to the same release and time window. Only their recorded convergence makes r18 the new current release."
+  number="04.1 / RELEASE VERDICT"
+>
+  <section
+    class="evidence-map"
+    aria-label="Five production evidence sources converging on release r18 and one confirmed verdict"
+  >
+    <ul class="evidence-list" aria-label="Observed production evidence">
+      {
+        evidence.map(({ label, value, detail }) => (
+          <li>
+            <span>{label}</span>
+            <strong>{value}</strong>
+            <small>{detail}</small>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="fan-in" aria-hidden="true">
+      {evidence.map(() => <i />)}
+      <div class="fan-out"><FlowArrow /></div>
+    </div>
+
+    <article class="release-record">
+      <span>Release record</span>
+      <strong>orders-api-r18</strong>
+      <dl>
+        <div>
+          <dt>Image</dt>
+          <dd>c902 = c902</dd>
+        </div>
+        <div>
+          <dt>Config</dt>
+          <dd>prod-43 = prod-43</dd>
+        </div>
+        <div>
+          <dt>Schema</dt>
+          <dd>expand passed</dd>
+        </div>
+        <div>
+          <dt>Window</dt>
+          <dd>16:19–16:24</dd>
+        </div>
+      </dl>
+      <small>Intent compared with observation</small>
+    </article>
+
+    <div class="verdict-link" aria-hidden="true"><FlowArrow /></div>
+
+    <article class="release-verdict">
+      <span>Verdict</span>
+      <strong>Confirmed</strong>
+      <p>r18 is current</p>
+      <small>Closed · evidence retained</small>
+    </article>
+  </section>
+</TechnicalFigure>
+
+<style>
+  .evidence-map {
+    display: grid;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns:
+      minmax(8.2rem, 1fr) minmax(2.6rem, 0.36fr) minmax(10rem, 1.25fr)
+      minmax(1.5rem, 0.25fr) minmax(7.2rem, 0.82fr);
+    gap: 0.52rem;
+    align-items: stretch;
+  }
+
+  .evidence-list {
+    display: grid;
+    min-width: 0;
+    grid-template-rows: repeat(5, minmax(2rem, 1fr));
+    gap: 0.32rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .evidence-list li {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: minmax(3.65rem, 0.72fr) minmax(0, 1fr);
+    align-content: center;
+    gap: 0.16rem 0.55rem;
+    border: 1px solid var(--visual-border);
+    border-radius: 0.34rem;
+    background: var(--visual-panel);
+    padding: 0.3rem 0.55rem;
+  }
+
+  .evidence-list span,
+  .evidence-list small,
+  .release-record span,
+  .release-record small,
+  .release-record dt,
+  .release-record dd,
+  .release-verdict span,
+  .release-verdict small {
+    font-family: var(--font-mono);
+    font-size: 0.43rem;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  .evidence-list span,
+  .release-record span,
+  .release-record dt,
+  .release-verdict span {
+    color: var(--visual-muted);
+  }
+
+  .evidence-list strong,
+  .release-record strong,
+  .release-verdict strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--visual-text);
+    font-size: 0.66rem;
+    font-weight: 610;
+    line-height: 1.2;
+  }
+
+  .evidence-list small,
+  .release-record small,
+  .release-record dd,
+  .release-verdict small {
+    color: var(--visual-soft);
+  }
+
+  .evidence-list small {
+    grid-column: 2;
+  }
+
+  .fan-in {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    grid-template-rows: repeat(5, minmax(0, 1fr));
+    gap: 0.32rem;
+  }
+
+  .fan-in::before {
+    position: absolute;
+    top: 10%;
+    bottom: 10%;
+    left: 50%;
+    width: 1px;
+    background: var(--visual-border);
+    content: "";
+  }
+
+  .fan-in > i {
+    position: relative;
+  }
+
+  .fan-in > i::before {
+    position: absolute;
+    top: 50%;
+    right: 50%;
+    left: 0;
+    height: 1px;
+    background: var(--visual-border);
+    content: "";
+  }
+
+  .fan-out {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 50%;
+    transform: translateY(-50%);
+  }
+
+  .release-record,
+  .release-verdict {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    border: 1px solid var(--visual-accent-strong);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel) 84%, var(--visual-accent-glow));
+    padding: 0.72rem;
+  }
+
+  .release-record {
+    align-self: center;
+    gap: 0.42rem;
+    padding-block: 0.9rem;
+  }
+
+  .release-record > span,
+  .release-record > small,
+  .release-verdict > span,
+  .release-verdict > small {
+    color: var(--visual-accent);
+  }
+
+  .release-record > strong {
+    font-size: 0.8rem;
+  }
+
+  .release-record dl {
+    display: grid;
+    min-width: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin: 0.08rem 0;
+  }
+
+  .release-record dl div {
+    display: grid;
+    min-width: 0;
+    gap: 0.18rem;
+    border-top: 1px solid var(--visual-border-soft);
+    padding-top: 0.38rem;
+  }
+
+  .release-record dt,
+  .release-record dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .release-record dd {
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .verdict-link {
+    display: grid;
+    align-items: center;
+  }
+
+  .release-verdict {
+    align-self: center;
+    gap: 0.38rem;
+    padding-block: 1rem;
+  }
+
+  .release-verdict strong {
+    color: var(--visual-accent);
+    font-size: 0.82rem;
+  }
+
+  .release-verdict p {
+    margin: 0;
+    color: var(--visual-text);
+    font-size: 0.62rem;
+    font-weight: 600;
+  }
+</style>

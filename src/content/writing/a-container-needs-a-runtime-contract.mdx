@@ -1,0 +1,209 @@
+---
+title: A Container Needs a Runtime Contract
+description: A stable image becomes a reliable service only when configuration, secrets, state, probes and shutdown behaviour have explicit owners.
+publishedAt: 2026-08-13T14:15:00+07:00
+draft: false
+topics:
+  - cloud-infrastructure
+  - software-design
+series:
+  id: from-image-to-production
+  part: 2
+---
+
+import RuntimeContractVisual from "../../components/writing/RuntimeContractVisual.astro";
+
+The image from part 1 is now in the registry. Staging and production can both name the same digest,
+so the application filesystem is no longer a moving target.
+
+Production still has several ways to surprise us.
+
+The database password may be missing. The process may start accepting traffic before its connection
+pool is usable. A temporary export may quietly fill the container filesystem. During a deploy, the
+server may receive a termination signal and disappear while requests are still in flight.
+
+None of these is an image-build problem. They belong to the **runtime contract**: everything the
+container needs from its environment, and everything the environment may expect from the process.
+
+> A container is ready to run only when both sides of that contract can be checked.
+
+This article keeps the contract portable. Compose, Nomad, Kubernetes and a managed container
+service express it differently, but they still need answers to the same questions.
+
+## Validate configuration before accepting work
+
+Configuration errors should fail near process start, while the cause is still obvious. Waiting
+until the first request reaches an invalid database URL turns one deployment mistake into a noisy
+runtime incident.
+
+For `orders-api`, startup validation can check that:
+
+- required values exist;
+- URLs and durations parse;
+- mutually dependent options agree;
+- production-only safety rules hold;
+- the configuration has a revision that can be recorded without exposing its values.
+
+This is more than checking for non-empty environment variables. A value can exist and still be
+invalid. `SHUTDOWN_GRACE_SECONDS=-1` is present; it is not a usable shutdown policy.
+
+Do not print the complete environment to prove validation ran. Log the configuration schema
+version, a non-secret revision such as `prod-42`, and the specific field names that failed. The
+operator gets a useful error without turning logs into another secret store.
+
+Configuration also needs an update policy. If the process reads values only at startup, changing a
+mounted file does nothing until restart. If live reload is supported, define whether a partial or
+invalid update keeps the last valid configuration, rejects the whole revision, or stops the
+process. “The file changed” is not yet a runtime behaviour.
+
+## Secrets are runtime inputs, not image contents
+
+A production image should not contain the database password it will use. Build arguments and copied
+files can leave values in image layers, build logs or cache metadata even when a later Dockerfile
+step deletes them.
+
+Bind secret material at runtime instead. A platform might expose it as a mounted file, a short-lived
+credential obtained through workload identity, or an environment variable. Mounted files and
+workload identity usually make scope and rotation easier to reason about; environment variables are
+widespread but easier to leak through diagnostics and child processes.
+
+The important contract is independent of the mechanism:
+
+- the image names which secret capability it needs, not the production value;
+- the runtime authorizes only the identity that needs it;
+- the process handles absence and rotation deliberately;
+- logs, errors and health responses never echo the secret.
+
+Docker Compose, for example, mounts a declared secret under `/run/secrets/<name>` for the services
+allowed to use it. The application can receive the file path as ordinary non-secret configuration.
+
+## Give every byte of state an owner
+
+A container has a writable layer, but that does not make it a database. Data in that layer follows
+the container lifecycle and is awkward for another process to share or recover.
+
+Classify writes before deployment:
+
+| State         | Example                                              | Owner                                              |
+| ------------- | ---------------------------------------------------- | -------------------------------------------------- |
+| Ephemeral     | decoded request body, temporary archive              | container-local scratch or `tmpfs`                 |
+| Durable local | embedded database, uploaded object awaiting transfer | an explicitly managed volume                       |
+| External      | PostgreSQL rows, object-store payloads, queue state  | the external service and its own recovery contract |
+
+Most small HTTP services need only ephemeral scratch plus external durable state. Making the root
+filesystem read-only and mounting a bounded temporary directory is a useful test: unexpected writes
+fail early instead of becoming invisible dependencies.
+
+A volume is appropriate when local persistence is genuinely part of the design. It is not a free
+reliability upgrade. Backup, restore, attachment, concurrency and placement now need owners too.
+
+<RuntimeContractVisual />
+
+The diagram has no flow arrows because these are not sequential stages. They are simultaneous
+boundaries around one process. A healthy release requires all of them to agree.
+
+## Startup, readiness and liveness ask different questions
+
+One `/health` endpoint often ends up carrying three incompatible meanings.
+
+**Startup** asks whether initialization has finished. It protects a slow-starting process from
+being judged by steady-state rules too early.
+
+**Readiness** asks whether this instance should receive new work. During shutdown, overload or a
+temporary essential dependency failure, readiness may become false while the process remains alive.
+
+**Liveness** asks whether the process can still make progress. Failure usually grants the runtime
+permission to restart it, so this check should be conservative. If liveness fails whenever an
+optional downstream API is unavailable, the platform can turn one dependency outage into a restart
+storm.
+
+The exact checks depend on the service. For `orders-api`, readiness may require an initialized
+server and a usable PostgreSQL connection because requests cannot succeed without them. Liveness
+can stay local: the event loop or worker supervisor is responsive and not irrecoverably stuck.
+
+A probe is part of control flow, not just monitoring. Document who consumes it and what action a
+failure authorizes.
+
+## Shutdown begins by refusing new work
+
+During a normal Docker stop, the runtime sends the container's configured stop signal—`SIGTERM` by
+default—and waits for a grace period before forcing termination. That grace period is useful only
+if the intended process receives the signal and has a bounded drain path.
+
+The shutdown sequence should be small and observable:
+
+1. mark the instance unready or stop accepting new work;
+2. finish or safely abandon already accepted requests and jobs;
+3. flush bounded telemetry and release resources;
+4. exit before the runtime's deadline.
+
+PID 1 matters here. A shell wrapper can absorb a signal instead of forwarding it, and PID 1 is also
+responsible for reaping orphaned child processes. Prefer an exec-form command so the application is
+the container process. If it spawns children and does not act as an init system, use the runtime's
+small init process rather than inventing a signal-forwarding shell script.
+
+Graceful does not mean waiting forever. A worker should know what accepted work can be completed,
+returned to a queue, or recovered after termination. The runtime deadline and the application's
+drain deadline must agree.
+
+## A compact Compose contract
+
+The following fragment is not a universal production platform. It shows how several parts of the
+contract can become reviewable configuration without rebuilding the image:
+
+```yaml
+services:
+  orders-api:
+    image: ghcr.io/example/orders-api@sha256:7a31...c902
+    init: true
+    read_only: true
+    environment:
+      APP_CONFIG_REVISION: prod-42
+      DB_PASSWORD_FILE: /run/secrets/db_password
+    secrets: [db_password]
+    tmpfs:
+      - /tmp:size=64m
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "/app/bin/probe", "ready"]
+
+secrets:
+  db_password:
+    file: ./secrets/db_password
+```
+
+For a real deployment, the secret source should match the platform's threat model; committing the
+referenced file would defeat the point. The service still needs separate startup and liveness
+semantics even though Compose exposes one container health check here. The portable contract is
+larger than this particular configuration surface.
+
+Resource and network expectations belong beside it: expected CPU and memory range, listening port,
+allowed outbound destinations, and whether the process can tolerate throttling. Those values are
+platform-specific to enforce, but surprising the process with them is avoidable.
+
+## Prove the contract under an ordinary failure
+
+A useful runtime check does more than wait for HTTP 200:
+
+1. start the image with one required field missing and confirm it exits before becoming ready;
+2. start with valid configuration and confirm startup, readiness and liveness report their intended
+   states;
+3. send concurrent requests, deliver the stop signal and verify readiness closes before the
+   process exits;
+4. confirm accepted work either completes or leaves recoverable state within the grace period;
+5. restart with a fresh writable layer and confirm durable outcomes still exist where promised.
+
+The evidence can stay compact: image digest, configuration revision, probe transitions, signal
+time, final exit status, drain duration and the identity of any recovered work.
+
+Once this passes, the image and runtime contract are individually understandable. Part 3 will put
+them into an ordered production change: infrastructure, schema compatibility, application rollout
+and verification as one explicit state transition.
+
+## Further reading
+
+- [Docker storage overview](https://docs.docker.com/engine/storage/) — writable layers, volumes, bind mounts and ephemeral `tmpfs` state.
+- [Secrets in Docker Compose](https://docs.docker.com/compose/how-tos/use-secrets/) — service-scoped runtime secret mounts and build-time secrets.
+- [Docker container stop](https://docs.docker.com/reference/cli/docker/container/stop/) — stop signals, grace periods and forced termination.
+- [Compose service configuration](https://docs.docker.com/reference/compose-file/services/) — `init`, `read_only`, `tmpfs`, health checks and stop grace configuration.
+- [Kubernetes probe semantics](https://kubernetes.io/docs/concepts/configuration/liveness-readiness-startup-probes/) — a clear reference for the different questions asked by startup, readiness and liveness probes.

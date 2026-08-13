@@ -43,6 +43,24 @@ const deliveryArticles = [
     part: 1,
     publishedAt: "2026-08-13T04:15:00.000Z",
   },
+  {
+    route: "/writing/a-container-needs-a-runtime-contract/",
+    title: "A Container Needs a Runtime Contract",
+    part: 2,
+    publishedAt: "2026-08-13T07:15:00.000Z",
+  },
+  {
+    route: "/writing/deployment-is-a-state-transition/",
+    title: "Deployment Is a State Transition",
+    part: 3,
+    publishedAt: "2026-08-13T09:15:00.000Z",
+  },
+  {
+    route: "/writing/production-must-confirm-the-release/",
+    title: "Production Must Confirm the Release",
+    part: 4,
+    publishedAt: "2026-08-13T11:15:00.000Z",
+  },
 ] as const;
 const writingArticles = [
   ...replayableArticles.map((article) => ({ ...article, series: replayableSeries })),

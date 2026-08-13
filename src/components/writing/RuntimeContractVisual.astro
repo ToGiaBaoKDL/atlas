@@ -1,0 +1,289 @@
+---
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const bindings = [
+  { eyebrow: "Config", title: "prod-42", detail: "Validated at start" },
+  { eyebrow: "Secret", title: "/run/secrets/db", detail: "Runtime mount" },
+  { eyebrow: "Identity", title: "orders-api", detail: "Least privilege" },
+] as const;
+
+const contracts = [
+  { eyebrow: "Network", title: "Listen :8080", detail: "PostgreSQL outbound" },
+  { eyebrow: "State", title: "Scratch only", detail: "Durable data external" },
+] as const;
+
+const probes = [
+  { label: "Startup", question: "Has initialization finished?" },
+  { label: "Ready", question: "May this process receive traffic?" },
+  { label: "Live", question: "Can this process still make progress?" },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Runtime boundary"
+  title="The environment completes the service"
+  status="Contract explicit"
+  caption="The image supplies the process. The runtime supplies validated configuration, secret material, identity and operating boundaries; the process returns distinct health and shutdown behavior."
+  number="02.1 / RUNTIME CONTRACT"
+>
+  <section
+    class="runtime-envelope"
+    aria-label="Runtime environment surrounding one container process"
+  >
+    <header class="boundary-label">
+      <span>Runtime environment</span>
+      <small>Owns bindings and authority</small>
+    </header>
+
+    <div class="runtime-grid">
+      <ul class="bindings" aria-label="Runtime bindings">
+        {
+          bindings.map(({ eyebrow, title, detail }) => (
+            <li>
+              <span>{eyebrow}</span>
+              <strong>{title}</strong>
+              <small>{detail}</small>
+            </li>
+          ))
+        }
+      </ul>
+
+      <section class="container-boundary">
+        <header>
+          <span>Container contract</span>
+          <small>Image sha256:7a31…c902</small>
+        </header>
+
+        <div class="container-grid">
+          <div class="process-core">
+            <span>PID 1 · orders-api</span>
+            <strong>Accept → work → drain</strong>
+            <small>Bounded shutdown · exit status</small>
+          </div>
+
+          <ul class="process-contracts" aria-label="Process operating contracts">
+            {
+              contracts.map(({ eyebrow, title, detail }) => (
+                <li>
+                  <span>{eyebrow}</span>
+                  <strong>{title}</strong>
+                  <small>{detail}</small>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </section>
+
+      <section class="probe-contract">
+        <header>
+          <span>Health authority</span>
+          <small>Three different questions</small>
+        </header>
+        <dl>
+          {
+            probes.map(({ label, question }) => (
+              <div>
+                <dt>{label}</dt>
+                <dd>{question}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </section>
+    </div>
+
+    <footer class="shutdown-contract">
+      <span>Shutdown authority</span>
+      <strong>SIGTERM</strong>
+      <small>Stop intake · drain accepted work · exit before 30 s</small>
+    </footer>
+  </section>
+</TechnicalFigure>
+
+<style>
+  .runtime-envelope {
+    display: grid;
+    height: 100%;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 0.55rem;
+    border: 1px dashed var(--visual-accent-strong);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--visual-panel-soft) 76%, transparent);
+    padding: 0.65rem;
+  }
+
+  .boundary-label,
+  .container-boundary > header,
+  .probe-contract > header,
+  .shutdown-contract {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+  }
+
+  span,
+  small,
+  dt,
+  dd {
+    font-family: var(--font-mono);
+  }
+
+  span,
+  dt {
+    color: var(--visual-muted);
+    font-size: 0.44rem;
+    font-weight: 680;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+  }
+
+  small,
+  dd {
+    color: var(--visual-soft);
+    font-size: 0.46rem;
+    line-height: 1.25;
+  }
+
+  strong {
+    overflow-wrap: anywhere;
+    color: var(--visual-text);
+    font-size: 0.66rem;
+    font-weight: 610;
+    line-height: 1.2;
+  }
+
+  .boundary-label > span,
+  .shutdown-contract > span {
+    color: var(--visual-accent);
+  }
+
+  .runtime-grid {
+    display: grid;
+    min-height: 0;
+    grid-template-columns: minmax(7rem, 0.8fr) minmax(0, 1.8fr) minmax(8rem, 0.92fr);
+    gap: 0.55rem;
+  }
+
+  .bindings,
+  .process-contracts {
+    display: grid;
+    min-width: 0;
+    gap: 0.42rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .bindings {
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+  }
+
+  .bindings li,
+  .process-contracts li {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 0.22rem;
+    border: 1px solid var(--visual-border);
+    border-radius: 0.35rem;
+    background: var(--visual-panel);
+    padding: 0.48rem 0.55rem;
+  }
+
+  .container-boundary,
+  .probe-contract {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 0.48rem;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel-soft);
+    padding: 0.58rem;
+  }
+
+  .container-boundary > header,
+  .probe-contract > header {
+    border-bottom: 1px solid var(--visual-border-soft);
+    padding-bottom: 0.42rem;
+  }
+
+  .container-grid {
+    display: grid;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1.35fr) minmax(5.9rem, 0.82fr);
+    gap: 0.46rem;
+  }
+
+  .process-core {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 0.42rem;
+    border: 1px solid var(--visual-accent-strong);
+    border-radius: 0.4rem;
+    background: color-mix(in srgb, var(--visual-panel) 84%, var(--visual-accent-glow));
+    padding: 0.7rem;
+  }
+
+  .process-core span,
+  .process-core small {
+    color: var(--visual-accent);
+  }
+
+  .process-core strong {
+    font-size: 0.78rem;
+  }
+
+  .process-contracts {
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .probe-contract dl {
+    display: grid;
+    min-height: 0;
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+    margin: 0;
+  }
+
+  .probe-contract dl div {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 0.18rem;
+    border-bottom: 1px solid var(--visual-border-soft);
+    padding: 0.2rem 0.15rem;
+  }
+
+  .probe-contract dl div:last-child {
+    border-bottom: 0;
+  }
+
+  dt,
+  dd {
+    margin: 0;
+  }
+
+  dt {
+    color: var(--visual-accent);
+  }
+
+  .shutdown-contract {
+    border: 1px solid var(--visual-border);
+    border-radius: 0.35rem;
+    background: var(--visual-panel);
+    padding: 0.48rem 0.6rem;
+  }
+
+  .shutdown-contract strong {
+    color: var(--visual-accent);
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+  }
+</style>

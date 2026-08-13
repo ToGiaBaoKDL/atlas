@@ -1,0 +1,201 @@
+---
+title: Deployment Is a State Transition
+description: A production change is safer when provisioning, schema compatibility, rollout and verification move through named states with explicit stop conditions.
+publishedAt: 2026-08-13T16:15:00+07:00
+draft: false
+topics:
+  - cloud-infrastructure
+  - software-design
+series:
+  id: from-image-to-production
+  part: 3
+---
+
+import ReleaseStateVisual from "../../components/writing/ReleaseStateVisual.astro";
+
+The new image has an immutable digest. Its runtime configuration is valid, its probes have clear
+meanings, and it shuts down cleanly.
+
+The deploy job still has a problem. It treats production as a list of commands:
+
+1. apply infrastructure;
+2. run a database migration;
+3. update the API and worker;
+4. run a smoke test.
+
+When step three fails, “the deploy failed” does not tell us what production now is. Did the schema
+change? Can the old application still use it? Did any new instance receive traffic? Is rolling back
+the image safe, or would that make the database and process disagree?
+
+The useful abstraction is not a script. It is a **state transition** from one known compatible
+release to another.
+
+> A deployment step may run only when its preconditions hold, and it must leave a named state when
+> it stops.
+
+This sounds formal, but the practical result is simple: operators know what is serving, what has
+changed, and which recovery action is still safe.
+
+## Separate the changes that fail differently
+
+Provisioning, migration, rollout and verification often appear in one workflow. They should not
+become one opaque operation.
+
+**Infrastructure provisioning** creates or changes the environment the release will use: a queue,
+network rule, service identity or configuration binding. It has infrastructure state and its own
+plan. This article does not turn Terraform into the deployment orchestrator; it only requires the
+release to know which infrastructure revision it expects.
+
+**Schema migration** changes durable shared state. Old and new processes may touch that state at the
+same time, so compatibility matters more than command success.
+
+**Service rollout** places the new image and configuration into the runtime. A started process is
+not automatically eligible for traffic; readiness from part 2 owns that decision.
+
+**Verification** observes the result after traffic or real work reaches the new revision. A green
+rollout controller and a successful request answer different questions, so keep both claims.
+
+These boundaries may live in one CI workflow. What matters is that each produces an observable
+result that becomes the next boundary's input.
+
+## Make schema change compatible before rollout
+
+The database is where a convenient rollback story most often breaks. Application images are easy
+to replace; rows already written under a new assumption are not.
+
+Suppose `orders-api` is renaming `total_cents` to `amount_minor`. Renaming the column in place and
+deploying the new image creates a narrow switch: old code fails after the rename, while new code
+fails before it.
+
+An expand-and-contract change spreads that switch across releases:
+
+```sql
+-- Expand: additive and compatible with r17.
+ALTER TABLE orders ADD COLUMN amount_minor bigint;
+
+-- Migrate in bounded batches, with progress recorded outside this statement.
+UPDATE orders
+SET amount_minor = total_cents
+WHERE id > :after_id
+  AND id <= :through_id
+  AND amount_minor IS NULL;
+```
+
+Release `r18` reads `COALESCE(amount_minor, total_cents)` and writes both columns. Old `r17`
+instances keep using `total_cents`; new instances tolerate rows not yet migrated. Once the backfill
+and all writers are observed, a later release can read only `amount_minor`. Dropping the old column
+is a separate contract step after no deployed revision needs it.
+
+The exact pattern changes with constraints, indexes and traffic. The invariant does not: every
+schema state used during rollout must support every application revision that may still run.
+
+PostgreSQL can perform many schema changes transactionally, but transaction support does not make a
+change operationally cheap or cross-version compatible. Locks, table rewrites and backfill duration
+still need review. “The migration committed” is only one precondition.
+
+## Move traffic on readiness, not process existence
+
+A deployment controller can create a new process long before that process should receive work.
+Initialization may still be running, dependencies may be unavailable, or the worker may not yet own
+the expected queue assignment.
+
+The serving transition should therefore name a condition such as:
+
+```yaml
+transition: compatible -> serving
+requires:
+  - schema_revision >= expand-2026-08-13
+  - image_digest == sha256:7a31...c902
+  - config_revision == prod-43
+  - ready_instances >= 2
+timeout: 5m
+```
+
+This is release metadata, not a new orchestration language. The real platform may express these
+checks through a Deployment, Compose health dependency, a load balancer or a custom controller.
+
+Kubernetes Deployments, for example, expose rollout progress and can report a progress deadline
+failure. That is useful evidence about replica replacement. It does not prove the schema migration
+was compatible or the business smoke path worked, so those remain explicit release states.
+
+<ReleaseStateVisual />
+
+The lime path is the compatible transition. The lower branch is deliberately boring: if migration
+fails before traffic moves, stop and keep `r17` serving. There is no reason to invent a partial
+rollout just because later steps exist in the workflow.
+
+## Choose recovery before the release starts
+
+“Rollback on failure” is too vague to be a policy. Recovery depends on which state became visible.
+
+Before a durable or traffic-visible change, stopping is usually enough. After an additive schema
+change, the old application may continue safely and a corrected migration can roll forward. After
+new code writes new state, reverting the image is safe only if the old revision can read what was
+written and the schema still supports it.
+
+A small decision table is more useful than a universal rollback button:
+
+| Failure point             | Serving state        | Named response                                                             |
+| ------------------------- | -------------------- | -------------------------------------------------------------------------- |
+| Provisioning plan/apply   | `r17`                | stop; repair or revert infrastructure change                               |
+| Expand migration          | `r17`                | stop; inspect migration result; roll forward or revert only if proven safe |
+| New instances not ready   | `r17`                | stop rollout; keep or remove non-serving `r18` instances                   |
+| Smoke check after traffic | `r17 + r18` or `r18` | remove `r18` only if compatibility permits; otherwise roll forward         |
+
+The table does not eliminate judgement. It prevents the workflow from making an unsafe decision by
+default.
+
+Workers deserve the same treatment as APIs. A worker revision may claim queue leases, publish side
+effects or interpret messages differently. Record whether old and new workers may overlap, how a
+draining worker relinquishes work, and which revision owns each side effect during transition.
+
+## Bind every step to one release identity
+
+Separate states should not create separate identities. The migration, API rollout, worker rollout
+and verification all belong to `r18` and should point back to the same intended release record:
+
+```yaml
+release: orders-api-r18
+image: ghcr.io/example/orders-api@sha256:7a31...c902
+config: prod-43
+infrastructure: platform-118
+schema:
+  expand: expand-2026-08-13
+  contract: not-authorized
+components:
+  api: r18
+  worker: r18
+```
+
+`contract: not-authorized` is intentional. Removing the old schema is not a cleanup command hidden
+at the end of this deployment. It requires evidence that no active or rollback revision depends on
+the old shape.
+
+The release record should advance through named states rather than rewriting history:
+`current → preparing → compatible → serving → verified`. Each transition records the observation
+that allowed it and the actor that made the decision.
+
+## Test the stop conditions, not just the happy path
+
+A useful deployment rehearsal introduces failure at the boundaries:
+
+1. fail the expand migration and confirm no `r18` instance receives traffic;
+2. make `r18` fail readiness and confirm `r17` remains available;
+3. let one `r18` instance serve, fail the smoke path and exercise the predeclared recovery choice;
+4. confirm API and worker telemetry carry the same release, image, configuration and schema
+   identities;
+5. verify the contract migration cannot run while any compatible rollback revision still needs the
+   old column.
+
+The outcome is not merely a successful deployment. It is evidence that every failed transition
+leaves production in a state the team can name and operate.
+
+Part 4 will close the series by asking what production itself must report before `r18` becomes the
+new current release. Rollout completion is an input to that verdict, not the verdict on its own.
+
+## Further reading
+
+- [Kubernetes Deployments](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) — rollout progress, completion and progress-deadline failure states.
+- [PostgreSQL table modification](https://www.postgresql.org/docs/current/ddl-alter.html) — additive columns, constraints, type changes and operations that may rewrite existing rows.
+- [Docker Compose startup order](https://docs.docker.com/compose/how-tos/startup-order/) — readiness through health-based dependency conditions in a smaller runtime.
+- [Evolutionary Database Design](https://martinfowler.com/articles/evodb.html) — keeping application and database changes compatible across incremental releases.
