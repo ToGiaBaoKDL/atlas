@@ -196,18 +196,24 @@ const articleSchema = {
 
   .article-topics a {
     display: block;
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-strong);
     border-radius: 999px;
+    background: var(--bg-elevated);
     padding: 0.25rem 0.55rem;
     color: var(--text-soft);
     font-family: var(--font-mono);
     font-size: 0.65rem;
     text-decoration: none;
+    transition:
+      border-color var(--motion-fast) ease,
+      background-color var(--motion-fast) ease,
+      color var(--motion-fast) ease;
   }
 
   .article-topics a:hover,
   .article-topics a:focus-visible {
     border-color: var(--accent);
+    background: var(--accent-soft);
     color: var(--accent-ink);
   }
 
