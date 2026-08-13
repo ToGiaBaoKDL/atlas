@@ -7,12 +7,6 @@
   margin-top: 0;
 }
 
-.prose h2,
-.prose h3,
-.prose h4 {
-  scroll-margin-top: calc(var(--header-height) + 1.5rem);
-}
-
 .prose h2 {
   margin: 4rem 0 1.1rem;
   font-size: clamp(1.8rem, 4vw, 2.7rem);

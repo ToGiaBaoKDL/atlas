@@ -777,6 +777,28 @@ test(
   },
 );
 
+for (const route of [firstWritingRoute, "/projects/mini-lakehouse/"] as const) {
+  test(
+    `${route} table of contents tracks the current section`,
+    { tag: "@desktop" },
+    async ({ page }) => {
+      await page.goto(route);
+      const tableOfContents = page.locator(".toc-desktop").getByRole("navigation", {
+        name: "Table of contents",
+      });
+      const links = tableOfContents.getByRole("link");
+      const nextSection = links.nth(1);
+      const targetId = (await nextSection.getAttribute("href"))?.slice(1);
+
+      expect(targetId).toBeTruthy();
+      await nextSection.click();
+
+      await expect(nextSection).toHaveAttribute("aria-current", "location");
+      await expect(tableOfContents.locator('[aria-current="location"]')).toHaveCount(1);
+    },
+  );
+}
+
 test("content pages publish dedicated PNG social cards", async ({ page, request }) => {
   for (const route of [firstWritingRoute, "/projects/mini-lakehouse/"] as const) {
     await page.goto(route);

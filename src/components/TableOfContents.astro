@@ -16,7 +16,7 @@ const items = headings.filter(({ depth }) => depth === 2 || depth === 3);
 
 {
   items.length > 1 && mode === "desktop" && (
-    <aside class="toc toc-desktop">
+    <aside class="toc toc-desktop" data-toc>
       <h2>On this page</h2>
       <nav aria-label="Table of contents">
         <ol>
@@ -33,7 +33,7 @@ const items = headings.filter(({ depth }) => depth === 2 || depth === 3);
 
 {
   items.length > 1 && mode === "mobile" && (
-    <details class="toc toc-mobile">
+    <details class="toc toc-mobile" data-toc>
       <summary>On this page</summary>
       <nav aria-label="Table of contents">
         <ol>
@@ -73,31 +73,51 @@ const items = headings.filter(({ depth }) => depth === 2 || depth === 3);
     list-style: none;
   }
 
-  .toc li {
-    border-top: 1px solid var(--border);
-  }
-
-  .toc li:last-child {
-    border-bottom: 1px solid var(--border);
+  .toc nav {
+    border-inline-start: 1px solid var(--border);
   }
 
   .toc li.nested a {
-    padding-left: 0.75rem;
+    padding-inline-start: 1.75rem;
     font-size: 0.75rem;
   }
 
   .toc a {
+    position: relative;
     display: block;
-    padding-block: 0.65rem;
+    padding: 0.6rem 0 0.6rem 1rem;
     color: var(--text-soft);
     font-size: 0.8rem;
     line-height: 1.35;
     text-decoration: none;
+    transition: color var(--motion-fast) ease;
+  }
+
+  .toc a::before {
+    position: absolute;
+    top: 0.42rem;
+    bottom: 0.42rem;
+    left: -1px;
+    width: 2px;
+    transform: scaleY(0);
+    transform-origin: center;
+    background: var(--accent);
+    content: "";
+    transition: transform var(--motion-fast) var(--ease-out);
   }
 
   .toc a:hover,
-  .toc a:focus-visible {
-    color: var(--accent);
+  .toc a:focus-visible,
+  .toc a[aria-current="location"] {
+    color: var(--accent-ink);
+  }
+
+  .toc a[aria-current="location"] {
+    font-weight: 620;
+  }
+
+  .toc a[aria-current="location"]::before {
+    transform: scaleY(1);
   }
 
   .toc-mobile {
@@ -125,3 +145,50 @@ const items = headings.filter(({ depth }) => depth === 2 || depth === 3);
     }
   }
 </style>
+
+<script>
+  const tocLinks = Array.from(
+    document.querySelectorAll<HTMLAnchorElement>('[data-toc] a[href^="#"]'),
+  );
+  const headingIds = [...new Set(tocLinks.map(({ hash }) => decodeURIComponent(hash.slice(1))))];
+  const headingTargets = headingIds
+    .map((id) => document.getElementById(id))
+    .filter((heading): heading is HTMLElement => heading !== null);
+
+  if (tocLinks.length && headingTargets.length) {
+    let frame = 0;
+
+    const updateCurrentHeading = () => {
+      frame = 0;
+      const scrollPadding = Number.parseFloat(
+        getComputedStyle(document.documentElement).scrollPaddingTop,
+      );
+      const readingLine = (Number.isFinite(scrollPadding) ? scrollPadding : 0) + 1;
+      let current = headingTargets[0];
+
+      for (const heading of headingTargets) {
+        if (heading.getBoundingClientRect().top > readingLine) break;
+        current = heading;
+      }
+
+      if (window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2) {
+        current = headingTargets.at(-1) ?? current;
+      }
+
+      tocLinks.forEach((link) => {
+        const isCurrent = decodeURIComponent(link.hash.slice(1)) === current.id;
+        if (isCurrent) link.setAttribute("aria-current", "location");
+        else link.removeAttribute("aria-current");
+      });
+    };
+
+    const scheduleUpdate = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(updateCurrentHeading);
+    };
+
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+    updateCurrentHeading();
+  }
+</script>
