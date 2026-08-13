@@ -21,7 +21,7 @@ const outputs = [
   title="Repair the dependency closure, not all history"
   status="3 outputs"
   caption="The late order changes one owned fact slice and only the declared aggregates whose windows contain that slice. Unrelated partitions and models stay outside the repair."
-  number="02 / IMPACT CLOSURE"
+  number="03.2 / IMPACT CLOSURE"
 >
   <div class="correction-scope">
     <dl class="repair-manifest" aria-label="Correction manifest">
@@ -41,13 +41,13 @@ const outputs = [
         <strong>One order</strong>
         <small>event_at · 09 Aug</small>
       </article>
-      <FlowArrow particle />
+      <FlowArrow />
       <article class="owned-slice">
         <span>Owned fact slice</span>
         <strong>orders / 09 Aug</strong>
         <small>Recompute once</small>
       </article>
-      <FlowArrow particle delayed />
+      <FlowArrow />
       <section class="affected-outputs" aria-labelledby="affected-heading">
         <span id="affected-heading">Declared dependents</span>
         <ol>

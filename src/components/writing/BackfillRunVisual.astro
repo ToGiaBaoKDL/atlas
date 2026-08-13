@@ -14,7 +14,7 @@ const contract = [
   title="The clock starts work; the interval defines its data boundary"
   status="Bounded"
   caption="A backfill happens now, but it owns a past data interval. The run contract binds that interval to a reviewed revision and one publish rule."
-  number="01 / RUN CONTRACT"
+  number="01.1 / RUN CONTRACT"
 >
   <div class="run-contract">
     <div class="time-map" aria-label="Wall clock and data interval">
@@ -45,7 +45,7 @@ const contract = [
               <strong>{item.value}</strong>
               <small>{item.detail}</small>
             </article>
-            {index < contract.length - 1 && <FlowArrow particle={index === 0} />}
+            {index < contract.length - 1 && <FlowArrow />}
           </li>
         ))
       }

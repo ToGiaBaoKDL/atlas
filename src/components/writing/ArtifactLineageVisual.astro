@@ -38,7 +38,7 @@ const environments = [
   title="Build once; promote the digest"
   status="One release unit"
   caption="Source and build inputs produce one content-addressed image. Staging and production bind their own configuration to that same digest, so promotion changes placement without changing the release unit."
-  number="01 / ARTIFACT IDENTITY"
+  number="01.1 / ARTIFACT IDENTITY"
 >
   <div class="lineage-map" aria-label="One image digest promoted to staging and production">
     {
@@ -50,7 +50,7 @@ const environments = [
             <small>{detail}</small>
           </article>
           <div class:list={["input-link", `input-link-${index + 1}`]}>
-            <FlowArrow particle={index === 0} delayed={index === 1} />
+            <FlowArrow />
           </div>
         </>
       ))
@@ -77,7 +77,7 @@ const environments = [
       environments.map(({ className, eyebrow, title, detail }, index) => (
         <>
           <div class:list={["target-link", `target-link-${index + 1}`]}>
-            <FlowArrow particle delayed={index === 1} />
+            <FlowArrow />
           </div>
           <article class={className}>
             <span>{eyebrow}</span>

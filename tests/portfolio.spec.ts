@@ -160,10 +160,6 @@ test("homepage showcases every project visual", async ({ page }) => {
     "animation-name",
     "visual-flow-pulse",
   );
-  await expect(page.locator(".hero-visual .flow-arrow span").first()).toHaveCSS(
-    "animation-name",
-    "visual-flow-inline",
-  );
 });
 
 test("homepage writing spotlight advances one article at a time", async ({ page }) => {
@@ -660,6 +656,12 @@ for (const article of writingArticles) {
       `${article.series.name} · Part ${String(article.part).padStart(2, "0")}`,
     );
     expect(await page.locator(".technical-figure").count()).toBeGreaterThan(0);
+    const figureNumbers = page.locator(".technical-figure figcaption > span");
+    for (let index = 0; index < (await figureNumbers.count()); index += 1) {
+      await expect(figureNumbers.nth(index)).toHaveText(
+        new RegExp(`^${String(article.part).padStart(2, "0")}\\.${index + 1} /`),
+      );
+    }
 
     const graph = await page.locator('script[type="application/ld+json"]').textContent();
     expect(JSON.parse(graph ?? "{}")["@graph"]).toEqual(

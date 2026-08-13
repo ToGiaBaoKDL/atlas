@@ -31,7 +31,7 @@ const lanes = [
   title="A converged table can still repeat the effect"
   status="One applied"
   caption="Delivery may happen more than once. A stable effect ID lets every retry resolve to one applied business effect instead of trusting an attempt-local success flag."
-  number="02 / EFFECT GAP"
+  number="02.2 / EFFECT GAP"
 >
   <div class="effect-map">
     <div class="effect-key">
@@ -51,9 +51,7 @@ const lanes = [
                     <strong>{stage.value}</strong>
                     <small>{stage.detail}</small>
                   </article>
-                  {index < lane.stages.length - 1 && (
-                    <FlowArrow particle={lane.tone === "safe" && index === 1} />
-                  )}
+                  {index < lane.stages.length - 1 && <FlowArrow />}
                 </>
               ))}
             </div>

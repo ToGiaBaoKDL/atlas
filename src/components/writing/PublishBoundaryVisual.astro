@@ -29,7 +29,7 @@ const attempts = [
   title="Produced is not the same as visible"
   status="Fail closed"
   caption="A failed attempt may leave temporary work behind, but readers stay on the previous snapshot. Only a validated commit moves the visible state."
-  number="02 / COMMIT PATH"
+  number="01.2 / COMMIT PATH"
 >
   <div class="publish-map">
     <div class="reader-state">
@@ -50,7 +50,7 @@ const attempts = [
                     <strong>{stage.label}</strong>
                     <small>{stage.detail}</small>
                   </article>
-                  {index < attempt.stages.length - 1 && <FlowArrow particle={index === 0} />}
+                  {index < attempt.stages.length - 1 && <FlowArrow />}
                 </>
               ))}
             </div>

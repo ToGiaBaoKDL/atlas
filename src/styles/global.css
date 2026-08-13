@@ -184,40 +184,6 @@ svg {
     }
   }
 
-  @keyframes visual-flow-inline {
-    from {
-      transform: translateX(-0.12rem);
-      opacity: 0;
-    }
-
-    25%,
-    75% {
-      opacity: 1;
-    }
-
-    to {
-      transform: translateX(var(--visual-flow-distance, 0.7rem));
-      opacity: 0;
-    }
-  }
-
-  @keyframes visual-flow-block {
-    from {
-      transform: translateY(-0.12rem);
-      opacity: 0;
-    }
-
-    25%,
-    75% {
-      opacity: 1;
-    }
-
-    to {
-      transform: translateY(var(--visual-flow-distance, 0.55rem));
-      opacity: 0;
-    }
-  }
-
   @keyframes visual-status-pulse {
     50% {
       box-shadow: 0 0 0 0.45rem transparent;

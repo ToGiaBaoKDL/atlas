@@ -1,15 +1,4 @@
----
-interface Props {
-  particle?: boolean;
-  delayed?: boolean;
-}
-
-const { particle = false, delayed = false } = Astro.props;
----
-
-<i class:list={["flow-arrow", { "flow-arrow-particle": particle, delayed }]} aria-hidden="true">
-  {particle && <span />}
-</i>
+<i class="flow-arrow" aria-hidden="true"></i>
 
 <style>
   .flow-arrow {
@@ -36,32 +25,10 @@ const { particle = false, delayed = false } = Astro.props;
     content: "";
   }
 
-  .flow-arrow-particle span {
-    --visual-flow-distance: 0.7rem;
-
-    position: absolute;
-    top: -1.5px;
-    left: 8%;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--visual-accent);
-  }
-
   @media (prefers-reduced-motion: no-preference) {
     :global([data-reveal].is-revealed) .flow-arrow,
     :global([data-enter]) .flow-arrow {
       animation: visual-flow-pulse var(--motion-visual-pulse) ease-in-out infinite alternate;
-    }
-
-    :global([data-reveal].is-revealed) .flow-arrow-particle span,
-    :global([data-enter]) .flow-arrow-particle span {
-      animation: visual-flow-inline var(--motion-flow) linear infinite;
-      will-change: transform, opacity;
-    }
-
-    .flow-arrow-particle.delayed span {
-      animation-delay: var(--motion-flow-half);
     }
   }
 </style>

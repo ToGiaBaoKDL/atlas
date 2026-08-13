@@ -32,7 +32,7 @@ const strategies = [
   title="The verb does not define the replay contract"
   status="Same interval × 2"
   caption="Append accumulates. Replace converges inside an owned boundary. MERGE converges only when identity, source rows and conflict rules are deterministic."
-  number="01 / WRITE CONTRACT"
+  number="02.1 / WRITE CONTRACT"
 >
   <div class="write-contract" role="table" aria-label="Replay outcomes by write strategy">
     <div class="contract-header" role="row">
@@ -44,7 +44,7 @@ const strategies = [
 
     <div class="strategy-list" role="rowgroup">
       {
-        strategies.map((strategy, index) => (
+        strategies.map((strategy) => (
           <div class:list={["strategy-row", strategy.tone]} role="row">
             <strong class="strategy-name" role="rowheader">
               {strategy.name}
@@ -53,12 +53,12 @@ const strategies = [
               <strong>{strategy.first.value}</strong>
               <small>{strategy.first.detail}</small>
             </article>
-            <FlowArrow particle={index === 0} />
+            <FlowArrow />
             <article role="cell">
               <strong>{strategy.replay.value}</strong>
               <small>{strategy.replay.detail}</small>
             </article>
-            <FlowArrow particle={index === 2} delayed />
+            <FlowArrow />
             <article class="result" role="cell">
               <strong>{strategy.result.value}</strong>
               <small>{strategy.result.detail}</small>
