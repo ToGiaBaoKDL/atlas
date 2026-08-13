@@ -35,17 +35,20 @@ const spotlights = groups.map((group) => ({
         data-series-selector
         hidden
       >
-        {spotlights.map(({ series }, index) => (
-          <button
-            type="button"
-            aria-controls={`homepage-series-${series.id}`}
-            aria-pressed={index === 0 ? "true" : "false"}
-            data-series-button
-          >
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            {series.name}
-          </button>
-        ))}
+        <span class="series-selector-label">Series index</span>
+        <div class="series-options">
+          {spotlights.map(({ series }, index) => (
+            <button
+              type="button"
+              aria-controls={`homepage-series-${series.id}`}
+              aria-pressed={index === 0 ? "true" : "false"}
+              data-series-button
+            >
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <strong>{series.name}</strong>
+            </button>
+          ))}
+        </div>
       </div>
     )
   }
@@ -167,7 +170,6 @@ const spotlights = groups.map((group) => ({
     const seriesButtons = Array.from(
       root.querySelectorAll<HTMLButtonElement>("[data-series-button]"),
     );
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     const enhanceCarousel = (panel: HTMLElement) => {
       const carousel = panel.querySelector<HTMLElement>("[data-article-carousel]");
@@ -184,21 +186,21 @@ const spotlights = groups.map((group) => ({
       if (!viewport || !controls || !previous || !next || !status || slides.length === 0) return;
 
       const initialIndex = Number.parseInt(carousel.dataset.initialIndex ?? "0", 10);
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       const embla = EmblaCarousel(viewport, {
         align: "start",
-        breakpoints: {
-          "(prefers-reduced-motion: reduce)": { duration: 0 },
-        },
-        duration: 20,
+        duration: 18,
         startIndex: Number.isNaN(initialIndex) ? 0 : initialIndex,
       });
 
+      let isTransitioning = false;
+
       const syncControls = () => {
-        previous.disabled = !embla.canScrollPrev();
-        next.disabled = !embla.canScrollNext();
+        previous.disabled = isTransitioning || !embla.canScrollPrev();
+        next.disabled = isTransitioning || !embla.canScrollNext();
       };
 
-      const presentSelectedSlide = () => {
+      const syncSelection = () => {
         const selectedIndex = embla.selectedScrollSnap();
 
         slides.forEach((slide, index) => {
@@ -207,26 +209,40 @@ const spotlights = groups.map((group) => ({
           slide.setAttribute("aria-hidden", String(!isSelected));
         });
         status.textContent = slides[selectedIndex]?.dataset.partLabel ?? "";
-        viewport.setAttribute("aria-busy", "false");
       };
 
       const syncCarousel = () => {
+        syncSelection();
         syncControls();
-        presentSelectedSlide();
       };
 
-      const selectTarget = () => {
-        syncControls();
-        if (reduceMotion.matches) presentSelectedSlide();
-        else viewport.setAttribute("aria-busy", "true");
+      const finishTransition = () => {
+        isTransitioning = false;
+        syncCarousel();
       };
 
-      previous.addEventListener("click", () => embla.scrollPrev());
-      next.addEventListener("click", () => embla.scrollNext());
+      const scroll = (direction: "previous" | "next") => {
+        if (isTransitioning) return;
+
+        const jump = reduceMotion.matches;
+        isTransitioning = true;
+        syncControls();
+
+        if (direction === "previous") {
+          embla.scrollPrev(jump);
+        } else {
+          embla.scrollNext(jump);
+        }
+
+        if (jump) finishTransition();
+      };
+
+      previous.addEventListener("click", () => scroll("previous"));
+      next.addEventListener("click", () => scroll("next"));
       embla
-        .on("select", selectTarget)
-        .on("settle", presentSelectedSlide)
-        .on("reInit", syncCarousel);
+        .on("select", syncSelection)
+        .on("settle", finishTransition)
+        .on("reInit", finishTransition);
       carousel.setAttribute("data-enhanced", "");
       controls.hidden = slides.length < 2;
       syncCarousel();
@@ -271,41 +287,96 @@ const spotlights = groups.map((group) => ({
   }
 
   .series-selector {
-    display: flex;
-    overflow-x: auto;
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.68fr) minmax(0, 1.32fr);
+    gap: clamp(3rem, 8vw, 7rem);
+    align-items: stretch;
     margin: 0 0 clamp(2rem, 5vw, 3.5rem);
-    padding: 0 0 0.5rem;
-    scrollbar-width: thin;
+    border-block: 1px solid var(--border);
   }
 
   .series-selector[hidden] {
     display: none;
   }
 
-  .series-selector button {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 0.55rem;
-    min-height: 2.6rem;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    background: transparent;
-    color: var(--text-soft);
-    padding: 0.55rem 0.8rem;
-    cursor: pointer;
+  .series-selector-label {
+    align-self: center;
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
-  .series-selector button[aria-pressed="true"] {
-    border-color: var(--accent);
-    background: var(--accent-soft);
+  .series-options {
+    display: flex;
+    min-width: 0;
+  }
+
+  .series-options button {
+    position: relative;
+    display: grid;
+    min-width: 0;
+    flex: 1 1 0;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 3.6rem;
+    border: 0;
+    border-left: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-soft);
+    padding: 0.75rem clamp(0.75rem, 2vw, 1.1rem);
+    text-align: left;
+    cursor: pointer;
+    transition: color var(--motion-fast) ease;
+  }
+
+  .series-options button::after {
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    transform: scaleX(0);
+    transform-origin: left;
+    background: var(--accent);
+    content: "";
+    transition: transform var(--motion-fast) var(--ease-out);
+  }
+
+  .series-options button span {
+    color: var(--text-faint);
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+  }
+
+  .series-options button strong {
+    overflow: hidden;
+    font-size: 0.82rem;
+    font-weight: 570;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .series-options button:hover,
+  .series-options button:focus-visible,
+  .series-options button[aria-pressed="true"] {
+    color: var(--text);
+  }
+
+  .series-options button[aria-pressed="true"] span {
     color: var(--accent-ink);
   }
 
-  .series-selector button span {
-    font-family: var(--font-mono);
-    font-size: 0.65rem;
+  .series-options button[aria-pressed="true"]::after {
+    transform: scaleX(1);
+  }
+
+  .series-options button:focus-visible {
+    z-index: 1;
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
   }
 
   .series-panel {
@@ -542,6 +613,25 @@ const spotlights = groups.map((group) => ({
   }
 
   @media (max-width: 56rem) {
+    .series-selector {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .series-selector-label {
+      padding-block: 0.65rem;
+    }
+
+    .series-options {
+      overflow-x: auto;
+      border-top: 1px solid var(--border);
+      scrollbar-width: thin;
+    }
+
+    .series-options button {
+      min-width: min(17rem, 75vw);
+    }
+
     .series-panel {
       grid-template-columns: 1fr;
       gap: 2.5rem;
@@ -559,6 +649,20 @@ const spotlights = groups.map((group) => ({
 
     .series-panel {
       gap: 2rem;
+    }
+
+    .series-selector-label {
+      display: none;
+    }
+
+    .series-options {
+      border-top: 0;
+    }
+
+    .series-options button {
+      min-width: min(15rem, 72vw);
+      min-height: 3.1rem;
+      padding-block: 0.65rem;
     }
 
     .series-copy h2 {
@@ -585,7 +689,9 @@ const spotlights = groups.map((group) => ({
 
   @media (prefers-reduced-motion: reduce) {
     .article-caption h3,
-    .carousel-controls button {
+    .carousel-controls button,
+    .series-options button,
+    .series-options button::after {
       transition: none;
     }
   }

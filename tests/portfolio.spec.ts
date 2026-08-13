@@ -2,7 +2,7 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { getWritingSeriesPath, homepageWritingSeries } from "../src/data/series";
 
-const writingArticles = [
+const replayableArticles = [
   {
     route: "/writing/backfills-are-a-data-model-problem/",
     title: "Backfills Are a Data Model Problem, Not an Airflow Feature",
@@ -34,9 +34,23 @@ const writingArticles = [
     publishedAt: "2026-08-12T08:18:00.000Z",
   },
 ] as const;
-const firstWritingRoute = writingArticles[0].route;
 const replayableSeries = homepageWritingSeries[0];
+const deliverySeries = homepageWritingSeries[1];
+const deliveryArticles = [
+  {
+    route: "/writing/the-image-is-the-release/",
+    title: "The Image Is the Release",
+    part: 1,
+    publishedAt: "2026-08-13T04:15:00.000Z",
+  },
+] as const;
+const writingArticles = [
+  ...replayableArticles.map((article) => ({ ...article, series: replayableSeries })),
+  ...deliveryArticles.map((article) => ({ ...article, series: deliverySeries })),
+] as const;
+const firstWritingRoute = replayableArticles[0].route;
 const replayableSeriesRoute = getWritingSeriesPath(replayableSeries.id);
+const writingSeriesRoutes = homepageWritingSeries.map(({ id }) => getWritingSeriesPath(id));
 
 const criticalRoutes = [
   "/",
@@ -44,7 +58,7 @@ const criticalRoutes = [
   "/projects/mini-lakehouse/",
   "/projects/vn-market-pulse/",
   "/writing/",
-  replayableSeriesRoute,
+  ...writingSeriesRoutes,
   ...writingArticles.map(({ route }) => route),
   "/about/",
 ] as const;
@@ -167,18 +181,34 @@ test("homepage writing spotlight advances one article at a time", async ({ page 
     expect(box?.height).toBeLessThanOrEqual(36);
   }
   await expect(
-    carousel.getByRole("link", { name: new RegExp(writingArticles[0].title) }),
+    carousel.getByRole("link", { name: new RegExp(replayableArticles[0].title) }),
   ).toBeVisible();
 
   await page.getByRole("button", { name: `Next article in ${replayableSeries.name}` }).click();
 
   await expect(status).toHaveText("Part 02 / 05");
   await expect(
-    carousel.getByRole("link", { name: new RegExp(writingArticles[1].title) }),
+    carousel.getByRole("link", { name: new RegExp(replayableArticles[1].title) }),
   ).toBeVisible();
 });
 
-test("homepage writing spotlight keeps rapid navigation synchronized", async ({ page }) => {
+test("homepage writing spotlight switches series", async ({ page }) => {
+  await page.goto("/");
+  const seriesButton = page.getByRole("button", {
+    name: new RegExp(deliverySeries.name),
+  });
+
+  await seriesButton.click();
+
+  await expect(seriesButton).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page
+      .getByRole("region", { name: `${deliverySeries.name} articles` })
+      .getByRole("link", { name: new RegExp(deliveryArticles[0].title) }),
+  ).toBeVisible();
+});
+
+test("homepage writing spotlight disables navigation until the card settles", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
 
@@ -186,21 +216,42 @@ test("homepage writing spotlight keeps rapid navigation synchronized", async ({ 
   const next = page.getByRole("button", {
     name: `Next article in ${replayableSeries.name}`,
   });
+  const previous = page.getByRole("button", {
+    name: `Previous article in ${replayableSeries.name}`,
+  });
+  const status = page.getByRole("status");
 
-  await next.evaluate((button) => {
-    if (!(button instanceof HTMLButtonElement)) throw new Error("Expected a button");
-    button.click();
-    button.click();
+  await next.click();
+  await expect(previous).toBeDisabled();
+  await expect(next).toBeDisabled();
+
+  await next.evaluate((nextButton) => {
+    if (!(nextButton instanceof HTMLButtonElement)) {
+      throw new Error("Expected next carousel button");
+    }
+
+    nextButton.click();
   });
 
-  expect(await page.getByRole("status").textContent()).toBe("Part 01 / 05");
-  await expect(page.getByRole("status")).toHaveText("Part 03 / 05");
+  expect(await status.textContent()).toBe("Part 02 / 05");
+  await expect(previous).toBeEnabled();
+  await expect(next).toBeEnabled();
 
-  const [viewportBox, cardBox] = await Promise.all([
-    carousel.boundingBox(),
-    carousel.getByRole("link", { name: new RegExp(writingArticles[2].title) }).boundingBox(),
-  ]);
-  expect(Math.abs((cardBox?.x ?? 0) - (viewportBox?.x ?? 0))).toBeLessThanOrEqual(1);
+  const selectedArticle = carousel.getByRole("link", {
+    name: new RegExp(replayableArticles[1].title),
+  });
+  await expect
+    .poll(
+      async () => {
+        const [viewportBox, cardBox] = await Promise.all([
+          carousel.boundingBox(),
+          selectedArticle.boundingBox(),
+        ]);
+        return Math.abs((cardBox?.x ?? 0) - (viewportBox?.x ?? 0));
+      },
+      { timeout: 3_000 },
+    )
+    .toBeLessThanOrEqual(2);
 });
 
 test("desktop projects use the motion-safe sticky stack", { tag: "@desktop" }, async ({ page }) => {
@@ -606,7 +657,7 @@ for (const article of writingArticles) {
       article.publishedAt,
     );
     await expect(page.locator(".article-hero .section-kicker")).toHaveText(
-      `${replayableSeries.name} · Part ${String(article.part).padStart(2, "0")}`,
+      `${article.series.name} · Part ${String(article.part).padStart(2, "0")}`,
     );
     expect(await page.locator(".technical-figure").count()).toBeGreaterThan(0);
 
@@ -618,7 +669,7 @@ for (const article of writingArticles) {
           datePublished: article.publishedAt,
           isPartOf: expect.objectContaining({
             "@type": "CreativeWorkSeries",
-            name: replayableSeries.name,
+            name: article.series.name,
           }),
           position: article.part,
         }),
@@ -639,7 +690,7 @@ test("writing series is ordered and has explicit continuation", async ({ page })
 
   await expect(series.getByText(`Complete · ${replayableSeries.totalParts} parts`)).toBeVisible();
   await expect(series.locator("ol").getByRole("heading", { level: 2 })).toHaveText(
-    writingArticles.map(({ title }) => title),
+    replayableArticles.map(({ title }) => title),
   );
 
   await page.goto(firstWritingRoute);
@@ -652,8 +703,8 @@ test("writing series is ordered and has explicit continuation", async ({ page })
   );
   await expect(navigation.getByRole("link", { name: /Previous part/ })).toHaveCount(0);
   await expect(
-    navigation.getByRole("link", { name: new RegExp(`Next part.*${writingArticles[1].title}`) }),
-  ).toHaveAttribute("href", writingArticles[1].route);
+    navigation.getByRole("link", { name: new RegExp(`Next part.*${replayableArticles[1].title}`) }),
+  ).toHaveAttribute("href", replayableArticles[1].route);
 });
 
 test("content pages publish dedicated PNG social cards", async ({ page, request }) => {

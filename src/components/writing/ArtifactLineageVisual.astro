@@ -1,0 +1,241 @@
+---
+import FlowArrow from "../FlowArrow.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const buildInputs = [
+  {
+    className: "source-input",
+    eyebrow: "Source",
+    title: "Commit 4f2c8e1",
+    detail: "Reviewed code",
+  },
+  {
+    className: "recipe-input",
+    eyebrow: "Build recipe",
+    title: "Dockerfile + lockfile",
+    detail: "Pinned inputs",
+  },
+] as const;
+
+const environments = [
+  {
+    className: "staging-target",
+    eyebrow: "Staging",
+    title: "Same digest",
+    detail: "Config staging-18",
+  },
+  {
+    className: "production-target",
+    eyebrow: "Production",
+    title: "Same digest",
+    detail: "Config prod-42",
+  },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Artifact lineage"
+  title="Build once; promote the digest"
+  status="One release unit"
+  caption="Source and build inputs produce one content-addressed image. Staging and production bind their own configuration to that same digest, so promotion changes placement without changing the release unit."
+  number="01 / ARTIFACT IDENTITY"
+>
+  <div class="lineage-map" aria-label="One image digest promoted to staging and production">
+    {
+      buildInputs.map(({ className, eyebrow, title, detail }, index) => (
+        <>
+          <article class={className}>
+            <span>{eyebrow}</span>
+            <strong>{title}</strong>
+            <small>{detail}</small>
+          </article>
+          <div class:list={["input-link", `input-link-${index + 1}`]}>
+            <FlowArrow particle={index === 0} delayed={index === 1} />
+          </div>
+        </>
+      ))
+    }
+
+    <article class="release-artifact">
+      <span>CI build · OCI image</span>
+      <strong>orders-api</strong>
+      <span class="digest">sha256:7a31…c902</span>
+      <dl>
+        <div>
+          <dt>Source</dt>
+          <dd>4f2c8e1</dd>
+        </div>
+        <div>
+          <dt>Platform</dt>
+          <dd>linux/amd64</dd>
+        </div>
+      </dl>
+      <small>Immutable release identity</small>
+    </article>
+
+    {
+      environments.map(({ className, eyebrow, title, detail }, index) => (
+        <>
+          <div class:list={["target-link", `target-link-${index + 1}`]}>
+            <FlowArrow particle delayed={index === 1} />
+          </div>
+          <article class={className}>
+            <span>{eyebrow}</span>
+            <strong>{title}</strong>
+            <span class="digest">sha256:7a31…c902</span>
+            <small>{detail}</small>
+          </article>
+        </>
+      ))
+    }
+  </div>
+</TechnicalFigure>
+
+<style>
+  .lineage-map {
+    display: grid;
+    height: 100%;
+    grid-template-columns:
+      minmax(0, 0.9fr) 1.15rem minmax(0, 1.22fr) 1.15rem
+      minmax(0, 0.9fr);
+    grid-template-rows: repeat(2, minmax(4.25rem, 1fr));
+    gap: 0.5rem 0.45rem;
+    align-content: center;
+    align-items: stretch;
+  }
+
+  article {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 0.3rem;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel);
+    padding: 0.65rem 0.7rem;
+  }
+
+  article span,
+  article small,
+  dt {
+    color: var(--visual-muted);
+    font-family: var(--font-mono);
+    font-size: 0.43rem;
+    font-weight: 650;
+    letter-spacing: 0.075em;
+    text-transform: uppercase;
+  }
+
+  article strong {
+    overflow-wrap: anywhere;
+    color: var(--visual-text);
+    font-size: 0.66rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  article .digest {
+    overflow-wrap: anywhere;
+    color: var(--visual-accent);
+    font-family: var(--font-mono);
+    font-size: 0.49rem;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .source-input,
+  .staging-target {
+    grid-row: 1;
+  }
+
+  .recipe-input,
+  .production-target {
+    grid-row: 2;
+  }
+
+  .source-input,
+  .recipe-input {
+    grid-column: 1;
+  }
+
+  .staging-target,
+  .production-target {
+    grid-column: 5;
+  }
+
+  .release-artifact {
+    grid-row: 1 / 3;
+    grid-column: 3;
+    border-color: var(--visual-accent-strong);
+    background: color-mix(in srgb, var(--visual-panel) 84%, var(--visual-accent-glow));
+    padding: 0.85rem;
+  }
+
+  .release-artifact > span,
+  .release-artifact > small {
+    color: var(--visual-accent);
+  }
+
+  .release-artifact > strong {
+    font-size: 0.86rem;
+  }
+
+  .release-artifact > .digest {
+    border: 1px solid var(--visual-accent-strong);
+    border-radius: 0.3rem;
+    background: color-mix(in srgb, var(--visual-bg) 76%, transparent);
+    padding: 0.42rem 0.5rem;
+    font-size: 0.58rem;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+    margin: 0.2rem 0;
+  }
+
+  dl div {
+    display: grid;
+    min-width: 0;
+    gap: 0.15rem;
+    border-top: 1px solid var(--visual-border-soft);
+    padding-top: 0.35rem;
+  }
+
+  dt,
+  dd {
+    margin: 0;
+  }
+
+  dd {
+    overflow-wrap: anywhere;
+    color: var(--visual-soft);
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+  }
+
+  .input-link,
+  .target-link {
+    display: grid;
+    align-items: center;
+  }
+
+  .input-link {
+    grid-column: 2;
+  }
+
+  .target-link {
+    grid-column: 4;
+  }
+
+  .input-link-1,
+  .target-link-1 {
+    grid-row: 1;
+  }
+
+  .input-link-2,
+  .target-link-2 {
+    grid-row: 2;
+  }
+</style>

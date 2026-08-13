@@ -20,6 +20,14 @@ export const writingSeries = [
     totalParts: 5,
     homepage: { order: 1, part: 1 },
   },
+  {
+    id: "from-image-to-production",
+    name: "From Image to Production",
+    description:
+      "Practical notes on turning one container image into a configured, verified production release.",
+    totalParts: 4,
+    homepage: { order: 2, part: 1 },
+  },
 ] as const satisfies readonly WritingSeriesDefinition[];
 
 export type WritingSeriesId = (typeof writingSeries)[number]["id"];

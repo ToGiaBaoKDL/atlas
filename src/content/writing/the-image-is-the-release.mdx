@@ -1,0 +1,177 @@
+---
+title: The Image Is the Release
+description: Build once, name the result by digest and let environments configure the same artifact instead of quietly creating different releases.
+publishedAt: 2026-08-13T11:15:00+07:00
+draft: false
+topics:
+  - cloud-infrastructure
+  - software-design
+series:
+  id: from-image-to-production
+  part: 1
+---
+
+import ArtifactLineageVisual from "../../components/writing/ArtifactLineageVisual.astro";
+
+The small fix is ready. CI is green, the image works in staging, and production is one approval
+away. Then the production job runs `docker build` again.
+
+Most days, nothing surprising happens. On the day it does, the awkward question is not “why did
+Docker behave differently?” It is **which image did we actually approve?**
+
+If staging and production each build from source, they create two artifacts. The Git commit may be
+the same, but a base-image tag can move, a package repository can return a newer file, build
+arguments can differ, or one runner can use a different builder version. We tested one result and
+deployed another.
+
+That is why I like a simple release rule:
+
+> Build the image once, record its digest, and promote that digest until the release is finished.
+
+This is less about Docker ceremony than keeping the answer to “what is running?” pleasantly boring.
+
+## A rebuild is a new release candidate
+
+A Git revision identifies source. It does not identify the complete runnable filesystem produced
+from that source.
+
+The build also reads a Dockerfile, lockfiles, base images, build arguments and files in the build
+context. It runs through a particular builder on a particular platform. Some of those inputs may be
+stable; others may only look stable because they have friendly names.
+
+Consider `python:3.13-slim`. The tag is useful for people, but its owner can update what the tag
+points to. Rebuilding the same commit later can therefore be a sensible way to pick up a patched
+base—and it is still a new release candidate that needs its own checks.
+
+The same applies when a dependency is fetched without a lock or checksum. “Built from commit
+`4f2c8e1`” tells us where the application code came from. It does not prove two builds produced the
+same image.
+
+This does not mean every build must be bit-for-bit reproducible before a team may deploy. It means
+we should stop treating a second build as a copy operation. It is another production input.
+
+## Give the artifact an identity that cannot drift
+
+Container registries let us find an image by a tag such as `orders-api:2026-08-13`. Underneath that
+name, an OCI descriptor carries a digest: a content identifier calculated from the referenced
+bytes. If the content changes, the digest changes.
+
+Tags and digests are useful for different jobs:
+
+| Reference                     | Good at                                         | Weak at                                              |
+| ----------------------------- | ----------------------------------------------- | ---------------------------------------------------- |
+| `orders-api:2026-08-13`       | Discovery, release notes and human conversation | Proving the tag still points to the reviewed content |
+| `orders-api@sha256:7a31…c902` | Deployment identity and content verification    | Being memorable in a stand-up                        |
+
+Keep the readable tag. Deploy the digest.
+
+The release record should capture the full digest returned by the registry, not a shortened value
+copied from a dashboard. The shortened digest in diagrams and logs is only presentation.
+
+For a multi-platform image, the promoted identity can be the image-index digest. That index may
+select different manifests for `linux/amd64` and `linux/arm64`, but those variants were assembled
+under one immutable index. The important part is not silently rebuilding a platform variant during
+promotion.
+
+## Build once does not mean configure once
+
+Staging and production usually need different database endpoints, credentials, replica counts and
+feature policy. Those differences do not require different application images.
+
+The image should contain the application and its runtime defaults. The environment should bind the
+configuration and secrets appropriate to that deployment. Part 2 will give that runtime boundary
+its own contract; for now, the separation is enough:
+
+<ArtifactLineageVisual />
+
+Both environments run `sha256:7a31…c902`. Staging binds `staging-18`; production binds `prod-42`.
+When production behaves differently, we can investigate configuration, dependencies and traffic
+without first wondering whether the application filesystem changed between builds.
+
+There is one honest exception: if an environment needs a different binary or dependency set, it is
+not merely configuration. Give that variant its own artifact identity and test it as such.
+
+## Keep the image smaller than the build environment
+
+Building once is more useful when the result is easy to inspect and move. A multi-stage Dockerfile
+helps by separating the tools needed to compile or package an application from the files needed to
+run it.
+
+The exact stages vary, but the intent is straightforward:
+
+```dockerfile
+FROM python:3.13-slim@sha256:<reviewed-digest> AS build
+WORKDIR /build
+COPY requirements.lock .
+RUN pip wheel --require-hashes --wheel-dir=/wheels -r requirements.lock
+
+FROM python:3.13-slim@sha256:<reviewed-digest> AS runtime
+COPY --from=build /wheels /wheels
+RUN pip install --no-index /wheels/* && rm -rf /wheels
+COPY src /app/src
+CMD ["python", "-m", "orders_api"]
+```
+
+The compiler, download cache and other build-only files stay out of the runtime stage. The locked
+dependency input and pinned base digest also make an unexpected change easier to locate.
+
+Pinning is not the same as never updating. A base digest will not move on its own, so dependency
+automation or a regular review must propose newer digests. That turns a hidden rebuild surprise
+into a visible source change with a fresh image, fresh tests and a new release identity.
+
+## Record enough lineage to answer ordinary questions
+
+Not every small service needs a large software-supply-chain programme. It still benefits from a
+compact record that connects source, build and deployment:
+
+```yaml
+release: orders-api-2026-08-13.1
+source: 4f2c8e1
+image: ghcr.io/example/orders-api@sha256:7a31...c902
+build: ci-run-1842
+deployments:
+  staging: { config: staging-18 }
+  production: { config: prod-42 }
+```
+
+This record answers useful questions quickly:
+
+- Did production receive the image that passed staging?
+- Which source revision and CI run produced it?
+- Did the image change, or only the environment configuration?
+- Which deployment must be replaced when a vulnerable dependency is found?
+
+Build provenance and an SBOM can strengthen that chain. Current BuildKit tooling can attach
+provenance and SBOM attestations to the image index, and registry workflows can bind an attestation
+to the pushed subject digest. Those are valuable capabilities, especially when policy or multiple
+teams enter the picture. They extend the basic contract; they do not replace the need to deploy the
+artifact we actually reviewed.
+
+## Promotion should move a reference, not repeat work
+
+A practical release path can stay small:
+
+1. CI checks out an exact revision and builds the image.
+2. CI pushes the image, records the registry digest and runs artifact-level checks.
+3. Staging deploys that digest with staging configuration and performs its verification.
+4. Production approval selects the same digest.
+5. Production binds its configuration, deploys and records the observed digest.
+
+The registry may add readable tags during this path. A deployment system may copy the image to
+another trusted registry. Either operation should preserve and verify content identity. If the
+bytes change, we have a new artifact and should say so.
+
+I would flag a release review when it cannot show the digest, rebuilds inside an environment job,
+uses only a mutable tag as deployment state, or cannot connect the running image back to its build.
+These are not automatically security incidents. They are gaps in a simple story the system should
+be able to tell.
+
+The next part moves one boundary outward. Once the image is stable, the runtime contract must say
+which configuration, state, signals and health promises an environment may attach to it.
+
+## Further reading
+
+- [Docker build best practices](https://docs.docker.com/build/building/best-practices/) — multi-stage builds, small contexts, pinned base images and cache-aware ordering.
+- [OCI descriptor digests](https://github.com/opencontainers/image-spec/blob/main/descriptor.md#digests) — the content-addressed identity behind image manifests and indexes.
+- [Docker build attestations](https://docs.docker.com/build/metadata/attestations/) — provenance and SBOM metadata attached by BuildKit.
+- [Publishing Docker images with GitHub Actions](https://docs.github.com/en/actions/tutorials/publish-packages/publish-docker-images) — an official workflow that exposes the pushed image digest and can attach provenance.
