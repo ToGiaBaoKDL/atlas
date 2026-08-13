@@ -29,7 +29,7 @@ Proactively report a better owner when one exists. For Atlas, use Embla for caro
 
 - Use lime for active state, execution order, and data flow. Use neutrals for structure and boundaries. Do not assign colors without semantic meaning.
 - Model architecture accurately before decorating it. Arrows must have a real source and target.
-- Prefer semantic HTML and CSS visuals. Do not replace UI diagrams with raster images or generated artwork unless the user explicitly requests it.
+- Prefer repository-native HTML, CSS, and SVG for technical visuals when code improves accuracy, responsive behavior, reuse, or accessibility. Use raster assets only when the medium requires them; do not write custom code merely because it is possible.
 - Reuse `VisualFrame`, `VisualHeader`, `FlowArrow`, and project visual configuration where they fit. Extract a primitive only after at least two real consumers share the same behavior.
 - Avoid nested card noise, arbitrary gradients, filler metadata, decorative logos, and generic AI-dashboard styling.
 - Keep spacing, radii, borders, type scale, and light/dark contrast token-driven.
@@ -59,6 +59,7 @@ Proactively report a better owner when one exists. For Atlas, use Embla for caro
 2. Delete superseded selectors, variants, data fields, and fallback logic in the same change.
 3. Avoid one-off breakpoints and magic offsets. Name a shared custom property when a value represents a layout contract.
 4. Keep Astro components presentational and static. Add client JavaScript only for behavior CSS and native elements cannot provide.
+5. Keep generated social-card URLs content-addressed and `/og/*` immutable. When the Takumi renderer changes without a content change, increment `SOCIAL_CARD_TEMPLATE_REVISION` so the asset URL rotates before deployment.
 
 ## Verify visually and structurally
 
