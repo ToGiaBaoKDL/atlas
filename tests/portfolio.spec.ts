@@ -68,6 +68,7 @@ const writingArticles = [
 ] as const;
 const firstWritingRoute = replayableArticles[0].route;
 const replayableSeriesRoute = getWritingSeriesPath(replayableSeries.id);
+const deliverySeriesRoute = getWritingSeriesPath(deliverySeries.id);
 const writingSeriesRoutes = homepageWritingSeries.map(({ id }) => getWritingSeriesPath(id));
 
 const criticalRoutes = [
@@ -208,9 +209,9 @@ test("homepage writing spotlight advances one article at a time", async ({ page 
 
 test("homepage writing spotlight switches series", async ({ page }) => {
   await page.goto("/");
-  const seriesButton = page.getByRole("button", {
-    name: new RegExp(deliverySeries.name),
-  });
+  const seriesButton = page
+    .getByRole("group", { name: "Choose a writing series" })
+    .getByRole("button", { name: new RegExp(deliverySeries.name) });
 
   await seriesButton.click();
 
@@ -725,7 +726,56 @@ test("writing series is ordered and has explicit continuation", async ({ page })
   await expect(
     navigation.getByRole("link", { name: new RegExp(`Next part.*${replayableArticles[1].title}`) }),
   ).toHaveAttribute("href", replayableArticles[1].route);
+
+  await page.goto(deliverySeriesRoute);
+  const delivery = page.getByRole("region", { name: `${deliverySeries.name} articles` });
+
+  await expect(delivery.getByText(`Complete · ${deliverySeries.totalParts} parts`)).toBeVisible();
+  await expect(delivery.locator("ol").getByRole("heading", { level: 2 })).toHaveText(
+    deliveryArticles.map(({ title }) => title),
+  );
+
+  const finalDeliveryArticle = deliveryArticles[deliveryArticles.length - 1];
+  await page.goto(finalDeliveryArticle.route);
+  const finalNavigation = page.getByRole("navigation", {
+    name: `${deliverySeries.name} series navigation`,
+  });
+  await expect(finalNavigation.getByRole("link", { name: /Previous part/ })).toHaveAttribute(
+    "href",
+    deliveryArticles[deliveryArticles.length - 2].route,
+  );
+  await expect(finalNavigation.getByRole("link", { name: /Next part/ })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Related writing" })).toHaveCount(0);
 });
+
+test(
+  "mobile series navigation keeps previous and next at opposite edges",
+  { tag: "@mobile" },
+  async ({ page }) => {
+    await page.goto(deliveryArticles[1].route);
+    const navigation = page.getByRole("navigation", {
+      name: `${deliverySeries.name} series navigation`,
+    });
+    const previous = navigation.getByRole("link", { name: /Previous part/ });
+    const next = navigation.getByRole("link", { name: /Next part/ });
+    const [previousBox, previousTitleBox, nextBox, nextTitleBox, previousAlignment, nextAlignment] =
+      await Promise.all([
+        previous.boundingBox(),
+        previous.locator("strong").boundingBox(),
+        next.boundingBox(),
+        next.locator("strong").boundingBox(),
+        previous.evaluate((element) => getComputedStyle(element).textAlign),
+        next.evaluate((element) => getComputedStyle(element).textAlign),
+      ]);
+
+    expect(["left", "start"]).toContain(previousAlignment);
+    expect(nextAlignment).toBe("right");
+    expect(previousTitleBox?.x ?? 0).toBeLessThanOrEqual((previousBox?.x ?? 0) + 17);
+    expect((nextTitleBox?.x ?? 0) + (nextTitleBox?.width ?? 0)).toBeGreaterThanOrEqual(
+      (nextBox?.x ?? 0) + (nextBox?.width ?? 0) - 17,
+    );
+  },
+);
 
 test("content pages publish dedicated PNG social cards", async ({ page, request }) => {
   for (const route of [firstWritingRoute, "/projects/mini-lakehouse/"] as const) {

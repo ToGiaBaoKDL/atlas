@@ -7,7 +7,6 @@ import { site } from "../data/site";
 import { getWritingTopicLabel } from "../data/topics";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import TableOfContents from "./TableOfContents.astro";
-import WritingList from "./WritingList.astro";
 
 interface Props {
   entry: CollectionEntry<"writing">;
@@ -22,24 +21,6 @@ const seriesEntries = entry.data.series
 const seriesIndex = seriesEntries.findIndex(({ id }) => id === entry.id);
 const previousInSeries = seriesIndex > 0 ? seriesEntries[seriesIndex - 1] : undefined;
 const nextInSeries = seriesIndex >= 0 ? seriesEntries[seriesIndex + 1] : undefined;
-const related = entries
-  .filter(
-    ({ id, data }) =>
-      id !== entry.id && (!entry.data.series || data.series?.id !== entry.data.series.id),
-  )
-  .map((candidate) => ({
-    candidate,
-    relevance: candidate.data.topics.filter((topic) => entry.data.topics.includes(topic)).length,
-  }))
-  .filter(({ relevance }) => relevance > 0)
-  .sort(
-    (a, b) =>
-      b.relevance - a.relevance ||
-      b.candidate.data.publishedAt.valueOf() - a.candidate.data.publishedAt.valueOf(),
-  )
-  .slice(0, 3)
-  .map(({ candidate }) => candidate);
-
 const dateFormatter = new Intl.DateTimeFormat("en", {
   day: "2-digit",
   month: "long",
@@ -163,16 +144,6 @@ const articleSchema = {
         </nav>
       )
     }
-
-    {
-      related.length > 0 && (
-        <section class="container related-writing" aria-labelledby="related-writing-heading">
-          <p class="section-kicker">Continue reading</p>
-          <h2 id="related-writing-heading">Related writing</h2>
-          <WritingList entries={related} headingLevel="h3" />
-        </section>
-      )
-    }
   </article>
 </BaseLayout>
 
@@ -245,10 +216,6 @@ const articleSchema = {
     grid-template-columns: minmax(0, 1fr) 14rem;
     gap: clamp(3rem, 8vw, 7rem);
     align-items: start;
-  }
-
-  .related-writing {
-    padding-bottom: clamp(5rem, 10vw, 9rem);
   }
 
   .series-navigation {
@@ -325,14 +292,8 @@ const articleSchema = {
 
   .series-link-next {
     grid-column: 2;
+    justify-items: end;
     text-align: right;
-  }
-
-  .related-writing > h2 {
-    margin: 0 0 2rem;
-    font-size: clamp(1.8rem, 4vw, 3rem);
-    font-weight: 630;
-    letter-spacing: -0.045em;
   }
 
   @media (max-width: 56rem) {
@@ -358,7 +319,6 @@ const articleSchema = {
 
     .series-link-next {
       grid-column: 1;
-      text-align: left;
     }
   }
 </style>
