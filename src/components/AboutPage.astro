@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { education, experiences } from "../data/experience";
 import { site } from "../data/site";
+import ContactIcon from "./ContactIcon.astro";
 import PageHero from "./PageHero.astro";
 ---
 
@@ -11,7 +12,26 @@ import PageHero from "./PageHero.astro";
   section="about"
 >
   <div class="container">
-    <PageHero kicker="About" title="Engineer, builder, lifelong learner." />
+    <PageHero kicker="About" title="Engineer, builder, lifelong learner.">
+      <nav class="profile-links" aria-label="Contact and social links">
+        <a href={site.github} target="_blank" rel="me noopener">
+          <ContactIcon name="github" />
+          GitHub
+        </a>
+        <a href={site.linkedin} target="_blank" rel="me noopener">
+          <ContactIcon name="linkedin" />
+          LinkedIn
+        </a>
+        <a href={`mailto:${site.email}`}>
+          <ContactIcon name="email" />
+          {site.email}
+        </a>
+        <a href={`tel:${site.phone.number}`}>
+          <ContactIcon name="phone" />
+          {site.phone.label}
+        </a>
+      </nav>
+    </PageHero>
 
     <div class="about-intro-grid" data-reveal>
       <div class="about-copy">
@@ -35,10 +55,6 @@ import PageHero from "./PageHero.astro";
         <section>
           <h2>Current focus</h2>
           <p>Data platforms · Lakehouse · Cloud infrastructure · Applied AI</p>
-        </section>
-        <section>
-          <h2>Email</h2>
-          <p><a href={`mailto:${site.email}`}>{site.email}</a></p>
         </section>
       </aside>
     </div>
@@ -139,6 +155,47 @@ import PageHero from "./PageHero.astro";
 
   .about-copy {
     max-width: var(--article-width);
+  }
+
+  .profile-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin-top: clamp(1.75rem, 4vw, 2.5rem);
+    border-top: 1px solid var(--border);
+    padding-top: 1.25rem;
+  }
+
+  .profile-links a {
+    display: inline-flex;
+    min-height: 2.35rem;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    background: var(--bg-elevated);
+    padding: 0.5rem 0.8rem;
+    color: var(--text-soft);
+    font-family: var(--font-mono);
+    font-size: 0.76rem;
+    text-decoration: none;
+    transition:
+      border-color var(--motion-fast) ease,
+      background-color var(--motion-fast) ease,
+      color var(--motion-fast) ease;
+  }
+
+  .profile-links a:hover,
+  .profile-links a:focus-visible {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+  }
+
+  .profile-links :global([data-contact-icon]) {
+    width: 0.9rem;
+    height: 0.9rem;
+    flex: 0 0 auto;
   }
 
   .about-copy > p {
@@ -362,6 +419,11 @@ import PageHero from "./PageHero.astro";
   }
 
   @media (max-width: 40rem) {
+    .profile-links a {
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
     .experience-role header,
     .education-entry header {
       display: grid;

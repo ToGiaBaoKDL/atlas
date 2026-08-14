@@ -4,6 +4,10 @@ export const site = {
   domain: "tgblab.io.vn",
   employer: "Timo Digital Bank by BVBank",
   email: "baokdl2226@gmail.com",
+  phone: {
+    label: "+84 961 964 353",
+    number: "+84961964353",
+  },
   github: "https://github.com/ToGiaBaoKDL",
   linkedin: "https://www.linkedin.com/in/togiabao",
   resume: "/resume/togia-bao-resume.pdf",

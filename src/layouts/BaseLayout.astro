@@ -54,6 +54,7 @@ const personSchema = {
   jobTitle: site.role,
   worksFor: { "@type": "Organization", name: site.employer },
   email: `mailto:${site.email}`,
+  telephone: site.phone.number,
   sameAs: [site.github, site.linkedin],
   ...(homeUrl ? { url: homeUrl } : {}),
 };

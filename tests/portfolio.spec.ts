@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { getWritingSeriesPath, homepageWritingSeries } from "../src/data/series";
+import { site } from "../src/data/site";
 
 const replayableArticles = [
   {
@@ -163,6 +164,28 @@ test("mobile navigation opens, links and closes", { tag: "@mobile" }, async ({ p
   await expect(dialog).not.toBeVisible();
 });
 
+test("about owns contact links and the site footer stays minimal", async ({ page }) => {
+  await page.goto("/about/");
+  const contacts = page.getByRole("navigation", { name: "Contact and social links" });
+
+  await expect(contacts.getByRole("link", { name: "GitHub" })).toHaveAttribute("href", site.github);
+  await expect(contacts.getByRole("link", { name: "LinkedIn" })).toHaveAttribute(
+    "href",
+    site.linkedin,
+  );
+  await expect(contacts.getByRole("link", { name: site.email })).toHaveAttribute(
+    "href",
+    `mailto:${site.email}`,
+  );
+  await expect(contacts.getByRole("link", { name: site.phone.label })).toHaveAttribute(
+    "href",
+    `tel:${site.phone.number}`,
+  );
+
+  const footer = page.locator("footer.site-footer");
+  await expect(footer.getByRole("link", { name: /GitHub|LinkedIn|Resume|Email/ })).toHaveCount(0);
+});
+
 test("homepage showcases every project visual", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
@@ -181,31 +204,39 @@ test("homepage showcases every project visual", async ({ page }) => {
   );
 });
 
-test("homepage writing spotlight advances one article at a time", async ({ page }) => {
-  await page.goto("/");
-  const carousel = page.getByRole("region", { name: `${replayableSeries.name} articles` });
-  const status = page.getByRole("status");
-  const controls = page.getByRole("button", {
-    name: new RegExp(`article in ${replayableSeries.name}`),
-  });
+test(
+  "homepage writing spotlight advances by direct drag",
+  { tag: "@desktop" },
+  async ({ page }) => {
+    await page.goto("/");
+    const carousel = page.getByRole("region", { name: `${replayableSeries.name} articles` });
+    const status = page.getByRole("status");
 
-  await expect(status).toHaveText("Part 01 / 05");
-  for (const control of await controls.all()) {
-    const box = await control.boundingBox();
-    expect(box?.width).toBeLessThanOrEqual(36);
-    expect(box?.height).toBeLessThanOrEqual(36);
-  }
-  await expect(
-    carousel.getByRole("link", { name: new RegExp(replayableArticles[0].title) }),
-  ).toBeVisible();
+    await expect(status).toHaveText("Part 01 / 05");
+    await expect(
+      page.getByRole("button", { name: new RegExp(`article in ${replayableSeries.name}`) }),
+    ).toHaveCount(0);
+    await expect(
+      carousel.getByRole("link", { name: new RegExp(replayableArticles[0].title) }),
+    ).toBeVisible();
 
-  await page.getByRole("button", { name: `Next article in ${replayableSeries.name}` }).click();
+    await carousel.scrollIntoViewIfNeeded();
+    const box = await carousel.boundingBox();
+    expect(box).not.toBeNull();
+    if (!box) return;
 
-  await expect(status).toHaveText("Part 02 / 05");
-  await expect(
-    carousel.getByRole("link", { name: new RegExp(replayableArticles[1].title) }),
-  ).toBeVisible();
-});
+    const dragY = box.y + box.height / 2;
+    await page.mouse.move(box.x + box.width * 0.8, dragY);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width * 0.2, dragY, { steps: 10 });
+    await page.mouse.up();
+
+    await expect(status).toHaveText("Part 02 / 05");
+    await expect(
+      carousel.getByRole("link", { name: new RegExp(replayableArticles[1].title) }),
+    ).toBeVisible();
+  },
+);
 
 test("homepage writing spotlight switches series", async ({ page }) => {
   await page.goto("/");
@@ -221,52 +252,6 @@ test("homepage writing spotlight switches series", async ({ page }) => {
       .getByRole("region", { name: `${deliverySeries.name} articles` })
       .getByRole("link", { name: new RegExp(deliveryArticles[0].title) }),
   ).toBeVisible();
-});
-
-test("homepage writing spotlight disables navigation until the card settles", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.goto("/");
-
-  const carousel = page.getByRole("region", { name: `${replayableSeries.name} articles` });
-  const next = page.getByRole("button", {
-    name: `Next article in ${replayableSeries.name}`,
-  });
-  const previous = page.getByRole("button", {
-    name: `Previous article in ${replayableSeries.name}`,
-  });
-  const status = page.getByRole("status");
-
-  await next.click();
-  await expect(previous).toBeDisabled();
-  await expect(next).toBeDisabled();
-
-  await next.evaluate((nextButton) => {
-    if (!(nextButton instanceof HTMLButtonElement)) {
-      throw new Error("Expected next carousel button");
-    }
-
-    nextButton.click();
-  });
-
-  expect(await status.textContent()).toBe("Part 02 / 05");
-  await expect(previous).toBeEnabled();
-  await expect(next).toBeEnabled();
-
-  const selectedArticle = carousel.getByRole("link", {
-    name: new RegExp(replayableArticles[1].title),
-  });
-  await expect
-    .poll(
-      async () => {
-        const [viewportBox, cardBox] = await Promise.all([
-          carousel.boundingBox(),
-          selectedArticle.boundingBox(),
-        ]);
-        return Math.abs((cardBox?.x ?? 0) - (viewportBox?.x ?? 0));
-      },
-      { timeout: 3_000 },
-    )
-    .toBeLessThanOrEqual(2);
 });
 
 test("desktop projects use the motion-safe sticky stack", { tag: "@desktop" }, async ({ page }) => {

@@ -125,29 +125,16 @@ const spotlights = groups.map((group) => ({
               </div>
             </div>
 
-            <div class="carousel-controls" data-carousel-controls hidden>
-              <p role="status" data-carousel-status>
-                Part {String(entries[initialIndex]?.data.series?.part ?? 1).padStart(2, "0")}
-                {" / "}
-                {String(series.totalParts).padStart(2, "0")}
-              </p>
-              <div>
-                <button
-                  type="button"
-                  aria-label={`Previous article in ${series.name}`}
-                  data-carousel-previous
-                >
-                  <span aria-hidden="true">←</span>
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Next article in ${series.name}`}
-                  data-carousel-next
-                >
-                  <span aria-hidden="true">→</span>
-                </button>
+            {articles.length > 1 && (
+              <div class="carousel-feedback">
+                <p role="status" data-carousel-status>
+                  Part {String(entries[initialIndex]?.data.series?.part ?? 1).padStart(2, "0")}
+                  {" / "}
+                  {String(series.totalParts).padStart(2, "0")}
+                </p>
+                <p>Swipe or drag to browse</p>
               </div>
-            </div>
+            )}
           </div>
         </section>
       ))
@@ -178,27 +165,16 @@ const spotlights = groups.map((group) => ({
 
       const viewport = carousel.querySelector<HTMLElement>("[data-carousel-viewport]");
       const slides = Array.from(carousel.querySelectorAll<HTMLElement>("[data-carousel-slide]"));
-      const controls = carousel.querySelector<HTMLElement>("[data-carousel-controls]");
-      const previous = carousel.querySelector<HTMLButtonElement>("[data-carousel-previous]");
-      const next = carousel.querySelector<HTMLButtonElement>("[data-carousel-next]");
       const status = carousel.querySelector<HTMLElement>("[data-carousel-status]");
 
-      if (!viewport || !controls || !previous || !next || !status || slides.length === 0) return;
+      if (!viewport || slides.length === 0) return;
 
       const initialIndex = Number.parseInt(carousel.dataset.initialIndex ?? "0", 10);
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       const embla = EmblaCarousel(viewport, {
         align: "start",
         duration: 18,
         startIndex: Number.isNaN(initialIndex) ? 0 : initialIndex,
       });
-
-      let isTransitioning = false;
-
-      const syncControls = () => {
-        previous.disabled = isTransitioning || !embla.canScrollPrev();
-        next.disabled = isTransitioning || !embla.canScrollNext();
-      };
 
       const syncSelection = () => {
         const selectedIndex = embla.selectedScrollSnap();
@@ -208,44 +184,12 @@ const spotlights = groups.map((group) => ({
           slide.inert = !isSelected;
           slide.setAttribute("aria-hidden", String(!isSelected));
         });
-        status.textContent = slides[selectedIndex]?.dataset.partLabel ?? "";
+        if (status) status.textContent = slides[selectedIndex]?.dataset.partLabel ?? "";
       };
 
-      const syncCarousel = () => {
-        syncSelection();
-        syncControls();
-      };
-
-      const finishTransition = () => {
-        isTransitioning = false;
-        syncCarousel();
-      };
-
-      const scroll = (direction: "previous" | "next") => {
-        if (isTransitioning) return;
-
-        const jump = reduceMotion.matches;
-        isTransitioning = true;
-        syncControls();
-
-        if (direction === "previous") {
-          embla.scrollPrev(jump);
-        } else {
-          embla.scrollNext(jump);
-        }
-
-        if (jump) finishTransition();
-      };
-
-      previous.addEventListener("click", () => scroll("previous"));
-      next.addEventListener("click", () => scroll("next"));
-      embla
-        .on("select", syncSelection)
-        .on("settle", finishTransition)
-        .on("reInit", finishTransition);
+      embla.on("select", syncSelection).on("reInit", syncSelection);
       carousel.setAttribute("data-enhanced", "");
-      controls.hidden = slides.length < 2;
-      syncCarousel();
+      syncSelection();
     };
 
     const activateSeries = (index: number) => {
@@ -472,6 +416,11 @@ const spotlights = groups.map((group) => ({
 
   .article-carousel[data-enhanced] .carousel-viewport {
     overflow: hidden;
+    cursor: grab;
+  }
+
+  .article-carousel[data-enhanced] .carousel-viewport:active {
+    cursor: grabbing;
   }
 
   .carousel-track {
@@ -544,19 +493,15 @@ const spotlights = groups.map((group) => ({
     color: var(--accent);
   }
 
-  .carousel-controls {
+  .carousel-feedback {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    margin-top: 1.6rem;
+    margin-top: 1.25rem;
   }
 
-  .carousel-controls[hidden] {
-    display: none;
-  }
-
-  .carousel-controls p {
+  .carousel-feedback p {
     margin: 0;
     color: var(--text-faint);
     font-family: var(--font-mono);
@@ -566,46 +511,8 @@ const spotlights = groups.map((group) => ({
     text-transform: uppercase;
   }
 
-  .carousel-controls > div {
-    display: flex;
-    overflow: hidden;
-    border: 1px solid var(--border-strong);
-    border-radius: 999px;
-    background: var(--bg-elevated);
-  }
-
-  .carousel-controls button {
-    display: inline-grid;
-    width: 2.25rem;
-    height: 2.25rem;
-    place-items: center;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    color: var(--text);
-    cursor: pointer;
-    transition:
-      background-color var(--motion-fast) ease,
-      color var(--motion-fast) ease;
-  }
-
-  .carousel-controls button + button {
-    border-left: 1px solid var(--border);
-  }
-
-  .carousel-controls button:hover:not(:disabled) {
-    background: var(--accent-soft);
-    color: var(--accent);
-  }
-
-  .carousel-controls button:focus-visible {
-    outline: 0;
-    box-shadow: inset 0 0 0 0.125rem var(--accent);
-  }
-
-  .carousel-controls button:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
+  .carousel-feedback p:last-child {
+    text-align: right;
   }
 
   .writing-empty h2 {
@@ -681,15 +588,10 @@ const spotlights = groups.map((group) => ({
       min-height: 6.2rem;
       padding: 0.9rem 1rem;
     }
-
-    .carousel-controls {
-      margin-top: 1.25rem;
-    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .article-caption h3,
-    .carousel-controls button,
     .series-options button,
     .series-options button::after {
       transition: none;
