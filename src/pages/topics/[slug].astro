@@ -4,7 +4,7 @@ import PageHero from "../../components/PageHero.astro";
 import WritingList from "../../components/WritingList.astro";
 import { getPublishedWriting } from "../../data/content";
 import { site } from "../../data/site";
-import { getWritingTopicLabel, type WritingTopicSlug } from "../../data/topics";
+import { getTopicLabel, type TopicSlug } from "../../data/topics";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
 export async function getStaticPaths() {
@@ -21,12 +21,12 @@ export async function getStaticPaths() {
 }
 
 interface Props {
-  topic: WritingTopicSlug;
+  topic: TopicSlug;
   entries: CollectionEntry<"writing">[];
 }
 
 const { topic, entries } = Astro.props;
-const label = getWritingTopicLabel(topic);
+const label = getTopicLabel(topic);
 const description = `Technical writing by ${site.name} on ${label.toLowerCase()}.`;
 ---
 

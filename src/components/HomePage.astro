@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { getHomepageWritingSeries, getProjects } from "../data/content";
 import { site } from "../data/site";
+import { getTopicLabel } from "../data/topics";
 import ProjectCard from "./ProjectCard.astro";
 import SignatureVisual from "./SignatureVisual.astro";
 import VisualFrame from "./VisualFrame.astro";
@@ -10,6 +11,9 @@ import WritingSpotlight from "./WritingSpotlight.astro";
 const projects = await getProjects();
 const homepageProjects = projects.slice(0, 3);
 const writingSeries = await getHomepageWritingSeries();
+const focusTopics = (["data-platforms", "lakehouse", "cloud-infrastructure"] as const).map(
+  getTopicLabel,
+);
 ---
 
 <BaseLayout
@@ -31,9 +35,7 @@ const writingSeries = await getHomepageWritingSeries();
         <a class="button button-secondary" href="/about/">About me</a>
       </div>
       <ul class="focus-strip" aria-label="Current focus">
-        <li>Data Platforms</li>
-        <li>Lakehouse Architecture</li>
-        <li>Cloud Infrastructure</li>
+        {focusTopics.map((topic) => <li>{topic}</li>)}
       </ul>
     </div>
     <div class="hero-visual" data-enter="delayed">

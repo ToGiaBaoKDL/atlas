@@ -4,7 +4,7 @@ import { getPublishedWriting, selectWritingSeries } from "../data/content";
 import { getWritingSeries, getWritingSeriesPath } from "../data/series";
 import { getWritingSocialCard } from "../data/social-cards";
 import { site } from "../data/site";
-import { getWritingTopicLabel } from "../data/topics";
+import { getTopicLabel } from "../data/topics";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import TableOfContents from "./TableOfContents.astro";
 
@@ -26,7 +26,7 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
   month: "long",
   year: "numeric",
 });
-const topicLabels = entry.data.topics.map(getWritingTopicLabel);
+const topicLabels = entry.data.topics.map(getTopicLabel);
 const series = entry.data.series ? getWritingSeries(entry.data.series.id) : undefined;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
 const socialCard = getWritingSocialCard(entry);
@@ -103,7 +103,7 @@ const articleSchema = {
         {
           entry.data.topics.map((topic) => (
             <li>
-              <a href={`/topics/${topic}/`}>{getWritingTopicLabel(topic)}</a>
+              <a href={`/topics/${topic}/`}>{getTopicLabel(topic)}</a>
             </li>
           ))
         }

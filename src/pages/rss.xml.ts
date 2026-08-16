@@ -1,7 +1,7 @@
 import rss from "@astrojs/rss";
 import type { APIRoute } from "astro";
 import { getPublishedWriting } from "../data/content";
-import { getWritingTopicLabel } from "../data/topics";
+import { getTopicLabel } from "../data/topics";
 import { site as profile } from "../data/site";
 
 export const GET: APIRoute = async (context) => {
@@ -17,7 +17,7 @@ export const GET: APIRoute = async (context) => {
       description: entry.data.description,
       pubDate: entry.data.publishedAt,
       link: `/writing/${entry.id}/`,
-      categories: entry.data.topics.map(getWritingTopicLabel),
+      categories: entry.data.topics.map(getTopicLabel),
       author: profile.email,
     })),
   });

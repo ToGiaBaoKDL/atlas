@@ -1,7 +1,7 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import { getWritingSeries } from "../data/series";
-import { getWritingTopicLabel } from "../data/topics";
+import { getTopicLabel } from "../data/topics";
 
 interface Props {
   entries: CollectionEntry<"writing">[];
@@ -38,7 +38,7 @@ const dateFormatter = new Intl.DateTimeFormat("en", {
             <p>{entry.data.description}</p>
             <ul class="writing-tags" aria-label="Topics">
               {entry.data.topics.map((topic) => (
-                <li>{getWritingTopicLabel(topic)}</li>
+                <li>{getTopicLabel(topic)}</li>
               ))}
             </ul>
           </div>
