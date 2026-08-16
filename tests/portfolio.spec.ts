@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 import { getWritingSeriesPath, homepageWritingSeries } from "../src/data/series";
@@ -628,6 +629,44 @@ test("RSS endpoint is valid XML", async ({ request }) => {
   expect(response.ok()).toBe(true);
   expect(response.headers()["content-type"]).toContain("application/xml");
   expect(await response.text()).toContain("<rss");
+});
+
+test("pages ship a hardened content security policy", async ({ page }) => {
+  await page.goto("/");
+  const csp = await page
+    .locator('meta[http-equiv="content-security-policy"]')
+    .getAttribute("content");
+  expect(csp).toBeTruthy();
+  for (const directive of [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+    "upgrade-insecure-requests",
+    "img-src 'self' data:",
+    "font-src 'self'",
+  ]) {
+    expect(csp, `missing "${directive}"`).toContain(directive);
+  }
+  expect(csp).toContain("script-src 'self'");
+  expect(csp).toMatch(/script-src[^;]*'sha256-/);
+  expect(csp).not.toContain("unsafe-inline");
+  expect(csp).not.toContain("unsafe-eval");
+});
+
+test("security headers are pinned in public/_headers", async () => {
+  const headers = readFileSync(new URL("../public/_headers", import.meta.url), "utf-8");
+  for (const required of [
+    "Strict-Transport-Security: max-age=31536000; includeSubDomains",
+    "X-Content-Type-Options: nosniff",
+    "X-Frame-Options: DENY",
+    "Referrer-Policy: strict-origin-when-cross-origin",
+    "Cross-Origin-Opener-Policy: same-origin",
+  ]) {
+    expect(headers, `missing "${required}"`).toContain(required);
+  }
+  expect(headers).toContain("/content-manifest.json");
+  expect(headers).toContain("X-Robots-Tag: noindex");
 });
 
 test("publish boundary keeps its stages aligned", async ({ page }) => {
