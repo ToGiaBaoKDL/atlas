@@ -4,83 +4,130 @@ import { expect, test } from "@playwright/test";
 import { getWritingSeriesPath, homepageWritingSeries } from "../src/data/series";
 import { site } from "../src/data/site";
 
-const replayableArticles = [
-  {
-    route: "/writing/backfills-are-a-data-model-problem/",
-    title: "Backfills Are a Data Model Problem, Not an Airflow Feature",
-    part: 1,
-    publishedAt: "2026-08-12T00:00:00.000Z",
-  },
-  {
-    route: "/writing/idempotent-writes-are-not-replay-safety/",
-    title: "Idempotent Writes Are Not Replay Safety",
-    part: 2,
-    publishedAt: "2026-08-12T05:30:00.000Z",
-  },
-  {
-    route: "/writing/late-data-without-endless-reprocessing/",
-    title: "Late Data Without Endless Reprocessing",
-    part: 3,
-    publishedAt: "2026-08-12T06:45:00.000Z",
-  },
-  {
-    route: "/writing/validation-is-not-a-publish-protocol/",
-    title: "Validation Is Not a Publish Protocol",
-    part: 4,
-    publishedAt: "2026-08-12T07:25:00.000Z",
-  },
-  {
-    route: "/writing/proving-a-pipeline-is-replayable/",
-    title: "Proving a Pipeline Is Replayable",
-    part: 5,
-    publishedAt: "2026-08-12T08:18:00.000Z",
-  },
-] as const;
+interface ManifestSeries {
+  id: string;
+  name: string;
+  description: string;
+  totalParts: number;
+  route: string;
+}
+
+interface ManifestWritingSeries {
+  id: string;
+  part: number;
+  totalParts: number;
+}
+
+interface ManifestWriting {
+  id: string;
+  route: string;
+  title: string;
+  description: string;
+  publishedAt: string;
+  updatedAt: string | null;
+  draft: boolean;
+  topics: string[];
+  topicLabels: string[];
+  series: ManifestWritingSeries | null;
+}
+
+interface ManifestProject {
+  id: string;
+  route: string;
+  title: string;
+  description: string;
+  outcome: string;
+  role: string;
+  period: string;
+  status: string;
+  statusLabel: string;
+  featured: boolean;
+  order: number;
+  topics: string[];
+  topicLabels: string[];
+  stack: string[];
+  links: { repository?: string; demo?: string };
+}
+
+interface ContentManifest {
+  generatedAt: string;
+  projects: ManifestProject[];
+  writing: ManifestWriting[];
+  series: ManifestSeries[];
+}
+
+// The manifest is emitted by the build itself, so the suite asserts against
+// the content actually rendered instead of hardened copies of it.
+const manifest = JSON.parse(
+  readFileSync(new URL("../dist/content-manifest.json", import.meta.url), "utf-8"),
+) as ContentManifest;
+
+const manifestSeriesById = new Map(manifest.series.map((series) => [series.id, series]));
+
+interface WritingArticle {
+  route: string;
+  title: string;
+  publishedAt: string;
+  part: number;
+  seriesName: string;
+}
+
+const articlesForSeries = (seriesId: string): WritingArticle[] =>
+  manifest.writing
+    .filter(({ series }) => series?.id === seriesId)
+    .sort((a, b) => (a.series?.part ?? 0) - (b.series?.part ?? 0))
+    .map((entry) => ({
+      route: entry.route,
+      title: entry.title,
+      publishedAt: entry.publishedAt,
+      part: entry.series?.part ?? 0,
+      seriesName: manifestSeriesById.get(seriesId)?.name ?? seriesId,
+    }));
+
 const replayableSeries = homepageWritingSeries[0];
 const deliverySeries = homepageWritingSeries[1];
-const deliveryArticles = [
-  {
-    route: "/writing/the-image-is-the-release/",
-    title: "The Image Is the Release",
-    part: 1,
-    publishedAt: "2026-08-13T04:15:00.000Z",
-  },
-  {
-    route: "/writing/a-container-needs-a-runtime-contract/",
-    title: "A Container Needs a Runtime Contract",
-    part: 2,
-    publishedAt: "2026-08-13T07:15:00.000Z",
-  },
-  {
-    route: "/writing/deployment-is-a-state-transition/",
-    title: "Deployment Is a State Transition",
-    part: 3,
-    publishedAt: "2026-08-13T09:15:00.000Z",
-  },
-  {
-    route: "/writing/production-must-confirm-the-release/",
-    title: "Production Must Confirm the Release",
-    part: 4,
-    publishedAt: "2026-08-13T11:15:00.000Z",
-  },
-] as const;
-const writingArticles = [
-  ...replayableArticles.map((article) => ({ ...article, series: replayableSeries })),
-  ...deliveryArticles.map((article) => ({ ...article, series: deliverySeries })),
-] as const;
+const replayableArticles = articlesForSeries(replayableSeries.id);
+const deliveryArticles = articlesForSeries(deliverySeries.id);
+const writingArticles = [...replayableArticles, ...deliveryArticles];
+
+const assertManifest = (condition: boolean, message: string) => {
+  if (!condition) throw new Error(`Content manifest is invalid: ${message}`);
+};
+
+assertManifest(
+  replayableArticles.length === replayableSeries.totalParts,
+  `series "${replayableSeries.id}" must publish every part`,
+);
+assertManifest(
+  deliveryArticles.length === deliverySeries.totalParts,
+  `series "${deliverySeries.id}" must publish every part`,
+);
+assertManifest(
+  writingArticles.length === manifest.writing.length,
+  "every published entry must belong to a configured series",
+);
+assertManifest(manifest.projects.length > 0, "at least one project must be published");
+
 const firstWritingRoute = replayableArticles[0].route;
 const replayableSeriesRoute = getWritingSeriesPath(replayableSeries.id);
 const deliverySeriesRoute = getWritingSeriesPath(deliverySeries.id);
 const writingSeriesRoutes = homepageWritingSeries.map(({ id }) => getWritingSeriesPath(id));
+const firstProject = manifest.projects[0];
+const projectRoute = (id: string): string => {
+  const route = manifest.projects.find((project) => project.id === id)?.route;
+  if (!route) throw new Error(`Project "${id}" is missing from the content manifest.`);
+  return route;
+};
+const lakehouseRoute = projectRoute("mini-lakehouse");
+const marketPulseRoute = projectRoute("vn-market-pulse");
 
 const criticalRoutes = [
   "/",
   "/projects/",
-  "/projects/mini-lakehouse/",
-  "/projects/vn-market-pulse/",
+  ...manifest.projects.map(({ route }) => route),
   "/writing/",
   ...writingSeriesRoutes,
-  ...writingArticles.map(({ route }) => route),
+  ...manifest.writing.map(({ route }) => route),
   "/about/",
 ] as const;
 
@@ -103,7 +150,7 @@ for (const route of criticalRoutes) {
 
 for (const route of [
   "/",
-  "/projects/mini-lakehouse/",
+  firstProject.route,
   "/writing/",
   ...writingArticles.map(({ route }) => route),
   "/about/",
@@ -424,7 +471,7 @@ test("project cards use overviews while case studies keep desktop detail", async
   await expect(cardVisual).not.toHaveCSS("aspect-ratio", "auto");
   await expect(cardContent).not.toHaveCSS("transform", "none");
 
-  await page.goto("/projects/mini-lakehouse/");
+  await page.goto(firstProject.route);
   const caseStudyVisual = page.locator(".project-cover-visual .visual-frame");
   const caseStudyContent = caseStudyVisual.locator(":scope > *");
   await expect(caseStudyVisual).toHaveCount(1);
@@ -444,8 +491,7 @@ test("technical visual canvases do not clip their internal layouts", async ({ pa
   for (const route of [
     "/",
     "/projects/",
-    "/projects/mini-lakehouse/",
-    "/projects/vn-market-pulse/",
+    ...manifest.projects.map(({ route }) => route),
     ...writingArticles.map(({ route }) => route),
   ]) {
     await page.goto(route);
@@ -473,7 +519,7 @@ test("technical visual canvases do not clip their internal layouts", async ({ pa
 });
 
 test("mini lakehouse visual keeps deployment and data boundaries explicit", async ({ page }) => {
-  await page.goto("/projects/mini-lakehouse/");
+  await page.goto(lakehouseRoute);
   const visual = page.locator(".project-cover-visual .lakehouse-map");
 
   await expect(visual.locator(".data-stage strong")).toHaveText([
@@ -491,7 +537,7 @@ test("mini lakehouse visual keeps deployment and data boundaries explicit", asyn
 });
 
 test("market pulse visual keeps a compact, explicit responsibility path", async ({ page }) => {
-  await page.goto("/projects/vn-market-pulse/");
+  await page.goto(marketPulseRoute);
   const visual = page.locator(".project-cover-visual .market-map");
 
   await expect(visual.locator("article strong")).toHaveText([
@@ -596,7 +642,7 @@ test(
   "mobile inline case-study visuals use complete overview frames",
   { tag: "@mobile" },
   async ({ page }) => {
-    for (const route of ["/projects/mini-lakehouse/", "/projects/vn-market-pulse/"] as const) {
+    for (const route of manifest.projects.map(({ route }) => route)) {
       await page.goto(route);
       const figures = page.locator(".technical-figure");
       await expect(figures).not.toHaveCount(0);
@@ -696,7 +742,7 @@ for (const article of writingArticles) {
       article.publishedAt,
     );
     await expect(page.locator(".article-hero .section-kicker")).toHaveText(
-      `${article.series.name} · Part ${String(article.part).padStart(2, "0")}`,
+      `${article.seriesName} · Part ${String(article.part).padStart(2, "0")}`,
     );
     expect(await page.locator(".technical-figure").count()).toBeGreaterThan(0);
     const figureNumbers = page.locator(".technical-figure figcaption > span");
@@ -714,7 +760,7 @@ for (const article of writingArticles) {
           datePublished: article.publishedAt,
           isPartOf: expect.objectContaining({
             "@type": "CreativeWorkSeries",
-            name: article.series.name,
+            name: article.seriesName,
           }),
           position: article.part,
         }),
@@ -801,7 +847,7 @@ test(
   },
 );
 
-for (const route of [firstWritingRoute, "/projects/mini-lakehouse/"] as const) {
+for (const route of [firstWritingRoute, firstProject.route] as const) {
   test(
     `${route} table of contents tracks the current section`,
     { tag: "@desktop" },
@@ -824,7 +870,7 @@ for (const route of [firstWritingRoute, "/projects/mini-lakehouse/"] as const) {
 }
 
 test("content pages publish dedicated PNG social cards", async ({ page, request }) => {
-  for (const route of [firstWritingRoute, "/projects/mini-lakehouse/"] as const) {
+  for (const route of [firstWritingRoute, firstProject.route] as const) {
     await page.goto(route);
     const socialImage = await page.locator('meta[property="og:image"]').getAttribute("content");
 
@@ -885,19 +931,26 @@ test("production SEO metadata is canonical and internally consistent", async ({
 });
 
 test("project metadata describes the case study", async ({ page }) => {
-  await page.goto("/projects/mini-lakehouse/");
+  await page.goto(firstProject.route);
   await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "article");
   await expect(page.locator('meta[property="article:tag"]')).not.toHaveCount(0);
 
   const graph = await page.locator('script[type="application/ld+json"]').textContent();
-  expect(JSON.parse(graph ?? "{}")["@graph"]).toEqual(
-    expect.arrayContaining([
+  const expected = [
+    expect.objectContaining({
+      "@type": "SoftwareSourceCode",
+      name: firstProject.title,
+    }),
+  ];
+  if (firstProject.links.repository) {
+    expected.push(
       expect.objectContaining({
         "@type": "SoftwareSourceCode",
-        codeRepository: "https://github.com/ToGiaBaoKDL/mini-lakehouse",
+        codeRepository: firstProject.links.repository,
       }),
-    ]),
-  );
+    );
+  }
+  expect(JSON.parse(graph ?? "{}")["@graph"]).toEqual(expect.arrayContaining(expected));
 });
 
 test("404 stays out of indexable metadata", async ({ page }) => {

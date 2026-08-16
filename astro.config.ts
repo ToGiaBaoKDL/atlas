@@ -17,7 +17,7 @@ export default defineConfig({
     syntaxHighlight: "prism",
     processor: satteri({ hastPlugins: [focusableOverflowPlugin] }),
   },
-  integrations: [mdx(), ...(site ? [sitemap()] : [])],
+  integrations: [mdx(), ...(site ? [sitemap({ filter: (page) => !page.endsWith(".json") })] : [])],
   security: {
     csp: {
       directives: [
