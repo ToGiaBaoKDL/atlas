@@ -15,6 +15,7 @@
     "check:release": "pnpm check && playwright test",
     "test:e2e": "SITE_URL=https://portfolio.example pnpm build && playwright test",
     "test:e2e:update": "SITE_URL=https://portfolio.example pnpm build && playwright test --update-snapshots",
+    "test:update-snapshots": "docker run --rm --user root --workdir /work --volume $PWD:/work -e CI=true -e COREPACK_ENABLE_DOWNLOAD_PROMPT=0 -e npm_config_store_dir=/root/.pnpm-store mcr.microsoft.com/playwright:v1.62.1-noble sh -c 'corepack enable && corepack install && pnpm install --frozen-lockfile && SITE_URL=https://portfolio.example pnpm test:e2e:update'",
     "format": "prettier --write ."
   },
   "dependencies": {

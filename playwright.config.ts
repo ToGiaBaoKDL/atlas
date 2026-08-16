@@ -1,8 +1,6 @@
-import { existsSync } from "node:fs";
 import { defineConfig } from "@playwright/test";
 
-const systemChrome = ["/usr/bin/google-chrome", "/usr/bin/google-chrome-stable"].find(existsSync);
-const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ?? systemChrome;
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH;
 const testOrigin = "http://127.0.0.1:4329";
 
 export default defineConfig({
