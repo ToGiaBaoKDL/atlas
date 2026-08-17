@@ -5,15 +5,16 @@ export const experiences = [
     company: site.employer,
     role: site.role,
     location: "Ho Chi Minh City, Vietnam",
-    startDate: "2025-08",
-    startLabel: "Aug 2025",
+    startDate: "2025-05",
+    startLabel: "May 2025",
     summary:
-      "Building governed data workflows, analytics systems and internal tools across the platform and operations stack.",
+      "Building batch pipelines, lakehouse analytics and AI-assisted internal tools across the platform and operations stack.",
     highlights: [
-      "Built ingestion workflows with Amazon EMR and AWS Glue, masking sensitive fields before curated data and using dbt for analytics-ready models.",
-      "Delivered an MCP-powered Slack analytics interface grounded in dbt documentation, Lightdash dashboards and semantic-layer metadata.",
-      "Automated recurring MongoDB backup validation and general-ledger lookup workflows, replacing two manual operational checks.",
-      "Built monitoring for Airflow, Athena and S3, and migrated the observability stack from Loki and Grafana to SigNoz.",
+      "Built batch pipelines syncing MariaDB into a landing–curated–analytics lakehouse with Amazon EMR and AWS Glue, masking PII before curated data and using dbt for analytics-ready models.",
+      "Built a FastMCP server powering conversational analytics in Slack, grounded in dbt docs, Lightdash dashboards and semantic-layer metadata for self-service discovery.",
+      "Automated MongoDB backup validation and general-ledger lookups with Python and Airflow, eliminating recurring manual effort.",
+      "Built GenBI dashboards and monitoring for Airflow, Athena and S3 with Lightdash and dbt, and migrated Timo Metrics from Loki and Grafana to SigNoz.",
+      "Delivered Tracking247 for the Customer team: a Streamlit app with Airflow pipelines syncing shipment status into MongoDB, centralising updates and cutting manual follow-up.",
     ],
   },
 ] as const;
