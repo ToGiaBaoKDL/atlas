@@ -1,0 +1,240 @@
+---
+import FlowArrow from "../FlowArrow.astro";
+import TechnicalFigure from "../TechnicalFigure.astro";
+
+const inputs = [
+  { label: "Decision", value: "Close prior day", detail: "Finance · revenue" },
+  { label: "Grain", value: "Date × channel × currency", detail: "Composite identity" },
+  { label: "Promise", value: "07:00 · repair ≤ 2h", detail: "Measured separately" },
+  { label: "Failure cost", value: "Wrong > late", detail: "Hold when unknown" },
+] as const;
+
+const constraints = [
+  { label: "Cadence", value: "07:00 budget" },
+  { label: "Evidence", value: "Repair inputs retained" },
+  { label: "Publication", value: "Replace named date" },
+  { label: "Observation", value: "SLA + revision" },
+] as const;
+---
+
+<TechnicalFigure
+  eyebrow="Decision-first design"
+  title="Promises shape the architecture"
+  status="Contract owns the choice"
+  caption="The consumer decision, output grain and failure costs define one output contract. That contract produces architecture constraints without naming a storage engine, scheduler or processing framework."
+  number="01.1 / OUTPUT CONTRACT"
+>
+  <section
+    class="decision-map"
+    aria-label="Four consumer requirements defining an output contract, which derives four architecture constraints"
+  >
+    <ul class="input-list" aria-label="Consumer requirements">
+      {
+        inputs.map(({ label, value, detail }) => (
+          <li>
+            <span>{label}</span>
+            <strong>{value}</strong>
+            <small>{detail}</small>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="input-links" aria-hidden="true">
+      {inputs.map(() => <FlowArrow />)}
+    </div>
+
+    <article class="output-contract">
+      <span>Output contract</span>
+      <strong>daily_order_revenue</strong>
+      <dl>
+        <div>
+          <dt>Key</dt>
+          <dd>Date + channel + currency</dd>
+        </div>
+        <div>
+          <dt>Freshness</dt>
+          <dd>07:00</dd>
+        </div>
+        <div>
+          <dt>Correction</dt>
+          <dd>14 days</dd>
+        </div>
+        <div>
+          <dt>Access</dt>
+          <dd>Finance read</dd>
+        </div>
+      </dl>
+      <small>Portable promise · named owner</small>
+    </article>
+
+    <div class="constraint-link" aria-hidden="true">
+      <span>Derives</span>
+      <FlowArrow />
+    </div>
+
+    <ul class="constraint-list" aria-label="Derived architecture constraints">
+      {
+        constraints.map(({ label, value }) => (
+          <li>
+            <span>{label}</span>
+            <strong>{value}</strong>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</TechnicalFigure>
+
+<style>
+  .decision-map {
+    display: grid;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns:
+      minmax(8.2rem, 1fr) minmax(1.4rem, 0.24fr) minmax(11rem, 1.32fr)
+      minmax(2.1rem, 0.34fr) minmax(9rem, 1.08fr);
+    gap: 0.55rem;
+    align-items: stretch;
+  }
+
+  .input-list,
+  .constraint-list {
+    display: grid;
+    min-width: 0;
+    min-height: 0;
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .input-list li,
+  .constraint-list li,
+  .output-contract {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    border: 1px solid var(--visual-border);
+    border-radius: var(--radius-sm);
+    background: var(--visual-panel);
+  }
+
+  .input-list li {
+    grid-template-columns: minmax(3.2rem, 0.62fr) minmax(0, 1fr);
+    gap: 0.14rem 0.55rem;
+    padding: 0.42rem 0.58rem;
+  }
+
+  .input-list small {
+    grid-column: 2;
+  }
+
+  span,
+  small,
+  dt,
+  dd {
+    font-family: var(--font-mono);
+    font-size: 0.43rem;
+    font-weight: 650;
+    letter-spacing: 0.065em;
+    line-height: 1.3;
+    text-transform: uppercase;
+  }
+
+  span,
+  dt {
+    color: var(--visual-muted);
+  }
+
+  small,
+  dd {
+    color: var(--visual-soft);
+  }
+
+  strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--visual-text);
+    font-size: 0.64rem;
+    font-weight: 610;
+    line-height: 1.2;
+  }
+
+  .input-links {
+    display: grid;
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    gap: 0.4rem;
+    align-items: center;
+  }
+
+  .output-contract {
+    align-self: center;
+    gap: 0.55rem;
+    border-color: var(--visual-accent-strong);
+    background: color-mix(in srgb, var(--visual-panel) 82%, var(--visual-accent-glow));
+    padding: 0.82rem;
+  }
+
+  .output-contract > span,
+  .output-contract > small {
+    color: var(--visual-accent);
+  }
+
+  .output-contract > strong {
+    font-size: 0.84rem;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.48rem;
+    margin: 0.08rem 0;
+  }
+
+  dl div {
+    display: grid;
+    min-width: 0;
+    gap: 0.16rem;
+    border-top: 1px solid var(--visual-border-soft);
+    padding-top: 0.36rem;
+  }
+
+  dt,
+  dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+
+  dd {
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .constraint-link {
+    display: grid;
+    align-content: center;
+    gap: 0.35rem;
+  }
+
+  .constraint-link span {
+    color: var(--visual-accent);
+    text-align: center;
+  }
+
+  .constraint-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+  }
+
+  .constraint-list li {
+    gap: 0.3rem;
+    padding: 0.62rem;
+  }
+
+  .constraint-list span {
+    color: var(--visual-accent);
+  }
+</style>

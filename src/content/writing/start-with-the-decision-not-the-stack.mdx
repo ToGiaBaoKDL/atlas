@@ -1,0 +1,198 @@
+---
+title: Start With the Decision, Not the Stack
+description: A production data architecture starts with the decision it must support. Define the output grain, freshness, correctness and repair promise before choosing the tools.
+publishedAt: 2026-09-09T09:00:00+07:00
+draft: false
+topics:
+  - data-systems
+  - cloud-infrastructure
+  - software-design
+series:
+  id: designing-data-systems
+  part: 1
+---
+
+import DecisionContractVisual from "../../components/writing/DecisionContractVisual.astro";
+
+The request sounds familiar: finance needs daily revenue, operations wants fresher order metrics,
+and the current pipeline is becoming difficult to change. The first conversation quickly fills with
+Kafka, Airflow, dbt, Spark and whichever warehouse the team already knows.
+
+Those tools may all be useful. They still cannot tell us what the system owes its users.
+
+If that promise is vague, almost any architecture diagram can look reasonable. A five-minute
+streaming pipeline and a daily batch can both be called “near real time” in the right meeting. A
+table can pass every schema check while counting cancelled orders twice. A dashboard can refresh on
+time with yesterday's corrected records missing.
+
+I prefer to begin one step earlier:
+
+> Name the decision, define the output it needs, and make failure costs explicit. Let those promises
+> constrain the architecture before the stack enters the room.
+
+This is not a workshop trick. It gives the engineers, consumers and operators one contract they can
+review together—and a way to reject complexity that does not buy a required outcome.
+
+## A dashboard is not the decision
+
+“Build a finance dashboard” describes a surface. It does not say what someone will do differently
+after reading it.
+
+For the running example in this series, orders arrive from an operational database and partner
+files. Finance closes the previous business day each morning. Operations also watches intraday
+order movement, but that is a different decision with a different tolerance for provisional data.
+
+Start with the finance decision:
+
+- **Consumer:** the finance operations team;
+- **decision:** close and report recognised order revenue for the previous business day;
+- **output:** `daily_order_revenue`;
+- **action when uncertain:** hold the close and investigate rather than publish an estimated total.
+
+That last line matters. If a wrong number costs more than a late number, the system should not hide
+missing partner files behind the most recent successful result. The architecture needs a visible
+incomplete state and an owner who can decide whether to wait, repair or publish with an exception.
+
+The intraday operational metric deserves its own contract. Combining both consumers into one vague
+“orders platform” usually creates an awkward compromise: finance inherits provisional data, while
+operations waits for controls it does not need.
+
+## Give the output an identity
+
+Before discussing storage, define what one output row means. For this example, the grain is:
+
+> One row per business date, sales channel and settlement currency.
+
+The natural identity is therefore the tuple
+`(business_date, sales_channel, settlement_currency)`. Revenue, refunds and order counts are
+measures attached to that identity; they are not part of it.
+
+This small decision rules out several quiet failure modes. Appending a second row for the same key
+is not a harmless retry. Aggregating currencies before conversion changes the meaning of the
+measure. Using ingestion date instead of business date moves late orders into the wrong close.
+
+The grain also tells consumers how to join and aggregate the output. If two teams read “daily
+revenue” differently, the problem exists before SQL is written. A model contract can later enforce
+column names and types, but it cannot choose the business meaning for us.
+
+## Keep freshness, correctness and repair separate
+
+“The data must be correct and on time” is easy to agree with and difficult to operate. Split it into
+promises that can fail independently.
+
+For `daily_order_revenue`, a first useful contract might say:
+
+```yaml
+product: finance.daily_order_revenue
+owner: data-platform
+consumer: finance-operations
+
+grain: [business_date, sales_channel, settlement_currency]
+business_time: order_accepted_at
+
+freshness:
+  ready_by: "07:00 Asia/Ho_Chi_Minh"
+  source_cutoff: "05:30"
+
+correctness:
+  accepted_orders_counted_once: true
+  cancelled_orders_excluded: true
+  refunds_reconciled: true
+
+correction:
+  automatic_window: 14 days
+  publish: replace_affected_business_dates
+  expose_revision: true
+```
+
+This is deliberately a team-owned architecture input, not a claim that every organisation needs
+this exact YAML shape. It can later map into an open data-contract format, dbt model contracts,
+quality checks and service-level monitoring. Keeping the first version small makes it reviewable.
+
+The sections own different questions:
+
+- **Freshness** says when a candidate should be available. It does not prove that all expected input
+  arrived.
+- **Correctness** names invariants the published result must satisfy. “Query succeeded” is not one
+  of them.
+- **Correction** says how far back the system repairs changed truth and how consumers recognise the
+  new revision.
+- **Ownership** says who responds when the promises disagree or cannot be met.
+
+An output can be fresh but incomplete, correct for the data received but late, or corrected after a
+consumer has already acted. One green status should not collapse those meanings.
+
+<DecisionContractVisual />
+
+The left side contains requirements that survive a technology migration. The centre makes them one
+named output contract. Only then does the right side introduce architecture constraints: a bounded
+schedule, retained repair evidence, keyed publication and observable revisions.
+
+## Price the failures before optimising them
+
+Not every defect deserves the same architecture budget. Put each failure beside the decision it can
+damage.
+
+| Failure                           | Effect on the finance close | Useful system response                                         |
+| --------------------------------- | --------------------------- | -------------------------------------------------------------- |
+| Partner file arrives at 07:20     | Close is delayed            | Mark the date incomplete; notify its owner                     |
+| One order is delivered twice      | Revenue is overstated       | Deduplicate by source identity before publication              |
+| A refund changes three days later | A closed date becomes stale | Recompute and replace the affected date; expose a new revision |
+| One source is unavailable         | Completeness is unknown     | Keep the previous revision visible but do not label it current |
+
+The table changes the design conversation. If a twenty-minute delay is acceptable but a silent
+duplicate is not, shaving seconds from transport latency is the wrong first investment. Stable
+source identity and deterministic publication matter more.
+
+It also prevents invented requirements. “We may need petabyte scale” is not a contract. Expected
+volume, peak arrival pattern, allowed delay and repair window are. If those numbers change, the team
+can revisit the constraint with evidence.
+
+## Let each promise produce a constraint
+
+Now the architecture can begin. Every significant choice should be traceable to a promise:
+
+| Contract promise                       | Architecture constraint it creates                                                |
+| -------------------------------------- | --------------------------------------------------------------------------------- |
+| Ready by 07:00 after a 05:30 cutoff    | Ingestion, validation and publication need a measured completion budget           |
+| One row per date, channel and currency | Transformations and publication need a stable composite key                       |
+| Repair the previous 14 days            | Source evidence and transformation versions must remain available for that window |
+| Replace affected dates                 | The serving layer needs an atomic or reader-safe publication boundary             |
+| Expose the active revision             | Tables, checks and consumer-facing metadata need a shared revision identity       |
+
+Notice what is still absent: a scheduler, table format, cloud provider and processing engine. That
+is healthy. Part 2 will examine the source contracts; later parts will choose movement, storage and
+orchestration models. Those choices now have something concrete to satisfy.
+
+This does not mean technology is unimportant. It means a tool earns its place by meeting a named
+constraint. A streaming system is justified when the decision requires its latency and the team can
+operate its state and recovery model—not because streaming looks more modern on the diagram.
+
+## Review the architecture backwards
+
+A short review can catch a surprising amount of accidental complexity:
+
+1. Pick an architecture component and ask which contract promise requires it.
+2. Pick a promise and point to the component, owner and evidence that satisfy it.
+3. Remove one source or delay it beyond the cutoff. Name the state consumers will see.
+4. Correct an order from seven days ago. Trace which evidence is retained and which published slice
+   changes.
+5. Replace a preferred tool. Confirm that the output contract still makes sense.
+
+If a component has no answer to the first question, it may be optional or premature. If a promise
+has no answer to the second, the diagram is incomplete. If replacing a tool changes the business
+meaning, implementation detail has leaked into the contract.
+
+The operational evidence for this article is therefore modest but real: one versioned output
+contract names the consumer, decision, grain, identity, freshness, correctness, correction window
+and owner; every architecture constraint links back to one of those fields.
+
+The next part moves upstream. Once the output promise is clear, each source must explain what its
+records mean, how they change and what can be replayed. A connector can move bytes. It cannot invent
+that contract.
+
+## Further reading
+
+- [AWS Data Analytics Lens workload context](https://docs.aws.amazon.com/wellarchitected/latest/analytics-lens/workload-context-checklist.html) — starts an architecture review with business purpose, intended users, owners and stakeholders.
+- [dbt model contracts](https://docs.getdbt.com/docs/mesh/govern/model-contracts) — build-time guarantees for the shape of selected public models, including important limits around platform enforcement.
+- [Open Data Contract Standard](https://bitol-io.github.io/open-data-contract-standard/latest/) — a vendor-neutral specification covering dataset identity, schema, quality, service levels and ownership.

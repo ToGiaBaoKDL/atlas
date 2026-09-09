@@ -28,6 +28,14 @@ export const writingSeries = [
     totalParts: 4,
     homepage: { order: 2, part: 1 },
   },
+  {
+    id: "designing-data-systems",
+    name: "Designing Data Systems for Production",
+    description:
+      "Practical notes on shaping a data solution that can be operated, changed and recovered in production.",
+    totalParts: 6,
+    homepage: { order: 3, part: 1 },
+  },
 ] as const satisfies readonly WritingSeriesDefinition[];
 
 export type WritingSeriesId = (typeof writingSeries)[number]["id"];
