@@ -5,8 +5,8 @@ export const experiences = [
     company: site.employer,
     role: site.role,
     location: "Ho Chi Minh City, Vietnam",
-    startDate: "2025-05",
-    startLabel: "May 2025",
+    startDate: "2025-03",
+    startLabel: "March 2025",
     summary:
       "Building batch pipelines, lakehouse analytics and AI-assisted internal tools across the platform and operations stack.",
     highlights: [
