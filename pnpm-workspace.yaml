@@ -1,5 +1,8 @@
 allowBuilds:
   esbuild: true
+# The Playwright image and the host install into different stores, so module
+# purges happen occasionally and must never block on a TTY prompt.
+confirmModulesPurge: false
 minimumReleaseAgeExclude:
   - "@takumi-rs/*"
   - takumi-js
