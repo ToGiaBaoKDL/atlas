@@ -1,0 +1,82 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import { site } from "../data/site";
+---
+
+<BaseLayout
+  title="Privacy Policy"
+  description={`Privacy Policy for applications and tools operated by ${site.name}.`}
+>
+  <div class="container">
+    <PageHero
+      kicker="Legal"
+      title="Privacy Policy"
+      description="Information on how personal tools and integrations handle data."
+    />
+
+    <article class="prose privacy-content" data-reveal>
+      <section>
+        <h2>Overview</h2>
+        <p>
+          This Privacy Policy explains how personal automation and synchronization tools
+          (including Math Materials Sync) operated under <code>tgblab.io.vn</code> handle data.
+        </p>
+      </section>
+
+      <section>
+        <h2>Google API Scopes & Data Usage</h2>
+        <p>
+          Our tools may request authorization to interact with Google Drive and Google Sheets APIs:
+        </p>
+        <ul>
+          <li>
+            <strong>Google Drive:</strong> Used exclusively to upload generated document targets and source files to designated Google Drive folders.
+          </li>
+          <li>
+            <strong>Google Sheets:</strong> Used exclusively to append and update tracking records in designated spreadsheets.
+          </li>
+        </ul>
+        <p>
+          We do not read, process, or modify any user data outside of the explicit folders and spreadsheets designated for document synchronization.
+        </p>
+      </section>
+
+      <section>
+        <h2>Data Storage & Sharing</h2>
+        <p>
+          OAuth tokens and configuration credentials are kept strictly local to the execution environment. No personal data, documents, or tokens are ever collected, transferred, or sold to third parties.
+        </p>
+      </section>
+
+      <section>
+        <h2>Revoking Access</h2>
+        <p>
+          You can revoke application permissions at any time through your
+          <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">
+            Google Account Permissions
+          </a>.
+        </p>
+      </section>
+
+      <section>
+        <h2>Contact</h2>
+        <p>
+          If you have any questions regarding this policy, please contact
+          <a href={`mailto:${site.email}`}>{site.email}</a>.
+        </p>
+      </section>
+    </article>
+  </div>
+</BaseLayout>
+
+<style>
+  .privacy-content {
+    max-width: 68ch;
+    margin-top: 2rem;
+    margin-bottom: 4rem;
+  }
+  .privacy-content section + section {
+    margin-top: 2rem;
+  }
+</style>
